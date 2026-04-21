@@ -42,6 +42,12 @@ public class Usuario {
     @Column
     private String celular;
 
+    @Column 
+    private String cargo;
+
+    @Column(nullable=false)
+    private Boolean recibe_notificaciones = true;
+
     @Column(nullable = false)
     private Boolean activo = true;
 
