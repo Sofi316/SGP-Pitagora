@@ -42,14 +42,14 @@ public class Usuario {
     @Column
     private String celular;
 
+    @Column 
+    private String cargo;
+
+    @Column(nullable=false)
+    private Boolean recibe_notificaciones = true;
+
     @Column(nullable = false)
     private Boolean activo = true;
-
-    @Column(name = "intentos_fallidos")
-    private Integer intentosFallidos = 0;
-
-    @Column(name = "cuenta_bloqueada")
-    private Boolean cuentaBloqueada = false;
 
     @ManyToOne
     @JoinColumn(name = "id_rol", nullable = false)
