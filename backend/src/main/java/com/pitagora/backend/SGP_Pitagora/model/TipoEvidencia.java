@@ -23,6 +23,6 @@ public class TipoEvidencia {
     @Column(name="id_tipo_evidencia")
     private Long id;
 
-    @Column(name="nomre_tipo_evidencia", nullable=false)
+    @Column(name="nombre_tipo_evidencia", nullable=false)
     private String nombre;
 }
