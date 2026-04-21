@@ -34,7 +34,7 @@ public class Solicitud {
     @Column(name = "fecha_hallazgo", nullable = false)
     private LocalDate fechaHallazgo;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(name = "descripcion", nullable = false)
     private String descripcion;
 
     @Column(name = "ubicacion_exacta", nullable = false)
