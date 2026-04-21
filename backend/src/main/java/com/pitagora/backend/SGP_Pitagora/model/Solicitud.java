@@ -46,7 +46,7 @@ public class Solicitud {
     @Column(name = "fecha_firma")
     private LocalDateTime fechaFirma;
 
-    @Column(name = "comentario_cierre", columnDefinition = "TEXT")
+    @Column(name = "comentario_cierre")
     private String comentarioCierre;
     
     @ManyToOne
