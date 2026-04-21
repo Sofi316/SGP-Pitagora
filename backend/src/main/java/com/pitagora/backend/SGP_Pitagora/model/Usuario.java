@@ -51,12 +51,6 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "intentos_fallidos")
-    private Integer intentosFallidos = 0;
-
-    @Column(name = "cuenta_bloqueada")
-    private Boolean cuentaBloqueada = false;
-
     @ManyToOne
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
