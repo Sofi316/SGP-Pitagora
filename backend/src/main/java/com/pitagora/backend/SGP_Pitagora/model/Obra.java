@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,5 +42,7 @@ public class Obra {
     @Column(name="ruta_acta_entrega",columnDefinition="TEXT")
     private String rutaActaEntrega;
 
-    //private EmpresaCliente empresaCliente;
+    @ManyToOne
+    @JoinColumn(name="id_empresa", nullable=false)
+    private EmpresaCliente empresaCliente;
 }
