@@ -1,83 +1,42 @@
-**SGP Pitágora - Sistema de Gestión de Postventa**
+**SGP Pitágora - Sistema de Gestión Postventa Pitágora**
 
-SGP Pitágora es una plataforma web modular diseñada para la Constructora Pitágoras S.A., cuyo propósito es modernizar y automatizar el área de atención al cliente y postventa
-. El sistema reemplaza la gestión manual y desarticulada por un proceso centralizado, robusto y escalable
-.
+SGP Pitágora es una plataforma web modular diseñada para la Constructora Pitágora S.A., cuyo propósito es modernizar y automatizar el área de atención al cliente y postventa . El sistema reemplaza la gestión manual y desarticulada por un proceso centralizado, robusto y escalable .
 
-**Contexto y Diagnóstico**
+**Estado del Proyecto**
 
-La constructora gestiona actualmente sus solicitudes de postventa de forma 100% manual, dependiendo de canales informales como WhatsApp, correos electrónicos y llamadas telefónicas
-. Esta operatividad informal genera:
-- Pérdida de trazabilidad legal: Riesgo crítico ante garantías legales de 3 años (terminaciones), 5 años (instalaciones) y 10 años (estructuras) que respaldan contratos de alta envergadura
-.
-- Caos operativo: Dependencia de la revisión humana para recopilar información dispersa y falta de indicadores de gestión
-.
-- Amenaza a la fidelización: El desorden en la comunicación afecta la relación de confianza con clientes estratégicos como la Universidad Católica y Komatsu
-.
+El desarrollo se encuentra en fase de integración. Ambos repositorios están activos y en proceso de sincronización:
 
-**Objetivos del Proyecto**
+Módulos Listos
+* **Base de Datos:** Modelo relacional completo en PostgreSQL con integridad referencial y auditoría temporal.
+* **Estructura de Repositorios:** Configuración de ambientes para Frontend y Backend.
 
-Objetivo General
+### Módulos en Construcción 
+---
+- Módulo Login
+- Módulo Admin
+- Módulo reportes e indicadores
+- Módulo formulario
+- Módulo cliente
+- Módulo notificaciones
 
-Desarrollar una plataforma web robusta y escalable que permita centralizar la gestión de solicitudes, asegurar la trazabilidad total de los tickets e integrar Inteligencia Artificial básica para optimizar el análisis de datos
-.
 
-Objetivos Específicos
 
-- Centralización: Implementar formularios estandarizados para el ingreso de tickets con seguimiento automático de estados (En proceso, No aplica, Terminado)
-.
-- Inteligencia: Integrar un módulo de análisis mediante Spring AI para la clasificación automatizada de solicitudes y generación de un dashboard visual de KPIs
-.
-- Respaldo Legal: Crear un repositorio digital inalterable ("Caja Fuerte") para el almacenamiento de evidencias fotográficas y documentos técnicos con registro de fecha y hora
-.
+## Stack Tecnológico
 
-**Stack Tecnológico**
+### Frontend (Client)
+* **React 18:** Biblioteca principal para la interfaz de usuario.
+* **Bootstrap 5:** Framework de estilos para diseño responsivo.
+* **Axios:** Cliente HTTP para el consumo de la API REST.
+* **React Router:** Gestión de navegación y rutas protegidas.
 
-El proyecto utiliza una arquitectura monolítica modular y es agnóstico a la nube mediante la contenerización:
+### Backend (Server)
+* **Java 17 & Spring Boot :** Núcleo de la lógica de negocio.
+* **Spring Data JPA:** Abstracción para la persistencia de datos.
+* **Spring Security:** Protección de endpoints mediante JWT.
+* **Maven:** Gestión de dependencias y construcción del proyecto.
 
-- Frontend: React (JavaScript) para una interfaz web responsive
-.
-- Backend: Java con Spring Boot (API REST)
-.
-- Seguridad: Spring Security + JWT (JSON Web Tokens) para control de acceso por perfiles
-.
-- IA: Spring AI para procesamiento de lenguaje natural y categorización de urgencias
-.
-- Persistencia: Motores SQL (como PostgreSQL/MySQL en Supabase) y almacenamiento de objetos PaaS para multimedia
-.
-- Infraestructura: Docker para asegurar paridad entre entornos de desarrollo y producción
-.
+### Base de Datos
+* **PostgreSQL:** Motor relacional para almacenamiento persistente.
 
-**Módulos del Sistema**
+---
 
-- Módulo Login: Autenticación segura y recuperación de contraseña
-.
-- Módulo Admin: Dashboard administrativo con gráficos, filtros de proyectos y edición de estados
-.
-- Módulo Reportes: Generación de métricas y exportación de datos a Excel/PDF
-.
-- Módulo Formulario: Generación automática de IDs, registro de fecha/hora y subida de fotos
-.
-- Módulo Cliente: Interfaz para seguimiento de tickets, adición de observaciones y encuestas de satisfacción
-.
-- Módulo Notificaciones: Envío automático de correos por cambios de estado y recordatorios de firma
-.
-
-**Metodología de Trabajo**
-
-Se utiliza una Metodología Híbrida:
-
-- Fase Predictiva (Cascada): Levantamiento estricto de requerimientos legales y diseño arquitectónico para asegurar la trazabilidad probatoria
-.
-- Fase Ágil (Scrum): Desarrollo iterativo e incremental del software dividido en 4 Sprints funcionales
-.
-
-**Equipo de Desarrollo:**
-
-Integrante, Roles y Responsabilidades:
-- Fabián Sanhueza: Líder de equipo, Desarrollo Frontend y Back end
-.
-- Romina Hormazábal: Arquitectura, Back end y QA/Testing
-.
-- Sofía Hormazábal: Administradora de Base de Datos (DBA), Analista Funcional y QA
-.
