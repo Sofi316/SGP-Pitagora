@@ -31,6 +31,8 @@ public class ArchivoEvidencia {
     @JoinColumn(name="id_tipo_evidencia", nullable=false)
     private TipoEvidencia tipoEvidencia;
 
-    //private Solicitud solicitud;
+    @ManyToOne
+    @JoinColumn(name="id_solicitud", nullable=false)
+    private Solicitud solicitud;
 
 }
