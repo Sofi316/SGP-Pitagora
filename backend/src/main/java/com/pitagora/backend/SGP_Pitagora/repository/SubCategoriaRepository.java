@@ -10,5 +10,7 @@ import com.pitagora.backend.SGP_Pitagora.model.SubCategoria;
 @Repository
 public interface SubCategoriaRepository extends JpaRepository<SubCategoria, Long>{
 
-    List<SubCategoria> findByCategoriaId(Long idCategoria);
+    List<SubCategoria> findByActivoTrue();
+
+    List<SubCategoria> findByCategoriaIdAndActivoTrue(Long id);
 }

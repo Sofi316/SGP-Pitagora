@@ -27,4 +27,7 @@ public class EmpresaCliente {
 
     @Column(name="razon_social", nullable=false)
     private String razonSocial;
+
+    @Column(nullable = false)
+    private Boolean activo = true;
 }

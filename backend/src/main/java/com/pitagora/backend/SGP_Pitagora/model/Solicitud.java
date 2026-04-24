@@ -48,6 +48,9 @@ public class Solicitud {
 
     @Column(name = "comentario_cierre", columnDefinition = "TEXT")
     private String comentarioCierre;
+
+    @Column(nullable = false)
+    private Boolean activo = true;
     
     @ManyToOne
     @JoinColumn(name = "id_estado", nullable = false)

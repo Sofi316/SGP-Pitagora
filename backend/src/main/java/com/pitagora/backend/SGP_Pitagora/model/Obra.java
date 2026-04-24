@@ -42,6 +42,9 @@ public class Obra {
     @Column(name="ruta_acta_entrega",columnDefinition="TEXT")
     private String rutaActaEntrega;
 
+    @Column(nullable = false)
+    private Boolean activo = true;
+
     @ManyToOne
     @JoinColumn(name="id_empresa", nullable=false)
     private EmpresaCliente empresaCliente;
