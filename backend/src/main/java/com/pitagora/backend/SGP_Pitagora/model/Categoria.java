@@ -25,4 +25,7 @@ public class Categoria {
 
     @Column(name="nombre_categoria", nullable=false)
     private String nombre;
+    
+    @Column(nullable = false)
+    private Boolean activo = true;
 }
