@@ -34,7 +34,7 @@ public class Solicitud {
     @Column(name = "fecha_hallazgo", nullable = false)
     private LocalDate fechaHallazgo;
 
-    @Column(name = "descripcion", nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String descripcion;
 
     @Column(name = "ubicacion_exacta", nullable = false)
@@ -46,8 +46,11 @@ public class Solicitud {
     @Column(name = "fecha_firma")
     private LocalDateTime fechaFirma;
 
-    @Column(name = "comentario_cierre")
+    @Column(name = "comentario_cierre", columnDefinition = "TEXT")
     private String comentarioCierre;
+
+    @Column(nullable = false)
+    private Boolean activo = true;
     
     @ManyToOne
     @JoinColumn(name = "id_estado", nullable = false)
