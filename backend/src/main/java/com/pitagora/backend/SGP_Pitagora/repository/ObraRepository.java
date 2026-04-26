@@ -10,5 +10,6 @@ import com.pitagora.backend.SGP_Pitagora.model.Obra;
 @Repository
 public interface ObraRepository extends JpaRepository<Obra, Long>{
 
-    List<Obra> findByEmpresaClienteId(Long idEmpresaCliente);
+    List<Obra> findByActivoTrue();
+    List<Obra> findByEmpresaClienteIdAndActivoTrue(Long id);
 }
