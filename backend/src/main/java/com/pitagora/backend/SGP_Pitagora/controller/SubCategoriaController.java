@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.pitagora.backend.SGP_Pitagora.model.SubCategoria;
 import com.pitagora.backend.SGP_Pitagora.service.SubCategoriaService;
 
@@ -31,6 +31,15 @@ public class SubCategoriaController {
     @GetMapping
     public ResponseEntity<List<SubCategoria>> getAll() {
         return ResponseEntity.ok(subCategoriaService.findAllActivas());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SubCategoria> getById(@PathVariable Long id) {
+        Optional<SubCategoria> subCategorias = subCategoriaService.findById(id);
+        if (subCategorias.isPresent()) {
+            return ResponseEntity.ok(subCategorias.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/categoria/{id}")

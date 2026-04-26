@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pitagora.backend.SGP_Pitagora.model.Categoria;
+import com.pitagora.backend.SGP_Pitagora.model.ComunicacionArchivada;
 import com.pitagora.backend.SGP_Pitagora.service.CategoriaService;
 
 
@@ -32,6 +34,15 @@ public class CategoriaController {
     @GetMapping
     public ResponseEntity<List<Categoria>> getAll(){
         return ResponseEntity.ok(categoriaService.findAllActivas());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Categoria> getById(@PathVariable Long id) {
+        Optional<Categoria> categorias = categoriaService.findById(id);
+        if (categorias.isPresent()) {
+            return ResponseEntity.ok(categorias.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping

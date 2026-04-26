@@ -56,6 +56,6 @@ public class Usuario {
     private Rol rol;
 
     @ManyToOne
-    @JoinColumn(name = "id_empresa")
+    @JoinColumn(name = "id_empresa_cliente")
     private EmpresaCliente empresa;
 }

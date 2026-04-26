@@ -50,12 +50,4 @@ public class ComunicacionArchivadaService {
         return comunicacionArchivadaRepository.save(comunicacionAntigua);
     }
 
-    public boolean delete(Long id) {
-        ComunicacionArchivada comunicacion = comunicacionArchivadaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunicación archivada no encontrada"));
-
-        comunicacionArchivadaRepository.delete(comunicacion);
-        return true;
-    }
-
 }
