@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pitagora.backend.SGP_Pitagora.model.Categoria;
-import com.pitagora.backend.SGP_Pitagora.model.ComunicacionArchivada;
 import com.pitagora.backend.SGP_Pitagora.service.CategoriaService;
 
 
