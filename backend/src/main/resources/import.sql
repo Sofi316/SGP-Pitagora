@@ -49,25 +49,25 @@ INSERT INTO estado_solicitud (nombre_estado) VALUES ('No aplica');
 INSERT INTO tipo_evidencia (nombre_tipo_evidencia) VALUES ('Estado');
 INSERT INTO tipo_evidencia (nombre_tipo_evidencia) VALUES ('Reparacion');
 
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Terminaciones Pisos', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Terminaciones Muros', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Terminaciones Cielos', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Puertas y/o Ventanas', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Mobiliario', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Cubierta', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Sanitario', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Eléctrico', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Climatización', true)
-INSERT INTO categoria (nombre_categoria, activo) VALUES ('Otro', true)
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Terminaciones Pisos', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Terminaciones Muros', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Terminaciones Cielos', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Puertas y/o Ventanas', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Mobiliario', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Cubierta', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Sanitario', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Eléctrico', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Climatización', true);
+INSERT INTO categoria (nombre_categoria, activo) VALUES ('Otro', true);
 
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 1)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 2)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 3)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 4)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 5)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 6)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 7)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 8)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 9)
-INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 10)
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 1);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 2);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 3);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 4);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 5);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 6);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 7);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 8);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 9);
+INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 10);
 

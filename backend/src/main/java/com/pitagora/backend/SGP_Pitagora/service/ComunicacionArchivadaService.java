@@ -1,5 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,9 +25,6 @@ public class ComunicacionArchivadaService {
         return comunicacionArchivadaRepository.findAll();
     }
 
-    public List<ComunicacionArchivada> listarPorSolicitud(Long id) {
-        return comunicacionArchivadaRepository.findBySolicitudId(id);
-    }
 
     public Optional<ComunicacionArchivada> findById(Long id) {
         return comunicacionArchivadaRepository.findById(id);
@@ -50,4 +49,33 @@ public class ComunicacionArchivadaService {
         return comunicacionArchivadaRepository.save(comunicacionAntigua);
     }
 
+    public List<ComunicacionArchivada> filtrarComunicaciones(
+        Long id,
+        LocalDate fechaInicio, // Cambiado a LocalDate
+        LocalDate fechaFin,    // Cambiado a LocalDate
+        String keyword
+    ) {
+        LocalDateTime inicio = null;
+        LocalDateTime fin = null;
+
+        if (fechaInicio != null) {
+            inicio = fechaInicio.atStartOfDay(); 
+        }
+        
+        if (fechaFin != null) {
+            fin = fechaFin.atTime(23, 59, 59, 999999999);
+        }
+
+        String keywordProcesada = null;
+        if (keyword != null && !keyword.isBlank()) {
+            keywordProcesada = "%" + keyword.toLowerCase() + "%";
+        }
+
+        return comunicacionArchivadaRepository.filtrarComunicaciones(
+                id,
+                inicio,
+                fin,
+                keywordProcesada
+        );
+    }
 }

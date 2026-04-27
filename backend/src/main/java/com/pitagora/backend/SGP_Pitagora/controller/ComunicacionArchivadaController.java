@@ -1,8 +1,11 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pitagora.backend.SGP_Pitagora.model.ComunicacionArchivada;
@@ -42,12 +46,26 @@ public class ComunicacionArchivadaController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/solicitud/{id}")
-    public ResponseEntity<List<ComunicacionArchivada>> getBySolicitud(@PathVariable Long id) {
-        List<ComunicacionArchivada> comunicaciones = comunicacionArchivadaService.listarPorSolicitud(id);
+    @GetMapping("/filtrar")
+    public ResponseEntity<List<ComunicacionArchivada>> filtrar(
+            @RequestParam Long id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            @RequestParam(required = false) String keyword
+    ) {
+
+        List<ComunicacionArchivada> comunicaciones =
+                comunicacionArchivadaService.filtrarComunicaciones(
+                        id,
+                        fechaInicio,
+                        fechaFin,
+                        keyword
+                );
+
         if (comunicaciones.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
+
         return ResponseEntity.ok(comunicaciones);
     }
 
