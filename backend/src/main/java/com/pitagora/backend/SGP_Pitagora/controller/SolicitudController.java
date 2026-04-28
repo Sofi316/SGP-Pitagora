@@ -1,9 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,75 +22,64 @@ import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
 @CrossOrigin(origins = "*")
 public class SolicitudController {
 
-    @Autowired
-    private SolicitudService solicitudService;
+    private final SolicitudService solicitudService;
 
-    @GetMapping
+    // Inyección por constructor
+    public SolicitudController (SolicitudService solicitudService) {
+        this.solicitudService = solicitudService;
+    }
+
+    @GetMapping 
     public ResponseEntity<List<Solicitud>> listarTodas() {
-        return new ResponseEntity<>(solicitudService.obtenerTodas(), HttpStatus.OK);
+        return ResponseEntity.ok(solicitudService.obtenerTodas());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Solicitud> obtenerPorId(@PathVariable Long id) {
-        Optional<Solicitud> solicitud = solicitudService.obtenerPorId(id);
-        return solicitud.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return solicitudService.obtenerPorId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Endpoint para obtener todas las solicitudes hechas por un usuario específico
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<List<Solicitud>> obtenerPorUsuario(@PathVariable Long idUsuario) {
-        return new ResponseEntity<>(solicitudService.obtenerPorUsuario(idUsuario), HttpStatus.OK);
+        return ResponseEntity.ok(solicitudService.obtenerPorUsuario(idUsuario));
     }
 
     // Endpoint para obtener todas las solicitudes de una obra/proyecto específico
     @GetMapping("/obra/{idObra}")
     public ResponseEntity<List<Solicitud>> obtenerPorObra(@PathVariable Long idObra) {
-        return new ResponseEntity<>(solicitudService.obtenerPorObra(idObra), HttpStatus.OK);
+        return ResponseEntity.ok(solicitudService.obtenerPorObra(idObra));
     }
 
     @PostMapping
     public ResponseEntity<Solicitud> crear(@RequestBody Solicitud solicitud) {
         Solicitud nuevaSolicitud = solicitudService.guardar(solicitud);
-        return new ResponseEntity<>(nuevaSolicitud, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaSolicitud);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Solicitud> actualizar(@PathVariable Long id, @RequestBody Solicitud detalles) {
-        Optional<Solicitud> solicitudExistente = solicitudService.obtenerPorId(id);
-
-        if (solicitudExistente.isPresent()) {
-            Solicitud solicitudActualizada = solicitudExistente.get();
-            
-            // Actualizamos los campos necesarios (fechaIngreso no se toca porque se maneja en @PrePersist)
-            solicitudActualizada.setFechaHallazgo(detalles.getFechaHallazgo());
-            solicitudActualizada.setDescripcion(detalles.getDescripcion());
-            solicitudActualizada.setUbicacionExacta(detalles.getUbicacionExacta());
-            solicitudActualizada.setTokenValidacion(detalles.getTokenValidacion());
-            solicitudActualizada.setFechaFirma(detalles.getFechaFirma());
-            solicitudActualizada.setComentarioCierre(detalles.getComentarioCierre());
-            solicitudActualizada.setActivo(detalles.getActivo());
-            
-            // Actualizamos las llaves foráneas
-            solicitudActualizada.setEstadoSolicitud(detalles.getEstadoSolicitud());
-            solicitudActualizada.setSubCategoria(detalles.getSubCategoria());
-            solicitudActualizada.setUsuario(detalles.getUsuario());
-            solicitudActualizada.setObra(detalles.getObra());
-
-            return new ResponseEntity<>(solicitudService.guardar(solicitudActualizada), HttpStatus.OK);
+        // Delegamos la lógica de actualización al servicio
+        Solicitud actualizada = solicitudService.update(id, detalles);
+        
+        if (actualizada != null) {
+            return ResponseEntity.ok(actualizada);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        Optional<Solicitud> solicitudExistente = solicitudService.obtenerPorId(id);
-        if (solicitudExistente.isPresent()) {
-            solicitudService.eliminar(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        // Delegamos el borrado lógico al servicio
+        boolean eliminado = solicitudService.delete(id);
+        
+        if (eliminado) {
+            return ResponseEntity.noContent().build();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 }
