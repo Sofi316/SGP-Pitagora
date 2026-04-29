@@ -23,7 +23,6 @@ public class ArchivoEvidenciaController {
 
     private final ArchivoEvidenciaService archivoEvidenciaService;
 
-    // Inyección por constructor (Limpio y recomendado)
     public ArchivoEvidenciaController (ArchivoEvidenciaService archivoEvidenciaService){
         this.archivoEvidenciaService = archivoEvidenciaService;
     }
