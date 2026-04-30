@@ -1,12 +1,14 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -82,4 +84,10 @@ public class SolicitudController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PatchMapping("/{id}/calificar")
+    public ResponseEntity<Solicitud> calificar(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
+        Integer estrellas = body.get("estrellas");
+        return ResponseEntity.ok(solicitudService.registrarCalificacion(id, estrellas));
+    }   
 }

@@ -3,7 +3,10 @@ package com.pitagora.backend.SGP_Pitagora.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.repository.SolicitudRepository;
 
@@ -75,5 +78,15 @@ public class SolicitudService {
             return true;
         }
         return false;
+    }
+
+    public Solicitud registrarCalificacion(Long id, Integer estrellas) {
+        Solicitud solicitud = solicitudRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (estrellas == null || estrellas < 1 || estrellas > 5) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        solicitud.setCalificacion(estrellas);
+        return solicitudRepository.save(solicitud); 
     }
 }
