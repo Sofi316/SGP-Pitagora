@@ -1,8 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,22 +25,23 @@ public class RolController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Rol>> getAll(){
-        return ResponseEntity.ok(rolService.findAll());
+    public List<Rol> getAll(){
+        return rolService.findAll();
     }
-     @PostMapping
-    public ResponseEntity<Rol> create(@RequestBody Rol rol){
-        Rol nuevoRol = rolService.save(rol);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoRol);
+    @GetMapping("/{id}")
+    public Rol getById(@PathVariable Long id) {
+        return rolService.findById(id);
+    }
+    @PostMapping
+    public Rol create(@RequestBody Rol rol){
+        return rolService.save(rol);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Rol> update(@PathVariable Long id, @RequestBody Rol rol){
-        Rol rolActualizado = rolService.update(id, rol);
-        if (rolActualizado == null){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(rolActualizado);
+    public Rol update(@PathVariable Long id, @RequestBody Rol rol){
+        rol.setId(id);
+        return rolService.save(rol);
+       
     }
 
 

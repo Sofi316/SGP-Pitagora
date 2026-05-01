@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import org.springframework.http.HttpMethod;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -23,12 +23,35 @@ public class SecurityConfiguration {
         this.authenticationProvider = authenticationProvider;
     }
 
-    @Bean
+  @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Público para login y registro
+                // 1. Público 
+                .requestMatchers("/api/auth/**").permitAll() 
+                .requestMatchers("/api/auth/solicitar-recuperacion").permitAll() 
+                .requestMatchers("/api/auth/reset-password").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                // 2. Usuarios: Primero la LISTA 
+                // Usamos el método GET exacto para la lista completa
+                .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/todos").hasRole("ADMIN")
+                
+                // 3. Ver DETALLE de un usuario (Ej: /api/usuarios/5)
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").authenticated()
+                .requestMatchers(HttpMethod.GET,"/api/usuarios/empresa/*").hasRole("ADMIN")
+                // 4. CREAR, EDITAR, ELIMINAR usuarios: Solo ADMIN
+                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+
+
+                // 5. Tablas Maestras (Regiones, Comunas, etc.)
+                .requestMatchers(HttpMethod.GET, "/api/roles").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/roles/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/regiones/**", "/api/comunas/**", "/api/estados-solicitud/**").authenticated()
+                .requestMatchers("/api/regiones/**", "/api/comunas/**", "/api/roles/**", "/api/estados-solicitud/**").hasRole("ADMIN")
+
+                // 6. El resto de la API (Solicitudes, etc.)
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -2,8 +2,6 @@ package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,24 +24,24 @@ public class RegionController {
     public RegionController (RegionService regionService){
         this.regionService = regionService;
     }
-     @GetMapping
-    public ResponseEntity<List<Region>> getAll(){
-        return ResponseEntity.ok(regionService.findAll());
+    @GetMapping
+    public List<Region> getAll(){
+        return regionService.findAll();
+    }
+    @GetMapping("/{id}")
+    public Region getById(@PathVariable Long id) {
+        return regionService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity<Region> create(@RequestBody Region region){
-        Region nuevaRegion = regionService.save(region);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaRegion);
+    public Region create(@RequestBody Region region){
+        return regionService.save(region);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Region> update(@PathVariable Long id, @RequestBody Region region){
-        Region regionActualizada = regionService.update(id, region);
-        if (regionActualizada == null){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(regionActualizada);
+    public Region update(@PathVariable Long id, @RequestBody Region region){
+        region.setId(id);
+        return regionService.save(region);
     }
 
 }

@@ -32,7 +32,7 @@ public class ComunicacionArchivada {
     @Column(nullable=false)
     private String asunto;
 
-    @Column(columnDefinition="TEXT", nullable=false)
+    @Column(name="cuerpo_mensaje", columnDefinition="TEXT", nullable=false)
     private String cuerpoMensaje;
 
     @Column(nullable=false)
@@ -41,7 +41,7 @@ public class ComunicacionArchivada {
     @Column(nullable=false)
     private String destinatario;
 
-    @Column(nullable=false)
+    @Column(name = "fecha_envio",nullable=false)
     private LocalDateTime fechaEnvio;
 
     @ManyToOne
