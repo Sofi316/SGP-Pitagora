@@ -1,9 +1,10 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.pitagora.backend.SGP_Pitagora.model.SubCategoria;
 import com.pitagora.backend.SGP_Pitagora.repository.SubCategoriaRepository;
@@ -29,37 +30,31 @@ public class SubCategoriaService {
         return subCategoriaRepository.findByCategoriaIdAndActivoTrue(id);
     }
 
-    public Optional<SubCategoria> findById(Long id) {
-        return subCategoriaRepository.findById(id);
-    }
+    public SubCategoria findById(Long id) {
+    return subCategoriaRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subcategoría no encontrada"));
+}
 
     public SubCategoria save(SubCategoria subCategoria){
         return subCategoriaRepository.save(subCategoria);
     }
 
     public SubCategoria update(Long id, SubCategoria subCategoriaModificada) {
-        Optional<SubCategoria> subCategoriaExistente = subCategoriaRepository.findById(id);
+        SubCategoria subCategoriaAEditar = subCategoriaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subcategoría no encontrada"));
 
-        if (subCategoriaExistente.isPresent()) {
-            SubCategoria subCategoriaAEditar = subCategoriaExistente.get();
-            subCategoriaAEditar.setNombre(subCategoriaModificada.getNombre());
-            subCategoriaAEditar.setCategoria(subCategoriaModificada.getCategoria());
-            
-            return subCategoriaRepository.save(subCategoriaAEditar);
-        } else {
-            return null;
-        }
+        subCategoriaAEditar.setNombre(subCategoriaModificada.getNombre());
+        subCategoriaAEditar.setCategoria(subCategoriaModificada.getCategoria());
+
+        return subCategoriaRepository.save(subCategoriaAEditar);
     }
     
     public boolean delete(Long id) {
-        Optional<SubCategoria> subCategoriaExistente = subCategoriaRepository.findById(id);
+        SubCategoria subCategoria = subCategoriaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subcategoría no encontrada"));
 
-        if (subCategoriaExistente.isPresent()) {
-            SubCategoria subCategoria = subCategoriaExistente.get();
-            subCategoria.setActivo(false);
-            subCategoriaRepository.save(subCategoria);
-            return true;
-        }
-        return false;
+        subCategoria.setActivo(false);
+        subCategoriaRepository.save(subCategoria);
+        return true;
     }
 }

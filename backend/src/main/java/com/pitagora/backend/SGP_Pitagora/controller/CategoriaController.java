@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,11 +36,7 @@ public class CategoriaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Categoria> getById(@PathVariable Long id) {
-        Optional<Categoria> categorias = categoriaService.findById(id);
-        if (categorias.isPresent()) {
-            return ResponseEntity.ok(categorias.get());
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(categoriaService.findById(id));
     }
 
     @PostMapping
@@ -53,21 +48,12 @@ public class CategoriaController {
     @PutMapping("/{id}")
     public ResponseEntity<Categoria> update(@PathVariable Long id, @RequestBody Categoria categoria){
         Categoria categoriaActualizada = categoriaService.update(id, categoria);
-        if (categoriaActualizada == null){
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(categoriaActualizada);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boolean borrado = categoriaService.delete(id);
-
-        if (borrado) {
-            //devuelve 204 ok sin contenido
-            return ResponseEntity.noContent().build();
-        }
-        //devuelve 404 si no existe
-        return ResponseEntity.notFound().build();
+        categoriaService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

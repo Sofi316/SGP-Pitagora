@@ -3,7 +3,6 @@ package com.pitagora.backend.SGP_Pitagora.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,9 +24,9 @@ public class ComunicacionArchivadaService {
         return comunicacionArchivadaRepository.findAll();
     }
 
-
-    public Optional<ComunicacionArchivada> findById(Long id) {
-        return comunicacionArchivadaRepository.findById(id);
+    public ComunicacionArchivada findById(Long id) {
+        return comunicacionArchivadaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunicación archivada no encontrada"));
     }
 
     public ComunicacionArchivada save(ComunicacionArchivada comunicacion) {
@@ -51,8 +50,8 @@ public class ComunicacionArchivadaService {
 
     public List<ComunicacionArchivada> filtrarComunicaciones(
         Long id,
-        LocalDate fechaInicio, // Cambiado a LocalDate
-        LocalDate fechaFin,    // Cambiado a LocalDate
+        LocalDate fechaInicio,
+        LocalDate fechaFin,
         String keyword
     ) {
         LocalDateTime inicio = null;

@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,8 +26,9 @@ public class EmpresaClienteService {
         return empresaClienteRepository.findByActivoTrue();
     }
 
-    public Optional<EmpresaCliente> findById(Long id) {
-        return empresaClienteRepository.findById(id);
+    public EmpresaCliente findById(Long id) {
+        return empresaClienteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
     }
 
     public EmpresaCliente save(EmpresaCliente empresa) {

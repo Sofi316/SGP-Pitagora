@@ -1,9 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -39,11 +37,7 @@ public class ComunicacionArchivadaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ComunicacionArchivada> getById(@PathVariable Long id) {
-        Optional<ComunicacionArchivada> comunicacion = comunicacionArchivadaService.findById(id);
-        if (comunicacion.isPresent()) {
-            return ResponseEntity.ok(comunicacion.get());
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(comunicacionArchivadaService.findById(id));
     }
 
     @GetMapping("/filtrar")

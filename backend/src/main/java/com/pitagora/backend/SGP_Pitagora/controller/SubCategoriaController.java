@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.pitagora.backend.SGP_Pitagora.model.SubCategoria;
 import com.pitagora.backend.SGP_Pitagora.service.SubCategoriaService;
 
@@ -35,11 +35,7 @@ public class SubCategoriaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<SubCategoria> getById(@PathVariable Long id) {
-        Optional<SubCategoria> subCategorias = subCategoriaService.findById(id);
-        if (subCategorias.isPresent()) {
-            return ResponseEntity.ok(subCategorias.get());
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(subCategoriaService.findById(id));
     }
 
     @GetMapping("/categoria/{id}")
@@ -64,27 +60,19 @@ public class SubCategoriaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody SubCategoria subCategoria) {
-        // Validación: Evitar que al editar le quiten el padre accidentalmente
         if (subCategoria.getCategoria() == null || subCategoria.getCategoria().getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error: La subcategoría debe mantener una categoría padre válida.");
         }
 
         SubCategoria subCategoriaActualizada = subCategoriaService.update(id, subCategoria);
-        if (subCategoriaActualizada == null) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(subCategoriaActualizada);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boolean fueBorrado = subCategoriaService.delete(id);
-        
-        if (fueBorrado) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        subCategoriaService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

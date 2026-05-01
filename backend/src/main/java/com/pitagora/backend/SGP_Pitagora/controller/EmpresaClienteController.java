@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,11 +34,7 @@ public class EmpresaClienteController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EmpresaCliente> getById(@PathVariable Long id) {
-        Optional<EmpresaCliente> empresa = empresaClienteService.findById(id);
-        if (empresa.isPresent()) {
-            return ResponseEntity.ok(empresa.get());
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(empresaClienteService.findById(id));
     }
 
     @PostMapping

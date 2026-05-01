@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,12 +23,13 @@ public class ObraService {
         return obraRepository.findByActivoTrue();
     }
 
-    public List<Obra> listarPorEmpresa(Long idEmpresa) {
-        return obraRepository.findByEmpresaClienteIdAndActivoTrue(idEmpresa);
+    public List<Obra> listarPorEmpresa(Long id) {
+        return obraRepository.findByEmpresaClienteIdAndActivoTrue(id);
     }
 
-    public Optional<Obra> findById(Long id) {
-        return obraRepository.findById(id);
+    public Obra findById(Long id) {
+        return obraRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Obra no encontrada"));
     }
 
     public Obra save(Obra obra) {
@@ -46,6 +46,7 @@ public class ObraService {
         obraAntigua.setFechaCierrePostventa(obraModificada.getFechaCierrePostventa());
         obraAntigua.setRutaActaEntrega(obraModificada.getRutaActaEntrega());
         obraAntigua.setEmpresaCliente(obraModificada.getEmpresaCliente());
+        obraAntigua.setComuna(obraModificada.getComuna());
 
         return obraRepository.save(obraAntigua);
     }

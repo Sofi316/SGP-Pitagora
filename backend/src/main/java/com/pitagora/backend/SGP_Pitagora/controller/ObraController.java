@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,11 +35,7 @@ public class ObraController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Obra> getById(@PathVariable Long id) {
-        Optional<Obra> obra = obraService.findById(id);
-        if (obra.isPresent()) {
-            return ResponseEntity.ok(obra.get());
-        }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(obraService.findById(id));
     }
 
     @GetMapping("/empresa/{id}")

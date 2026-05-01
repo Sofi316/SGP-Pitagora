@@ -48,4 +48,8 @@ public class Obra {
     @ManyToOne
     @JoinColumn(name="id_empresa_cliente", nullable=false)
     private EmpresaCliente empresaCliente;
+
+    @ManyToOne
+    @JoinColumn(name="id_comuna", nullable=false)
+    private Comuna comuna;
 }
