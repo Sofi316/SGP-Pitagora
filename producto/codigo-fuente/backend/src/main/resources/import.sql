@@ -70,3 +70,4 @@ INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otr
 INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 8);
 INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 9);
 INSERT INTO subcategoria (nombre_subcategoria, activo,id_categoria) VALUES ('Otro', true, 10);
+
