@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,16 +23,17 @@ public class SolicitudService {
         return solicitudRepository.findAll();
     }
 
-    public Optional<Solicitud> obtenerPorId(Long id) {
-        return solicitudRepository.findById(id);
+    public Solicitud obtenerPorId(Long id) {
+        return solicitudRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
     }
 
-    public List<Solicitud> obtenerPorUsuario(Long idUsuario) {
-        return solicitudRepository.findByUsuarioId(idUsuario);
+    public List<Solicitud> obtenerPorUsuario(Long id) {
+        return solicitudRepository.findByUsuarioId(id);
     }
 
-    public List<Solicitud> obtenerPorObra(Long idObra) {
-        return solicitudRepository.findByObraId(idObra);
+    public List<Solicitud> obtenerPorObra(Long id) {
+        return solicitudRepository.findByObraId(id);
     }
 
     public Solicitud guardar(Solicitud solicitud) {
@@ -41,51 +41,42 @@ public class SolicitudService {
     }
 
     public Solicitud update(Long id, Solicitud detalles) {
-        Optional<Solicitud> solicitudExistente = solicitudRepository.findById(id);
+        Solicitud solicitudActualizada = solicitudRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
+        
+        solicitudActualizada.setFechaHallazgo(detalles.getFechaHallazgo());
+        solicitudActualizada.setDescripcion(detalles.getDescripcion());
+        solicitudActualizada.setUbicacionExacta(detalles.getUbicacionExacta());
+        solicitudActualizada.setTokenValidacion(detalles.getTokenValidacion());
+        solicitudActualizada.setFechaFirma(detalles.getFechaFirma());
+        solicitudActualizada.setComentarioCierre(detalles.getComentarioCierre());
+        solicitudActualizada.setActivo(detalles.getActivo());
+        
+        solicitudActualizada.setEstadoSolicitud(detalles.getEstadoSolicitud());
+        solicitudActualizada.setSubCategoria(detalles.getSubCategoria());
+        solicitudActualizada.setUsuario(detalles.getUsuario());
+        solicitudActualizada.setObra(detalles.getObra());
 
-        if (solicitudExistente.isPresent()) {
-            Solicitud solicitudActualizada = solicitudExistente.get();
-            
-            // Actualizamos los campos de texto y fechas
-            solicitudActualizada.setFechaHallazgo(detalles.getFechaHallazgo());
-            solicitudActualizada.setDescripcion(detalles.getDescripcion());
-            solicitudActualizada.setUbicacionExacta(detalles.getUbicacionExacta());
-            solicitudActualizada.setTokenValidacion(detalles.getTokenValidacion());
-            solicitudActualizada.setFechaFirma(detalles.getFechaFirma());
-            solicitudActualizada.setComentarioCierre(detalles.getComentarioCierre());
-            solicitudActualizada.setActivo(detalles.getActivo());
-            
-            // Actualizamos las llaves foráneas
-            solicitudActualizada.setEstadoSolicitud(detalles.getEstadoSolicitud());
-            solicitudActualizada.setSubCategoria(detalles.getSubCategoria());
-            solicitudActualizada.setUsuario(detalles.getUsuario());
-            solicitudActualizada.setObra(detalles.getObra());
-
-            return solicitudRepository.save(solicitudActualizada);
-        } else {
-            return null;
-        }
+        return solicitudRepository.save(solicitudActualizada);
     }
 
     public boolean delete(Long id) {
-        Optional<Solicitud> solicitudExistente = solicitudRepository.findById(id);
+        Solicitud solicitud = solicitudRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
 
-        if (solicitudExistente.isPresent()) {
-            Solicitud solicitud = solicitudExistente.get();
-            // Cambiamos el estado a inactivo en lugar de borrar el registro de la BD
-            solicitud.setActivo(false);
-            solicitudRepository.save(solicitud);
-            return true;
-        }
-        return false;
+        solicitud.setActivo(false);
+        solicitudRepository.save(solicitud);
+        return true;
     }
 
     public Solicitud registrarCalificacion(Long id, Integer estrellas) {
-        Solicitud solicitud = solicitudRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Solicitud solicitud = solicitudRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
 
         if (estrellas == null || estrellas < 1 || estrellas > 5) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Calificación inválida");
         }
+        
         solicitud.setCalificacion(estrellas);
         return solicitudRepository.save(solicitud); 
     }

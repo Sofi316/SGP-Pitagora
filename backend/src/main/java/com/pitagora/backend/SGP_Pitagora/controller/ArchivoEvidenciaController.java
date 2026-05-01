@@ -34,14 +34,12 @@ public class ArchivoEvidenciaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ArchivoEvidencia> obtenerPorId(@PathVariable Long id) {
-        return archivoEvidenciaService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(archivoEvidenciaService.obtenerPorId(id));
     }
 
-    @GetMapping("/solicitud/{idSolicitud}")
-    public ResponseEntity<List<ArchivoEvidencia>> obtenerPorSolicitud(@PathVariable Long idSolicitud) {
-        return ResponseEntity.ok(archivoEvidenciaService.obtenerPorSolicitud(idSolicitud));
+    @GetMapping("/solicitud/{id}")
+    public ResponseEntity<List<ArchivoEvidencia>> obtenerPorSolicitud(@PathVariable Long id) {
+        return ResponseEntity.ok(archivoEvidenciaService.obtenerPorSolicitud(id));
     }
 
     @PostMapping
@@ -52,13 +50,6 @@ public class ArchivoEvidenciaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ArchivoEvidencia> actualizar(@PathVariable Long id, @RequestBody ArchivoEvidencia detalles) {
-        // Llamamos al método update del servicio que ya contiene el if(isPresent)
-        ArchivoEvidencia actualizado = archivoEvidenciaService.update(id, detalles);
-        
-        if (actualizado != null) {
-            return ResponseEntity.ok(actualizado);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(archivoEvidenciaService.update(id, detalles));
     }
 }

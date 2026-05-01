@@ -34,31 +34,19 @@ public class TipoEvidenciaController {
         return ResponseEntity.ok(tipoEvidenciaService.obtenerTodos());
     }
 
-    // GET: /api/tipos-evidencia/{id}
     @GetMapping("/{id}")
     public ResponseEntity<TipoEvidencia> obtenerPorId(@PathVariable Long id) {
-        return tipoEvidenciaService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(tipoEvidenciaService.obtenerPorId(id));
     }
 
-    // POST: /api/tipos-evidencia
     @PostMapping
     public ResponseEntity<TipoEvidencia> crear(@RequestBody TipoEvidencia tipoEvidencia) {
         TipoEvidencia nuevoTipo = tipoEvidenciaService.guardar(tipoEvidencia);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoTipo);
     }
 
-    // PUT: /api/tipos-evidencia/{id}
     @PutMapping("/{id}")
     public ResponseEntity<TipoEvidencia> actualizar(@PathVariable Long id, @RequestBody TipoEvidencia detalles) {
-        // Delegamos la lógica de actualización al servicio
-        TipoEvidencia actualizado = tipoEvidenciaService.update(id, detalles);
-        
-        if (actualizado != null) {
-            return ResponseEntity.ok(actualizado);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(tipoEvidenciaService.update(id, detalles));
     }
 }

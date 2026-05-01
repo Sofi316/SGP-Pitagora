@@ -11,7 +11,7 @@ import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
     
     // Métodos personalizados para filtrar solicitudes fácilmente
-    List<Solicitud> findByUsuarioId(Long idUsuario);
-    List<Solicitud> findByObraId(Long idObra);
-    List<Solicitud> findByEstadoSolicitudId(Long idEstado);
+    List<Solicitud> findByUsuarioId(Long id);
+    List<Solicitud> findByObraId(Long id);
+    List<Solicitud> findByEstadoSolicitudId(Long id);
 }

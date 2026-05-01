@@ -1,9 +1,10 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.pitagora.backend.SGP_Pitagora.model.TipoEvidencia;
 import com.pitagora.backend.SGP_Pitagora.repository.TipoEvidenciaRepository;
@@ -22,8 +23,9 @@ public class TipoEvidenciaService {
         return tipoEvidenciaRepository.findAll();
     }
 
-    public Optional<TipoEvidencia> obtenerPorId(Long id) {
-        return tipoEvidenciaRepository.findById(id);
+    public TipoEvidencia obtenerPorId(Long id) {
+        return tipoEvidenciaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tipo de evidencia no encontrado"));
     }
 
     public TipoEvidencia guardar(TipoEvidencia tipoEvidencia) {
@@ -31,17 +33,11 @@ public class TipoEvidenciaService {
     }
 
     public TipoEvidencia update(Long id, TipoEvidencia detalles) {
-        Optional<TipoEvidencia> tipoExistente = tipoEvidenciaRepository.findById(id);
-
-        if (tipoExistente.isPresent()) {
-            TipoEvidencia tipoAEditar = tipoExistente.get();
-            
-            // Solo actualizamos el nombre, el ID se mantiene intacto
-            tipoAEditar.setNombre(detalles.getNombre());
-            
-            return tipoEvidenciaRepository.save(tipoAEditar);
-        } else {
-            return null;
-        }
+        TipoEvidencia tipoAEditar = tipoEvidenciaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tipo de evidencia no encontrado"));
+        
+        tipoAEditar.setNombre(detalles.getNombre());
+        
+        return tipoEvidenciaRepository.save(tipoAEditar);
     }
 }

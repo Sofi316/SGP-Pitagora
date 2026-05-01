@@ -43,6 +43,6 @@ public class Obra {
     private String rutaActaEntrega;
 
     @ManyToOne
-    @JoinColumn(name="id_empresa", nullable=false)
+    @JoinColumn(name="id_empresa_cliente", nullable=false)
     private EmpresaCliente empresaCliente;
 }
