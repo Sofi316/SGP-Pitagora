@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,7 +32,7 @@ public class ComunicacionArchivada {
     @Column(nullable=false)
     private String asunto;
 
-    @Column(columnDefinition="TEXT", nullable=false)
+    @Column(name="cuerpo_mensaje",columnDefinition="TEXT", nullable=false)
     private String cuerpoMensaje;
 
     @Column(nullable=false)
@@ -39,9 +41,11 @@ public class ComunicacionArchivada {
     @Column(nullable=false)
     private String destinatario;
 
-    @Column(nullable=false)
+    @Column(name="fecha_envio",nullable=false)
     private LocalDateTime fechaEnvio;
 
-    //private Solicitud solicitud;
+    @ManyToOne
+    @JoinColumn(name="id_solicitud", nullable=false)
+    private Solicitud solicitud;
 
 }

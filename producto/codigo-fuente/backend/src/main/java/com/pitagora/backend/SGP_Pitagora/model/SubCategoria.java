@@ -27,6 +27,9 @@ public class SubCategoria {
     @Column(name="nombre_subcategoria", nullable=false)
     private String nombre;
 
+    @Column(nullable = false)
+    private Boolean activo = true;
+
     @ManyToOne
     @JoinColumn(name="id_categoria",nullable=false)
     private Categoria categoria;
