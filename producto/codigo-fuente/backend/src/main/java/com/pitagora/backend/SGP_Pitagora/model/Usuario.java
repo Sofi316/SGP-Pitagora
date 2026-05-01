@@ -2,6 +2,7 @@ package com.pitagora.backend.SGP_Pitagora.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,12 +13,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 @Entity
 @Table(name="usuario")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Usuario {
+public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +47,8 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String correo;
 
-    @Column(nullable = false)
+    @Column(nullable = false,columnDefinition="TEXT")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String contrasena;
 
     @Column
@@ -50,12 +62,54 @@ public class Usuario {
 
     @Column(nullable = false)
     private Boolean activo = true;
+    @Column(name = "token_recuperacion",columnDefinition = "TEXT")
+    private String tokenRecuperacion;
 
-    @ManyToOne
+    @Column(name = "token_expiracion")
+    private LocalDateTime tokenExpiracion;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
     @ManyToOne
     @JoinColumn(name = "id_empresa_cliente")
     private EmpresaCliente empresa;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_"+rol.getNombre()));
+    }
+
+    @Override
+    @JsonIgnore
+    public String getPassword() {
+        return contrasena;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getUsername() {
+        return correo;
+    }
+    @Override
+    @JsonIgnore
+    public boolean isAccountNonExpired(){
+        return true;
+    }
+    @Override
+    @JsonIgnore
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+    @Override
+    @JsonIgnore
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    @Override
+    public boolean isEnabled() {
+        return activo;
+    }
+    
 }
