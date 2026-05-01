@@ -1,6 +1,5 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 import java.util.List;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +13,6 @@ import com.pitagora.backend.SGP_Pitagora.service.EstadoSolicitudService;
 
 @RestController
 @RequestMapping("api/estados-solicitud")
-@CrossOrigin(origins = "*")
 public class EstadoSolicitudController {
 
     private final EstadoSolicitudService estadoSolicitudService;

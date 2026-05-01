@@ -1,7 +1,6 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 import java.util.List;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +14,6 @@ import com.pitagora.backend.SGP_Pitagora.service.RolService;
 
 @RestController
 @RequestMapping("api/roles")
-@CrossOrigin(origins = "*")
-
 public class RolController {
     private final RolService rolService;
 

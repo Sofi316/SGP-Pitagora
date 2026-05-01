@@ -1,0 +1,26 @@
+.inputGroup {
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputLabel {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.inputField {
+  background-color: #aec4d6;
+  border: none;
+  border-radius: 5px;
+  padding: 15px;
+  color: #333333;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.inputField::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}

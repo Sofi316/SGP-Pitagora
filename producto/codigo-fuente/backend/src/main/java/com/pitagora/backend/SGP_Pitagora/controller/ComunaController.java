@@ -2,7 +2,6 @@ package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +17,6 @@ import com.pitagora.backend.SGP_Pitagora.service.ComunaService;
 
 @RestController
 @RequestMapping("/api/comunas")
-@CrossOrigin(origins = "*")
 public class ComunaController {
     private final ComunaService comunaService;
     public ComunaController (ComunaService comunaService){

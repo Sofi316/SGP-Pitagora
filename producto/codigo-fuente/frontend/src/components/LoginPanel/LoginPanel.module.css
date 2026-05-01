@@ -1,0 +1,128 @@
+/* src/components/LoginPanel/LoginPanel.module.css */
+.loginPanelContainer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.loginPanelBox {
+  background-color: #88a9c7; /* Color del panel de inicio de sesión */
+  border-radius: 8px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  overflow: hidden;
+  padding: 40px; /* Espaciado interno general */
+}
+
+
+.titleContainer {
+  background-color: #7e9ab2; 
+  padding: 15px;
+  margin-bottom: 30px;
+  border-radius: 4px;
+  text-align: left;
+}
+
+.inputsContainer {
+  background-color: #7e9ab2; /* El color que pediste para rodear los campos */
+  padding: 25px;            /* Espacio entre el borde del cuadrado y los inputs */
+  border-radius: 8px;       /* Bordes un poco redondeados para que se vea limpio */
+  margin-bottom: 15px;      /* Espacio antes del enlace de recuperar contraseña */
+
+}
+
+/* Ajuste opcional: si los labels se ven muy pegados arriba, 
+   puedes quitar el margen del último input dentro del contenedor */
+.inputsContainer > div:last-child {
+  margin-bottom: 0;
+}
+
+.loginTitle {
+  color: #ffffff;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.pitagoraSubmitButton {
+  background-color: #0a3a62; /* Color del botón Ingresar */
+  color: #ffffff;
+  border: none;
+  border-radius: 25px; /* Botón redondeado */
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%; /* El botón ocupa el ancho disponible */
+  transition: background-color 0.3s ease;
+}
+
+.pitagoraSubmitButton:hover {
+  background-color: #082d4d;
+}
+
+.forgotPasswordLink {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  text-align: right;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.forgotPasswordLink:hover {
+  text-decoration: underline;
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputLabel {
+  color: #ffffff; /* Letras blancas para el label */
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.inputField {
+  background-color: #ffffff; /* COLOR ESPECÍFICO DONDE TYPEAS */
+  border: none;
+  border-radius: 4px;
+  padding: 12px;
+  color: #0a3a62; /* Color del texto al escribir para que contraste bien */
+  font-size: 16px;
+  outline: none; /* Quita el borde azul por defecto al hacer click */
+  transition: background-color 0.3s ease;
+}
+
+
+
+.inputField::placeholder {
+  color: rgba(10, 58, 98, 0.5); /* Color del placeholder sugerido */
+}
+
+/* Ajustes para móviles */
+@media (max-width: 480px) {
+  .loginPanelBox {
+    padding: 25px;
+  }
+}

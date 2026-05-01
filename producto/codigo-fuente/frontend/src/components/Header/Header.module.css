@@ -1,0 +1,28 @@
+.pitagoraHeader {
+  background-color: #ffffff;
+  padding: 20px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.headerLogo {
+  height: 45px;
+  width: auto;
+}
+
+.placeholderIcon {
+  width: 40px;
+  height: 40px;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+  .pitagoraHeader { padding: 15px 20px; }
+  .headerLogo { height: 35px; }
+  .placeholderIcon { width: 30px; height: 30px; }
+}
