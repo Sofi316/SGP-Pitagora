@@ -51,6 +51,9 @@ public class Solicitud {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    @Column(name = "calificacion")
+    private Integer calificacion;
     
     @ManyToOne
     @JoinColumn(name = "id_estado", nullable = false)
