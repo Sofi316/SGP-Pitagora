@@ -1,28 +1,47 @@
 .pitagoraHeader {
   background-color: #ffffff;
-  padding: 20px 60px;
+  padding: 15px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   box-sizing: border-box;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  z-index: 10;
+}
+
+.headerLogoContainer {
+  display: flex;
+  align-items: center;
 }
 
 .headerLogo {
-  height: 45px;
+  height: 40px;
   width: auto;
 }
 
-.placeholderIcon {
-  width: 40px;
-  height: 40px;
-  background-color: #e0e0e0;
-  border-radius: 50%;
+.logoutButton {
+  color: #0d3b66;
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.logoutButton:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
-  .pitagoraHeader { padding: 15px 20px; }
-  .headerLogo { height: 35px; }
-  .placeholderIcon { width: 30px; height: 30px; }
+  .pitagoraHeader {
+    padding: 15px 20px;
+  }
+  .headerLogo {
+    height: 30px;
+  }
+  .logoutButton {
+    font-size: 16px;
+  }
 }
