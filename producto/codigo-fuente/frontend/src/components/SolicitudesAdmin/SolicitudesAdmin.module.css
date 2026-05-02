@@ -1,0 +1,250 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.backButton:hover {
+  opacity: 0.8;
+  transform: translateX(-4px);
+}
+
+.title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.headerButtons {
+  display: flex;
+  gap: 15px;
+}
+
+.editClientBtn {
+  background-color: #a8a09b;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s;
+}
+
+.createClientBtn {
+  background-color: #0d3b66;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.editClientBtn:hover {
+  opacity: 0.8;
+}
+
+.createClientBtn:hover {
+  background-color: #082a4a;
+}
+
+.listBox {
+  background-color: #aec4d6;
+  padding: 20px;
+  border-radius: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.accordionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.itemRow {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.itemRow:hover {
+  opacity: 0.85;
+}
+
+.empresaRow {
+  background-color: #7e9ab2;
+}
+
+.itemName {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.indicator {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.obrasContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 30px;
+}
+
+.obraGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.obraRow {
+  background-color: #7e9ab2;
+  padding: 12px 20px;
+}
+
+.solicitudesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 30px;
+}
+
+.solicitudRow {
+  background-color: #6a8092;
+  padding: 10px 20px;
+  cursor: default;
+}
+
+.solicitudRow:hover {
+  opacity: 1;
+}
+
+.solicitudText {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.emptyText {
+  color: #ffffff;
+  font-size: 14px;
+  font-style: italic;
+  padding: 10px 0;
+  margin: 0;
+}
+
+.verBtn {
+  background-color: #4a5d6e;
+  color: white;
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.verBtn:hover {
+  background-color: #3b4a58;
+}
+
+.archivarBtn {
+  background-color: #f44336; /* Rojo */
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s;
+}
+
+.archivarBtn:hover {
+  opacity: 0.8;
+}
+
+.solicitudesWrapper {
+  background-color: #a3bbcf; 
+  padding: 15px; 
+  display: flex;
+  flex-direction: column;
+  gap: 8px; 
+}
+
+
+.solicitudesHeader {
+  display: flex;
+  padding: 5px 20px;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.solicitudRowLink {
+  display: flex;
+  padding: 14px 20px; 
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 14px;
+  background-color: #aec4d6; 
+  border-radius: 6px; 
+  transition: background-color 0.2s, transform 0.2s; 
+  cursor: pointer;
+}
+
+.solicitudRowLink:hover {
+  background-color: #7b91a3; 
+  transform: translateX(4px);  
+}
+
+.colId {
+  width: 10%;
+  min-width: 40px;
+  font-weight: bold;
+}
+
+.colObs {
+  flex: 1; 
+  padding-right: 15px;
+}
+
+.colEstado {
+  width: 25%;
+  min-width: 100px;
+  font-weight: 500;
+}

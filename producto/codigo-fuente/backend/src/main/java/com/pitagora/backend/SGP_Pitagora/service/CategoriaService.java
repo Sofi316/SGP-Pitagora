@@ -4,19 +4,25 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pitagora.backend.SGP_Pitagora.model.Categoria;
+import com.pitagora.backend.SGP_Pitagora.model.SubCategoria;
 import com.pitagora.backend.SGP_Pitagora.repository.CategoriaRepository;
+import com.pitagora.backend.SGP_Pitagora.repository.SubCategoriaRepository;
+
 
 @Service
 public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
+    private final SubCategoriaRepository subCategoriaRepository;
 
-    public CategoriaService(CategoriaRepository categoriaRepository) {
-    this.categoriaRepository = categoriaRepository;
-}
+    public CategoriaService(CategoriaRepository categoriaRepository, SubCategoriaRepository subCategoriaRepository) {
+        this.categoriaRepository = categoriaRepository;
+        this.subCategoriaRepository = subCategoriaRepository;
+    }
     public List<Categoria> findAll() {
         return categoriaRepository.findAll();
     }
@@ -43,12 +49,20 @@ public class CategoriaService {
         return categoriaRepository.save(categoriaAEditar);
     }
 
-    public boolean delete(Long id) {
+    @Transactional
+    public void delete(Long id) {
         Categoria categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoría no encontrada"));
-        
+            .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+
         categoria.setActivo(false);
         categoriaRepository.save(categoria);
-        return true;
+
+        List<SubCategoria> subCategorias = subCategoriaRepository.findByCategoriaIdAndActivoTrue(id);
+        
+        for (SubCategoria subCategoria : subCategorias) {
+            subCategoria.setActivo(false);
+        }
+        
+        subCategoriaRepository.saveAll(subCategorias);
     }
 }
