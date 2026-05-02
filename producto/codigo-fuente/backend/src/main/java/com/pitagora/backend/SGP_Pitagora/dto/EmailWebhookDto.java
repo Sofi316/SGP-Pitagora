@@ -1,4 +1,4 @@
-package com.pitagora.backend.SGP_Pitagora.model.dto;
+package com.pitagora.backend.SGP_Pitagora.dto;
 
 public class EmailWebhookDto {
     private String sender;

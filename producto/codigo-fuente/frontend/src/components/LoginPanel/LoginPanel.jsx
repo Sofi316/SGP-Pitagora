@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import InputGroup from '../InputGroup/InputGroup';
 import styles from './LoginPanel.module.css';
-
+import { Link } from 'react-router-dom';
 const LoginPanel = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
@@ -14,8 +14,8 @@ const LoginPanel = () => {
 
     try {
       const response = await axios.post('http://localhost:8080/api/auth/login', {
-        email,
-        password
+        correo,
+        contrasena
       });
 
       if (response.data.token) {
@@ -41,27 +41,27 @@ const LoginPanel = () => {
 
         <form className={styles.loginForm} onSubmit={handleLogin}>
           
-          {/* NUEVO CONTENEDOR PARA RODEAR EMAIL Y CONTRASEÑA */}
+          {/* NUEVO CONTENEDOR PARA RODEAR CORREO Y CONTRASEÑA */}
           <div className={styles.inputsContainer}>
             <InputGroup
-              label="Email"
+              label="Correo"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              name="email"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              name="correo"
             />
             <InputGroup
               label="Contraseña"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              name="password"
+              value={contrasena}
+              onChange={(e) => setContrasena(e.target.value)}
+              name="contrasena"
             />
           </div>
 
-          <a href="/recuperar" className={styles.forgotPasswordLink}>
-            Recuperar contraseña
-          </a>
+          <Link to="/recuperar" className={styles.forgotPasswordLink}>
+          Recuperar contraseña
+          </Link>
 
           <div className={styles.buttonContainer}>
             <button type="submit" className={styles.pitagoraSubmitButton}>

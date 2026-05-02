@@ -1,9 +1,9 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
-import com.pitagora.backend.SGP_Pitagora.model.dto.AuthRequest;
-import com.pitagora.backend.SGP_Pitagora.model.dto.AuthResponse;
-import com.pitagora.backend.SGP_Pitagora.model.dto.ResetPasswordDTO;
+import com.pitagora.backend.SGP_Pitagora.dto.AuthRequest;
+import com.pitagora.backend.SGP_Pitagora.dto.AuthResponse;
+import com.pitagora.backend.SGP_Pitagora.dto.ResetPasswordDTO;
 import com.pitagora.backend.SGP_Pitagora.service.JwtService;
 import com.pitagora.backend.SGP_Pitagora.service.UsuarioService;
 

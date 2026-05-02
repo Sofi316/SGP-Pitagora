@@ -111,7 +111,7 @@ public class UsuarioService implements UserDetailsService {
         String contenidoHtml = """
             <div style="font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
                 <h2 style="color: #364a5e;">Restablecer Contraseña</h2>
-                <p>Has solicitado recuperar tu acceso al sistema <strong>SGP Pitágora</strong>.</p>
+                <p>Has solicitado recuperar tu acceso al sistema <strong>SGP Pitagora</strong>.</p>
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="http://localhost:8080/reset-password?token=%s" 
                     style="background-color: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
@@ -120,7 +120,7 @@ public class UsuarioService implements UserDetailsService {
                 </div>
                 <p style="font-size: 0.8em; color: #7f8c8d;">Este enlace expirará en 15 minutos.</p>
                 <hr style="border: 0; border-top: 1px solid #eee;">
-                <p style="font-size: 0.7em; color: #bdc3c7;">Constructora Pitágoras - Sistema de Gestión de Postventa</p>
+                <p style="font-size: 0.7em; color: #bdc3c7;">Constructora Pitagora - Sistema de Gestión de Postventa</p>
             </div>
             """.formatted(token);
 

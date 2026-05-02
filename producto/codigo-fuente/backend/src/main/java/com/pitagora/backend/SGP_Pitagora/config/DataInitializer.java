@@ -51,7 +51,7 @@ public class DataInitializer {
                 Usuario cliente = new Usuario();
                 cliente.setNombre("Juan");
                 cliente.setApellido("Prueba");
-                cliente.setRut("2-7");
+                cliente.setRut("33333");
                 cliente.setCorreo("cliente@test.cl");
                 cliente.setContrasena(passwordEncoder.encode("1234"));
                 cliente.setRol(clienteRol);
