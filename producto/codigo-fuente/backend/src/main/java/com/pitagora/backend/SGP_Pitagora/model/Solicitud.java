@@ -63,7 +63,7 @@ public class Solicitud {
     @JoinColumn(name = "id_subcategoria", nullable = false)
     private SubCategoria subCategoria;
 
-    @ManyToOne
+    @ManyToOne  
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 

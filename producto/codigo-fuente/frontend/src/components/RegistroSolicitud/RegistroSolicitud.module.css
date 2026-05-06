@@ -1,90 +1,88 @@
 .contenedorPrincipal {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  background-color: #7e9ab2;
-  padding: 20px;
 }
 
 .cabeceraProyecto {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
   margin-bottom: 20px;
 }
 
-.btnVolver {
-  background-color: #cedae4;
-  color: #1e3a8a;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+.tituloContainer {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 15px;
+}
+
+.btnVolver {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: background-color 0.2s;
+  padding: 0;
+  transition: transform 0.2s, opacity 0.2s;
 }
 
 .btnVolver:hover {
-  background-color: #a8becf;
+  opacity: 0.8;
+  transform: translateX(-4px);
 }
 
 .pageTitle {
-  color: #333;
+  color: #ffffff;
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 400;
+  font-family: 'Montserrat', sans-serif;
 }
 
+/* Caja principal que contiene el formulario, idéntica a .listBox */
 .formularioTarjeta {
-  background-color: #cedae4;
-  border-radius: 12px;
+  background-color: #aec4d6;
   padding: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
 }
 
 .filaFormulario {
   display: flex;
-  gap: 30px;
-  margin-bottom: 20px;
+  gap: 20px;
 }
 
-/* Contenedor para label e input */
 .grupoInput {
   display: flex;
   flex-direction: column;
   flex: 1;
+  gap: 8px;
 }
 
 .grupoInput label {
-  color: #070707;
-  margin-bottom: 8px;
+  color: #ffffff; /* Blanco para mantener el estilo sobre fondo azul */
   font-weight: 500;
+  font-size: 14px;
 }
 
+/* Estilo unificado para Inputs, Textareas y Selects */
 .grupoInput input[type="text"],
-.grupoInput textarea {
+.grupoInput textarea,
+.selectInput {
   background-color: #f4f7f9;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px; /* Coherente con .solicitudRowLink */
   padding: 12px;
   color: #333;
-  font-size: 1rem;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
   outline: none;
-  transition: background-color 0.2s;
-}
-
-.grupoInput input[type="text"]:focus,
-.grupoInput textarea:focus {
-  background-color: #e6eef3;
-}
-
-.grupoInput input[type="text"]::placeholder,
-.grupoInput textarea::placeholder {
-  color: #9eabb6;
 }
 
 .grupoInput textarea {
@@ -92,33 +90,43 @@
   resize: none;
 }
 
+.selectInput {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230d3b66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+/* Sección de Evidencias */
 .seccionEvidencias {
   display: flex;
   flex-direction: column;
-  margin-bottom: 30px;
+  gap: 15px;
+  background-color: #a3bbcf; /* Fondo de sub-lista */
+  padding: 20px;
+  border-radius: 6px;
 }
 
 .headerEvidencias {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
 }
 
 .labelEvidencias {
-  color: #070707;
-  font-weight: 500;
+  color: #ffffff;
+  font-weight: bold;
   margin: 0;
 }
 
 .linkAgregarEvidencia {
-  color: #1e3a8a;
+  color: #0d3b66; /* Azul marino de botones */
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.linkAgregarEvidencia:hover {
+  font-size: 14px;
+  font-weight: 600;
   text-decoration: underline;
 }
 
@@ -129,19 +137,16 @@
 .gridEvidencias {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 15px;
+  gap: 10px;
 }
 
 .tarjetaEvidencia {
   position: relative;
-  background-color: white;
-  border-radius: 8px;
+  background-color: #7e9ab2;
+  border-radius: 4px;
   overflow: hidden;
-  height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: 80px;
+  border: 2px solid #ffffff;
 }
 
 .tarjetaEvidencia img {
@@ -152,69 +157,61 @@
 
 .botonEliminarEvidencia {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: rgba(255, 255, 255, 0.7);
+  top: 2px;
+  right: 2px;
+  background-color: #f44336;
+  color: white;
   border: none;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: #333;
-  font-size: 0.8rem;
 }
 
-.botonEliminarEvidencia:hover {
-  background-color: rgba(255, 255, 255, 1);
-}
-
+/* Botón Guardar - Basado en .createClientBtn */
 .btnGuardar {
-  background-color: #1e3a8a;
-  color: white;
+  background-color: #0d3b66;
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 10px 25px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  display: block;
-  margin: 0 auto;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+  align-self: center;
+  margin-top: 10px;
 }
 
 .btnGuardar:hover {
-  background-color: #13265a;
+  background-color: #082a4a;
+  transform: translateY(-2px);
 }
 
 .btnGuardar:disabled {
-  background-color: #a8becf;
+  background-color: #a8a09b;
   cursor: not-allowed;
 }
 
-.contenedorMensajes {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
+/* Mensajes */
 .msgExito {
-  color: #166534;
-  background-color: #d1fae5;
-  padding: 10px;
+  color: #ffffff;
+  background-color: #4caf50;
+  padding: 12px;
   border-radius: 6px;
-  font-weight: 500;
+  text-align: center;
+  font-size: 14px;
 }
 
 .msgError {
-  color: #991b1b;
-  background-color: #fee2e2;
-  padding: 10px;
+  color: #ffffff;
+  background-color: #f44336;
+  padding: 12px;
   border-radius: 6px;
-  font-weight: 500;
-}
-
-.x {
-  color: #991b1b;
+  text-align: center;
+  font-size: 14px;
 }
