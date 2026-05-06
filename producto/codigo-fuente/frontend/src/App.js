@@ -5,6 +5,7 @@ import LoginPanel from './components/LoginPanel/LoginPanel';
 import RecoverPassword from './components/RecoverPassword/RecoverPassword';
 import AdminLayout from './components/AdminLayout/AdminLayout';
 import InicioAdmin from './components/InicioAdmin/InicioAdmin';
+import RegistroSolicitud from './components/RegistroSolicitud/RegistroSolicitud';
 import './index.css';
 
 function App() {
@@ -24,7 +25,13 @@ function App() {
             <RecoverPassword />
           </div>
         } />
-
+        <Route path="/registro" element={
+          <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#7e9ab2' }}>
+            <Header showLogout={true} />
+            <RegistroSolicitud />
+          </div>
+        } />
+        
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<InicioAdmin />} />
           <Route path="dashboard" element={<div style={{color: 'white'}}>Dashboard</div>} />
