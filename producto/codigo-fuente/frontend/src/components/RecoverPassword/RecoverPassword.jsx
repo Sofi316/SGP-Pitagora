@@ -32,11 +32,11 @@ const RecoverPassword=()=>{
     return(
        <div className={styles.loginPanelContainer}>
         <div className={styles.loginPanelBox}>
-         <div className={styles.loginTitleBar}>
-          <h2 className={styles.loginTitle}>Recuperar Contraseña</h2>
-        </div>
+         
         <form className={styles.loginForm} onSubmit={handleSubmit}>
-          
+          <div className={styles.titleContainer}>
+            <h2 className={styles.loginTitle}>Recuperar Clave</h2>
+          </div>
           <p className={styles.instructionsText}>
             Ingresa tu correo electrónico y te enviaremos las instrucciones para restablecer tu contraseña
           </p>
