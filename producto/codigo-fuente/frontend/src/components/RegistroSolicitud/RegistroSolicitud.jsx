@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styles from './RegistroSolicitud.module.css';
 
 const RegistroSolicitud = () => {
@@ -12,7 +12,13 @@ const RegistroSolicitud = () => {
   // 2. Estado para los archivos (evidencias)
   const [evidencias, setEvidencias] = useState([]);
   
-  // 3. Estado para manejar la carga y mensajes
+  // 3. Estado para las previsualizaciones de imágenes
+  const [previewsEvidencias, setPreviewsEvidencias] = useState([]);
+  
+  // 4. Referencia para el input de archivo oculto
+  const inputArchivoRef = useRef(null);
+  
+  // 5. Estado para manejar la carga y mensajes
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState(null);
 
@@ -27,9 +33,34 @@ const RegistroSolicitud = () => {
 
   // Función para manejar la selección de archivos
   const handleFileChange = (e) => {
-    // Convertimos el FileList a un array para guardarlo en el estado
     const files = Array.from(e.target.files);
-    setEvidencias(files);
+    
+    // Actualizar el estado de los archivos reales para el FormData
+    setEvidencias(prevFiles => [...prevFiles, ...files]);
+    
+    // Generar previsualizaciones de imágenes
+    const filePreviews = files.filter(file => file.type.startsWith('image/')).map(file => {
+      const reader = new FileReader();
+      return new Promise(resolve => {
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    });
+    
+    Promise.all(filePreviews).then(previews => {
+      setPreviewsEvidencias(prevPreviews => [...prevPreviews, ...previews]);
+    });
+  };
+  
+  // Función para eliminar una evidencia seleccionada
+  const handleEliminarEvidencia = (index) => {
+    setEvidencias(prev => prev.filter((_, i) => i !== index));
+    setPreviewsEvidencias(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  // Función para abrir el selector de archivos
+  const triggerFileInput = () => {
+    inputArchivoRef.current.click();
   };
 
   const handleSubmit = async (e) => {
@@ -40,7 +71,7 @@ const RegistroSolicitud = () => {
     // Creamos el objeto FormData
     const formData = new FormData();
     
-    // Agregamos los textos (El backend debe recibirlos con estos mismos nombres)
+    // Agregamos los textos
     formData.append('observacion', datosFormulario.observacion);
     formData.append('descripcion', datosFormulario.descripcion);
     formData.append('ubicacion', datosFormulario.ubicacion);
@@ -51,15 +82,13 @@ const RegistroSolicitud = () => {
     });
 
     try {
-      // Recuperamos el token guardado (asumiendo que lo guardas en localStorage al hacer login)
+      // Recuperamos el token guardado
       const token = localStorage.getItem('token'); 
 
       // Hacemos la petición POST al backend
       const response = await fetch('http://localhost:8080/api/tickets/crear', {
         method: 'POST',
         headers: {
-          // IMPORTANTE: Cuando usas FormData, NO debes poner 'Content-Type': 'application/json'
-          // El navegador configurará el 'multipart/form-data' automáticamente con sus boundaries
           'Authorization': `Bearer ${token}`
         },
         body: formData,
@@ -67,9 +96,10 @@ const RegistroSolicitud = () => {
 
       if (response.ok) {
         setMensaje({ tipo: 'exito', texto: 'Solicitud registrada correctamente.' });
-        // Opcional: Limpiar el formulario o redirigir al Dashboard
+        // Limpiar el formulario y evidencias
         setDatosFormulario({ observacion: '', descripcion: '', ubicacion: '' });
         setEvidencias([]);
+        setPreviewsEvidencias([]);
       } else {
         setMensaje({ tipo: 'error', texto: 'Error al registrar la solicitud.' });
       }
@@ -83,10 +113,12 @@ const RegistroSolicitud = () => {
 
   return (
     <div className={styles.contenedorPrincipal}>
-      {/* Botón de volver y Título de la obra */}
+      {/* Botón de volver y Título de la página */}
       <div className={styles.cabeceraProyecto}>
-         <button className={styles.btnVolver}>⬅</button>
-         <h2>Hospital Veterinario Campus San Joaquín</h2>
+         <button className={styles.btnVolver}>
+          ←         
+          </button>
+         <h2 className={styles.pageTitle}>Volver a mis solicitudes</h2>
       </div>
 
       <form onSubmit={handleSubmit} className={styles.formularioTarjeta}>
@@ -99,7 +131,7 @@ const RegistroSolicitud = () => {
               name="observacion"
               value={datosFormulario.observacion}
               onChange={handleInputChange}
-              placeholder="Ej: WC malo"
+              placeholder="Escriba la observación"
               required 
             />
           </div>
@@ -113,7 +145,7 @@ const RegistroSolicitud = () => {
               name="descripcion"
               value={datosFormulario.descripcion}
               onChange={handleInputChange}
-              placeholder="Detalla el problema..."
+              placeholder="Detalle el problema..."
               required 
             />
           </div>
@@ -124,39 +156,48 @@ const RegistroSolicitud = () => {
               name="ubicacion"
               value={datosFormulario.ubicacion}
               onChange={handleInputChange}
-              placeholder="Ej: Piso 2. Baño de hombres..."
+              placeholder="Ej: Piso 2. Baño de hombres, segundo cubículo."
               required 
             />
           </div>
         </div>
 
         <div className={styles.seccionEvidencias}>
-          <label>Evidencia</label>
-          <div className={styles.inputArchivoWrapper}>
-            {/* El input real está oculto o estilizado para parecerse a "+ Agregar evidencia" */}
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*,.pdf" 
-              onChange={handleFileChange} 
-              className={styles.inputArchivo}
-            />
+          <div className={styles.headerEvidencias}>
+            <p className={styles.labelEvidencias}>Evidencia</p>
+            <span className={styles.linkAgregarEvidencia} onClick={triggerFileInput}>
+              + Agregar evidencia
+            </span>
           </div>
-          {/* Previsualización de nombres de archivos seleccionados */}
-          {evidencias.length > 0 && (
-            <ul className={styles.listaArchivos}>
-              {evidencias.map((file, index) => (
-                <li key={index}>{file.name}</li>
-              ))}
-            </ul>
-          )}
+
+          <input 
+            type="file" 
+            multiple 
+            accept="image/*,.pdf" 
+            onChange={handleFileChange} 
+            ref={inputArchivoRef}
+            className={styles.inputArchivoOculto}
+          />
+
+          <div className={styles.gridEvidencias}>
+            {previewsEvidencias.map((preview, index) => (
+              <div key={index} className={styles.tarjetaEvidencia}>
+                <img src={preview} alt={`Previsualización ${index + 1}`} />
+                <button type="button" className={styles.botonEliminarEvidencia} onClick={() => handleEliminarEvidencia(index)}>
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {mensaje && (
-          <div className={mensaje.tipo === 'exito' ? styles.msgExito : styles.msgError}>
-            {mensaje.texto}
-          </div>
-        )}
+        <div className={styles.contenedorMensajes}>
+          {mensaje && (
+            <div className={mensaje.tipo === 'exito' ? styles.msgExito : styles.msgError}>
+              {mensaje.texto}
+            </div>
+          )}
+        </div>
 
         <button type="submit" disabled={loading} className={styles.btnGuardar}>
           {loading ? 'Guardando...' : 'Registrar Solicitud'}

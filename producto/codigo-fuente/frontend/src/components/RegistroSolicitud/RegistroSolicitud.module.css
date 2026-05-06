@@ -1,0 +1,220 @@
+.contenedorPrincipal {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-color: #7e9ab2;
+  padding: 20px;
+}
+
+.cabeceraProyecto {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.btnVolver {
+  background-color: #cedae4;
+  color: #1e3a8a;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: background-color 0.2s;
+}
+
+.btnVolver:hover {
+  background-color: #a8becf;
+}
+
+.pageTitle {
+  color: #333;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.formularioTarjeta {
+  background-color: #cedae4;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filaFormulario {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+/* Contenedor para label e input */
+.grupoInput {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.grupoInput label {
+  color: #070707;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.grupoInput input[type="text"],
+.grupoInput textarea {
+  background-color: #f4f7f9;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  color: #333;
+  font-size: 1rem;
+  outline: none;
+  transition: background-color 0.2s;
+}
+
+.grupoInput input[type="text"]:focus,
+.grupoInput textarea:focus {
+  background-color: #e6eef3;
+}
+
+.grupoInput input[type="text"]::placeholder,
+.grupoInput textarea::placeholder {
+  color: #9eabb6;
+}
+
+.grupoInput textarea {
+  height: 100px;
+  resize: none;
+}
+
+.seccionEvidencias {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px;
+}
+
+.headerEvidencias {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.labelEvidencias {
+  color: #070707;
+  font-weight: 500;
+  margin: 0;
+}
+
+.linkAgregarEvidencia {
+  color: #1e3a8a;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.linkAgregarEvidencia:hover {
+  text-decoration: underline;
+}
+
+.inputArchivoOculto {
+  display: none;
+}
+
+.gridEvidencias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+}
+
+.tarjetaEvidencia {
+  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tarjetaEvidencia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.botonEliminarEvidencia {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #333;
+  font-size: 0.8rem;
+}
+
+.botonEliminarEvidencia:hover {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.btnGuardar {
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: block;
+  margin: 0 auto;
+}
+
+.btnGuardar:hover {
+  background-color: #13265a;
+}
+
+.btnGuardar:disabled {
+  background-color: #a8becf;
+  cursor: not-allowed;
+}
+
+.contenedorMensajes {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.msgExito {
+  color: #166534;
+  background-color: #d1fae5;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.msgError {
+  color: #991b1b;
+  background-color: #fee2e2;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.x {
+  color: #991b1b;
+}
