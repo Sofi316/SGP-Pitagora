@@ -9,16 +9,19 @@ const SolicitudesObras = () => {
   
   const [empresa, setEmpresa] = useState(null);
   const [obras, setObras] = useState([]);
-  const [solicitudes, setSolicitudes] = useState([]);
+  
+  const [solicitudesPorObra, setSolicitudesPorObra] = useState({});
+  const [loadingObraId, setLoadingObraId] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [obrasExpandidas, setObrasExpandidas] = useState([]);
 
   useEffect(() => {
-    cargarDatos();
+    cargarDatosBasicos();
   }, [id]);
 
-  const cargarDatos = async () => {
+  const cargarDatosBasicos = async () => {
     setLoading(true);
     setError('');
     try {
@@ -30,14 +33,8 @@ const SolicitudesObras = () => {
         axios.get(`http://localhost:8080/api/obras/empresa/${id}`, config).catch(() => ({ data: [] }))
       ]);
       
-      let resSolicitudes = { data: [] };
-      try {
-        resSolicitudes = await axios.get('http://localhost:8080/api/solicitudes', config);
-      } catch (e) {}
-      
       setEmpresa(resEmpresa.data);
       setObras(resObras.data);
-      setSolicitudes(resSolicitudes.data);
     } catch (err) {
       setError('Ocurrió un error al cargar los datos de la empresa.');
     } finally {
@@ -45,25 +42,40 @@ const SolicitudesObras = () => {
     }
   };
 
-  const toggleObra = (obraId) => {
+  const toggleObra = async (obraId) => {
     if (obrasExpandidas.includes(obraId)) {
       setObrasExpandidas(obrasExpandidas.filter(expId => expId !== obraId));
-    } else {
-      setObrasExpandidas([...obrasExpandidas, obraId]);
-    }
-  };
+      return;
+    } 
 
-  const getSolicitudesPorObra = (obraId) => {
-    return solicitudes.filter(solicitud => solicitud.obra && solicitud.obra.id === obraId);
+    setObrasExpandidas([...obrasExpandidas, obraId]);
+
+    if (!solicitudesPorObra[obraId]) {
+      setLoadingObraId(obraId); 
+      try {
+        const token = localStorage.getItem('token');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const resSolicitudes = await axios.get(`http://localhost:8080/api/solicitudes/obra/${obraId}`, config);
+        
+        setSolicitudesPorObra(prev => ({
+          ...prev,
+          [obraId]: resSolicitudes.data
+        }));
+      } catch (err) {
+        console.error("Error al cargar solicitudes de la obra", err);
+      } finally {
+        setLoadingObraId(null); 
+      }
+    }
   };
 
   const getColorPorEstado = (nombreEstado) => {
     if (!nombreEstado) return '#ff9800'; 
     const est = nombreEstado.toLowerCase();
-    if (est.includes('pendiente')) return '#ff9800'; 
+    if (est.includes('pendiente')) return '#e79417'; 
     if (est.includes('proceso')) return '#ffeb3b';   
-    if (est.includes('terminado')) return '#64b5f6'; 
-    if (est.includes('no aplica')) return '#3a3a3a'; 
+    if (est.includes('terminado')) return '#45a8f8'; 
+    if (est.includes('no aplica')) return '#5c5b5b'; 
     if (est.includes('aprobado')) return '#4caf50';  
     if (est.includes('rechazado')) return '#f44336'; 
     return '#ffffff';
@@ -101,7 +113,7 @@ const SolicitudesObras = () => {
         ) : (
           obras.map((obra) => {
             const isObraExpanded = obrasExpandidas.includes(obra.id);
-            const solicitudesDeObra = getSolicitudesPorObra(obra.id);
+            const solicitudesDeObra = solicitudesPorObra[obra.id] || [];
 
             return (
               <div key={`obra-${obra.id}`} className={styles.accordionGroup}>
@@ -117,7 +129,9 @@ const SolicitudesObras = () => {
 
                 {isObraExpanded && (
                   <div className={styles.solicitudesWrapper}>
-                    {solicitudesDeObra.length === 0 ? (
+                    {loadingObraId === obra.id ? (
+                       <p className={styles.emptyText} style={{ textAlign: 'center' }}>Cargando solicitudes...</p>
+                    ) : solicitudesDeObra.length === 0 ? (
                       <p className={styles.emptyText}>No hay solicitudes para esta obra.</p>
                     ) : (
                       <>

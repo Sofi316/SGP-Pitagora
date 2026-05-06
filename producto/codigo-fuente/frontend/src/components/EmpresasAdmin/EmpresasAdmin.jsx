@@ -16,6 +16,8 @@ const EmpresasAdmin = () => {
   const [empresaAEditar, setEmpresaAEditar] = useState(null);
   const [empresaAEliminar, setEmpresaAEliminar] = useState(null);
 
+  const [modalError, setModalError] = useState('');
+
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -38,7 +40,11 @@ const EmpresasAdmin = () => {
 
   const handleCrear = async (e) => {
     e.preventDefault();
-    if (!formCrear.rut.trim() || !formCrear.razonSocial.trim()) return;
+    setModalError('');
+    if (!formCrear.rut.trim() || !formCrear.razonSocial.trim()) {
+      setModalError('Todos los campos son obligatorios.');
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -55,18 +61,23 @@ const EmpresasAdmin = () => {
       setShowCreateModal(false);
       setFormCrear({ rut: '', razonSocial: '' });
     } catch (err) {
-      alert('Error al crear la empresa cliente');
+      setModalError(err.response?.data?.message || 'Error al guardar: Verifica que el RUT no esté duplicado.');
     }
   };
 
   const abrirModalEditar = (empresa) => {
+    setModalError('');
     setEmpresaAEditar({ ...empresa });
     setShowEditModal(true);
   };
 
   const handleEditar = async (e) => {
     e.preventDefault();
-    if (!empresaAEditar.rut.trim() || !empresaAEditar.razonSocial.trim()) return;
+    setModalError('');
+    if (!empresaAEditar.rut.trim() || !empresaAEditar.razonSocial.trim()) {
+      setModalError('Todos los campos son obligatorios.');
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -82,16 +93,18 @@ const EmpresasAdmin = () => {
       setShowEditModal(false);
       setEmpresaAEditar(null);
     } catch (err) {
-      alert('Error al actualizar la empresa cliente');
+      setModalError(err.response?.data?.message || 'Error al actualizar: Verifica que el RUT no pertenezca a otra empresa.');
     }
   };
 
   const abrirModalEliminar = (empresa) => {
+    setModalError('');
     setEmpresaAEliminar(empresa);
     setShowDeleteModal(true);
   };
 
   const handleEliminar = async () => {
+    setModalError('');
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`http://localhost:8080/api/empresas-clientes/${empresaAEliminar.id}`, {
@@ -102,7 +115,7 @@ const EmpresasAdmin = () => {
       setShowDeleteModal(false);
       setEmpresaAEliminar(null);
     } catch (err) {
-      alert('Error al eliminar la empresa cliente.');
+      setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas.');
     }
   };
 
@@ -123,7 +136,7 @@ const EmpresasAdmin = () => {
           <Link to="/admin/gestion" className={styles.backButton} title="Volver a Gestión">&#8592;</Link>
           <h1 className={styles.title}>Empresas Clientes</h1>
         </div>
-        <button className={styles.createBtn} onClick={() => setShowCreateModal(true)}>
+        <button className={styles.createBtn} onClick={() => { setModalError(''); setShowCreateModal(true); }}>
           Crear Nueva
         </button>
       </div>
@@ -155,6 +168,7 @@ const EmpresasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Crear Nueva Empresa</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>RUT:</label>
               <input type="text" value={formCrear.rut} onChange={(e) => setFormCrear({...formCrear, rut: e.target.value})} style={inputStyle} autoFocus />
@@ -163,7 +177,7 @@ const EmpresasAdmin = () => {
               <input type="text" value={formCrear.razonSocial} onChange={(e) => setFormCrear({...formCrear, razonSocial: e.target.value})} style={inputStyle} />
               
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({rut:'', razonSocial:''});}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({rut:'', razonSocial:''}); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Guardar</button>
               </div>
             </form>
@@ -175,6 +189,7 @@ const EmpresasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Editar Empresa</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>RUT:</label>
               <input type="text" value={empresaAEditar.rut} onChange={(e) => setEmpresaAEditar({...empresaAEditar, rut: e.target.value})} style={inputStyle} />
@@ -183,7 +198,7 @@ const EmpresasAdmin = () => {
               <input type="text" value={empresaAEditar.razonSocial} onChange={(e) => setEmpresaAEditar({...empresaAEditar, razonSocial: e.target.value})} style={inputStyle} autoFocus />
               
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setEmpresaAEditar(null);}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setEmpresaAEditar(null); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Actualizar</button>
               </div>
             </form>
@@ -195,10 +210,11 @@ const EmpresasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Confirmar Eliminación</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <p>¿Estás seguro de que deseas eliminar la empresa <strong>"{empresaAEliminar.razonSocial}"</strong>?</p>
             <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
             <div style={buttonGroupStyle}>
-              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setEmpresaAEliminar(null);}}>Cancelar</button>
+              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setEmpresaAEliminar(null); setModalError('');}}>Cancelar</button>
               <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
             </div>
           </div>

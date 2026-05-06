@@ -16,6 +16,8 @@ const CategoriasAdmin = () => {
   const [categoriaAEditar, setCategoriaAEditar] = useState(null);
   const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
 
+  const [modalError, setModalError] = useState('');
+
   useEffect(() => {
     obtenerCategorias();
   }, []);
@@ -38,7 +40,11 @@ const CategoriasAdmin = () => {
 
   const handleCrear = async (e) => {
     e.preventDefault();
-    if (!nuevaCategoria.trim()) return;
+    setModalError('');
+    if (!nuevaCategoria.trim()) {
+      setModalError('El nombre de la categoría es obligatorio.');
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -54,18 +60,23 @@ const CategoriasAdmin = () => {
       setShowCreateModal(false);
       setNuevaCategoria('');
     } catch (err) {
-      alert('Error al crear la categoría');
+      setModalError(err.response?.data?.message || 'Error al crear la categoría. Verifica que el nombre no exista ya.');
     }
   };
 
   const abrirModalEditar = (cat) => {
+    setModalError('');
     setCategoriaAEditar({ ...cat }); 
     setShowEditModal(true);
   };
 
   const handleEditar = async (e) => {
     e.preventDefault();
-    if (!categoriaAEditar.nombre.trim()) return;
+    setModalError('');
+    if (!categoriaAEditar.nombre.trim()) {
+      setModalError('El nombre de la categoría es obligatorio.');
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -78,16 +89,18 @@ const CategoriasAdmin = () => {
       setShowEditModal(false);
       setCategoriaAEditar(null);
     } catch (err) {
-      alert('Error al actualizar la categoría');
+      setModalError(err.response?.data?.message || 'Error al actualizar la categoría.');
     }
   };
 
   const abrirModalEliminar = (cat) => {
+    setModalError('');
     setCategoriaAEliminar(cat);
     setShowDeleteModal(true);
   };
 
   const handleEliminar = async () => {
+    setModalError('');
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`http://localhost:8080/api/categorias/${categoriaAEliminar.id}`, {
@@ -98,7 +111,7 @@ const CategoriasAdmin = () => {
       setShowDeleteModal(false);
       setCategoriaAEliminar(null);
     } catch (err) {
-      alert('Error al eliminar la categoría. Es posible que esté en uso.');
+      setModalError(err.response?.data?.message || 'Error al eliminar. Es posible que tenga subcategorías asociadas.');
     }
   };
 
@@ -121,7 +134,6 @@ const CategoriasAdmin = () => {
   const confirmBtnStyle = { ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' };
   const deleteBtnStyle = { ...btnStyle, backgroundColor: '#d9534f', color: '#fff' };
 
-
   return (
     <div className={styles.container}>
       <div className={styles.headerRow}>
@@ -131,7 +143,7 @@ const CategoriasAdmin = () => {
           </Link>
           <h1 className={styles.title}>Categorías</h1>
         </div>
-        <button className={styles.createBtn} onClick={() => setShowCreateModal(true)}>
+        <button className={styles.createBtn} onClick={() => { setModalError(''); setShowCreateModal(true); }}>
           Crear Nueva
         </button>
       </div>
@@ -164,6 +176,7 @@ const CategoriasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Crear Nueva Categoría</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
               <input 
                 type="text" 
@@ -174,7 +187,7 @@ const CategoriasAdmin = () => {
                 autoFocus
               />
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setNuevaCategoria('');}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setNuevaCategoria(''); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Guardar</button>
               </div>
             </form>
@@ -186,6 +199,7 @@ const CategoriasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Editar Categoría</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
               <input 
                 type="text" 
@@ -195,7 +209,7 @@ const CategoriasAdmin = () => {
                 autoFocus
               />
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setCategoriaAEditar(null);}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setCategoriaAEditar(null); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Actualizar</button>
               </div>
             </form>
@@ -207,10 +221,11 @@ const CategoriasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Confirmar Eliminación</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <p>¿Estás seguro de que deseas eliminar la categoría <strong>"{categoriaAEliminar.nombre}"</strong>?</p>
             <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
             <div style={{...buttonGroupStyle, marginTop: '20px'}}>
-              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setCategoriaAEliminar(null);}}>Cancelar</button>
+              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setCategoriaAEliminar(null); setModalError('');}}>Cancelar</button>
               <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
             </div>
           </div>

@@ -1,17 +1,18 @@
-/*package com.pitagora.backend.SGP_Pitagora.service;
+package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.time.LocalDateTime;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.pitagora.backend.SGP_Pitagora.dto.EmailWebhookDto;
 import com.pitagora.backend.SGP_Pitagora.model.ComunicacionArchivada;
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.repository.ComunicacionArchivadaRepository;
+import com.pitagora.backend.SGP_Pitagora.repository.SolicitudRepository;
 
 @Service
 public class WebhookService {
@@ -28,38 +29,50 @@ public class WebhookService {
     }
 
     public void procesarCorreoEntrante(EmailWebhookDto emailDto) {
-        Long idSolicitud = extraerIdAsunto(emailDto.getSubject());
+        Long id = extraerIdAsunto(emailDto.getSubject());
 
-        Solicitud solicitud = solicitudRepository.findById(idSolicitud)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada para el ID: " + idSolicitud));
+        if (id == null) {
+            System.out.println("Webhook ignorado: No se encontró ID en el asunto -> " + emailDto.getSubject());
+            return;
+        }
+
+        Solicitud solicitud = solicitudRepository.findById(id).orElse(null);
+        
+        if (solicitud == null) {
+            System.out.println("Webhook ignorado: Solicitud ID " + id + " no existe.");
+            return;
+        }
 
         ComunicacionArchivada nuevaCom = new ComunicacionArchivada();
         nuevaCom.setSolicitud(solicitud);
         nuevaCom.setAsunto(emailDto.getSubject());
         nuevaCom.setCuerpoMensaje(emailDto.getBodyPlain());
         nuevaCom.setRemitente(emailDto.getSender());
+        nuevaCom.setDestinatario("postventa@pitagoras.cl");
         nuevaCom.setFechaEnvio(LocalDateTime.now());
         
         comunicacionRepository.save(nuevaCom);
-        enviarAlertaFrancisco(idSolicitud);
+        enviarAlertaFrancisco(id);
     }
 
     private Long extraerIdAsunto(String asunto) {
+        if (asunto == null) return null;
+        
         Pattern pattern = Pattern.compile("\\[ID-(\\d+)\\]");
         Matcher matcher = pattern.matcher(asunto);
+        
         if (matcher.find()) {
-            return Long.parseLong(matcher.group(1));
+            return Long.valueOf(matcher.group(1));
         }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se encontró ID válido en el asunto");
+        return null;
     }
 
-    private void enviarAlertaFrancisco(Long idSolicitud) {
+    private void enviarAlertaFrancisco(Long id) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo("correo.francisco@pitagoras.cl"); // Correo de Francisco
-        message.setSubject("Nuevo mensaje del cliente - ID: " + idSolicitud);
-        message.setText("Francisco, el cliente ha respondido al correo. Revisa y responde aquí: " +
-                        "http://localhost:3000/admin/solicitudes/" + idSolicitud);
+        message.setTo("correo.francisco@pitagoras.cl");
+        message.setSubject("Nuevo mensaje del cliente - ID: " + id);
+        message.setText("El cliente ha respondido al correo. Revisa y responde aquí: " +
+                        "http://localhost:3000/admin/solicitudes/" + id);
         mailSender.send(message);
     }
 }
-*/

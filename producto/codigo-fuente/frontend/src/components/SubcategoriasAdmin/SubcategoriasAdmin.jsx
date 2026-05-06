@@ -19,6 +19,8 @@ const SubcategoriasAdmin = () => {
   const [subcategoriaAEditar, setSubcategoriaAEditar] = useState(null);
   const [subcategoriaAEliminar, setSubcategoriaAEliminar] = useState(null);
 
+  const [modalError, setModalError] = useState('');
+
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -46,8 +48,9 @@ const SubcategoriasAdmin = () => {
 
   const handleCrear = async (e) => {
     e.preventDefault();
+    setModalError('');
     if (!nuevaSubcategoria.trim() || !categoriaSeleccionada) {
-      alert('Por favor ingrese el nombre y seleccione una categoría.');
+      setModalError('Por favor ingrese el nombre y seleccione una categoría.');
       return;
     }
 
@@ -62,16 +65,21 @@ const SubcategoriasAdmin = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setSubcategorias([...subcategorias, response.data]);
+      const nuevaSubcat = response.data;
+      const catAsociada = categorias.find(c => c.id === parseInt(categoriaSeleccionada));
+      if (catAsociada) nuevaSubcat.categoria = catAsociada;
+
+      setSubcategorias([...subcategorias, nuevaSubcat]);
       setShowCreateModal(false);
       setNuevaSubcategoria('');
       setCategoriaSeleccionada('');
     } catch (err) {
-      alert('Error al crear la subcategoría');
+      setModalError(err.response?.data?.message || 'Error al crear la subcategoría.');
     }
   };
 
   const abrirModalEditar = (subcat) => {
+    setModalError('');
     const catId = subcat.categoria ? subcat.categoria.id : '';
     setSubcategoriaAEditar({ ...subcat, categoriaIdForm: catId });
     setShowEditModal(true);
@@ -79,8 +87,9 @@ const SubcategoriasAdmin = () => {
 
   const handleEditar = async (e) => {
     e.preventDefault();
+    setModalError('');
     if (!subcategoriaAEditar.nombre.trim() || !subcategoriaAEditar.categoriaIdForm) {
-      alert('Por favor ingrese el nombre y seleccione una categoría.');
+      setModalError('Por favor ingrese el nombre y seleccione una categoría.');
       return;
     }
 
@@ -94,20 +103,26 @@ const SubcategoriasAdmin = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setSubcategorias(subcategorias.map(sub => sub.id === subcategoriaAEditar.id ? response.data : sub));
+      const subcatActualizada = response.data;
+      const catAsociada = categorias.find(c => c.id === parseInt(subcategoriaAEditar.categoriaIdForm));
+      if (catAsociada) subcatActualizada.categoria = catAsociada;
+
+      setSubcategorias(subcategorias.map(sub => sub.id === subcategoriaAEditar.id ? subcatActualizada : sub));
       setShowEditModal(false);
       setSubcategoriaAEditar(null);
     } catch (err) {
-      alert('Error al actualizar la subcategoría');
+      setModalError(err.response?.data?.message || 'Error al actualizar la subcategoría.');
     }
   };
 
   const abrirModalEliminar = (subcat) => {
+    setModalError('');
     setSubcategoriaAEliminar(subcat);
     setShowDeleteModal(true);
   };
 
   const handleEliminar = async () => {
+    setModalError('');
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`http://localhost:8080/api/subcategorias/${subcategoriaAEliminar.id}`, {
@@ -118,7 +133,7 @@ const SubcategoriasAdmin = () => {
       setShowDeleteModal(false);
       setSubcategoriaAEliminar(null);
     } catch (err) {
-      alert('Error al eliminar la subcategoría.');
+      setModalError(err.response?.data?.message || 'Error al eliminar. Es probable que esté en uso en alguna solicitud.');
     }
   };
 
@@ -139,7 +154,7 @@ const SubcategoriasAdmin = () => {
           <Link to="/admin/gestion" className={styles.backButton} title="Volver a Gestión">&#8592;</Link>
           <h1 className={styles.title}>Subcategorías</h1>
         </div>
-        <button className={styles.createBtn} onClick={() => setShowCreateModal(true)}>
+        <button className={styles.createBtn} onClick={() => { setModalError(''); setShowCreateModal(true); }}>
           Crear Nueva
         </button>
       </div>
@@ -173,6 +188,7 @@ const SubcategoriasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Crear Nueva Subcategoría</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Nombre:</label>
               <input type="text" placeholder="Ej: Pintura exterior" value={nuevaSubcategoria} onChange={(e) => setNuevaSubcategoria(e.target.value)} style={inputStyle} autoFocus />
@@ -186,7 +202,7 @@ const SubcategoriasAdmin = () => {
               </select>
 
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setNuevaSubcategoria(''); setCategoriaSeleccionada('');}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setNuevaSubcategoria(''); setCategoriaSeleccionada(''); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Guardar</button>
               </div>
             </form>
@@ -198,6 +214,7 @@ const SubcategoriasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Editar Subcategoría</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Nombre:</label>
               <input type="text" value={subcategoriaAEditar.nombre} onChange={(e) => setSubcategoriaAEditar({...subcategoriaAEditar, nombre: e.target.value})} style={inputStyle} autoFocus />
@@ -211,7 +228,7 @@ const SubcategoriasAdmin = () => {
               </select>
 
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setSubcategoriaAEditar(null);}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setSubcategoriaAEditar(null); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Actualizar</button>
               </div>
             </form>
@@ -223,10 +240,11 @@ const SubcategoriasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Confirmar Eliminación</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <p>¿Estás seguro de que deseas eliminar la subcategoría <strong>"{subcategoriaAEliminar.nombre}"</strong>?</p>
             <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
             <div style={buttonGroupStyle}>
-              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setSubcategoriaAEliminar(null);}}>Cancelar</button>
+              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setSubcategoriaAEliminar(null); setModalError('');}}>Cancelar</button>
               <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
             </div>
           </div>

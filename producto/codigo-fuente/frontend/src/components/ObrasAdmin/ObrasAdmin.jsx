@@ -21,6 +21,8 @@ const ObrasAdmin = () => {
   const [obraAEditar, setObraAEditar] = useState(null);
   const [obraAEliminar, setObraAEliminar] = useState(null);
 
+  const [modalError, setModalError] = useState('');
+
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -50,8 +52,9 @@ const ObrasAdmin = () => {
 
   const handleCrear = async (e) => {
     e.preventDefault();
-    if (!formCrear.nombre || !formCrear.direccion || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa || !formCrear.fechaCierrePostventa) {
-      alert('Por favor complete todos los campos obligatorios.');
+    setModalError('');
+    if (!formCrear.nombre.trim() || !formCrear.direccion.trim() || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa || !formCrear.fechaCierrePostventa) {
+      setModalError('Por favor complete todos los campos obligatorios.');
       return;
     }
 
@@ -81,11 +84,12 @@ const ObrasAdmin = () => {
       setShowCreateModal(false);
       setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', comunaId: '' });
     } catch (err) {
-      alert(err.response?.data || 'Error al crear la obra');
+      setModalError(err.response?.data?.message || 'Error al guardar: Verifica los datos ingresados.');
     }
   };
 
   const abrirModalEditar = (obra) => {
+    setModalError('');
     setObraAEditar({
       ...obra,
       empresaIdForm: obra.empresaCliente ? obra.empresaCliente.id : '',
@@ -96,8 +100,9 @@ const ObrasAdmin = () => {
 
   const handleEditar = async (e) => {
     e.preventDefault();
-    if (!obraAEditar.nombre || !obraAEditar.direccion || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa || !obraAEditar.fechaCierrePostventa) {
-      alert('Por favor complete todos los campos obligatorios.');
+    setModalError('');
+    if (!obraAEditar.nombre.trim() || !obraAEditar.direccion.trim() || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa || !obraAEditar.fechaCierrePostventa) {
+      setModalError('Por favor complete todos los campos obligatorios.');
       return;
     }
 
@@ -126,16 +131,18 @@ const ObrasAdmin = () => {
       setShowEditModal(false);
       setObraAEditar(null);
     } catch (err) {
-      alert(err.response?.data || 'Error al actualizar la obra');
+      setModalError(err.response?.data?.message || 'Error al actualizar la obra.');
     }
   };
 
   const abrirModalEliminar = (obra) => {
+    setModalError('');
     setObraAEliminar(obra);
     setShowDeleteModal(true);
   };
 
   const handleEliminar = async () => {
+    setModalError('');
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`http://localhost:8080/api/obras/${obraAEliminar.id}`, {
@@ -146,7 +153,7 @@ const ObrasAdmin = () => {
       setShowDeleteModal(false);
       setObraAEliminar(null);
     } catch (err) {
-      alert('Error al eliminar la obra.');
+      setModalError(err.response?.data?.message || 'No se puede eliminar la obra. Es probable que tenga solicitudes asociadas.');
     }
   };
 
@@ -167,7 +174,7 @@ const ObrasAdmin = () => {
           <Link to="/admin/gestion" className={styles.backButton} title="Volver a Gestión">&#8592;</Link>
           <h1 className={styles.title}>Obras</h1>
         </div>
-        <button className={styles.createBtn} onClick={() => setShowCreateModal(true)}>
+        <button className={styles.createBtn} onClick={() => { setModalError(''); setShowCreateModal(true); }}>
           Crear Nueva
         </button>
       </div>
@@ -201,6 +208,7 @@ const ObrasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Crear Nueva Obra</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
               <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
               <input type="text" value={formCrear.nombre} onChange={(e) => setFormCrear({...formCrear, nombre: e.target.value})} style={inputStyle} />
@@ -236,7 +244,7 @@ const ObrasAdmin = () => {
               </select>
 
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', comunaId: ''});}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', comunaId: ''}); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Guardar</button>
               </div>
             </form>
@@ -248,6 +256,7 @@ const ObrasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Editar Obra</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
               <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
               <input type="text" value={obraAEditar.nombre} onChange={(e) => setObraAEditar({...obraAEditar, nombre: e.target.value})} style={inputStyle} />
@@ -283,7 +292,7 @@ const ObrasAdmin = () => {
               </select>
 
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setObraAEditar(null);}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setObraAEditar(null); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Actualizar</button>
               </div>
             </form>
@@ -295,10 +304,11 @@ const ObrasAdmin = () => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Confirmar Eliminación</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <p>¿Estás seguro de que deseas eliminar la obra <strong>"{obraAEliminar.nombre}"</strong>?</p>
             <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
             <div style={buttonGroupStyle}>
-              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setObraAEliminar(null);}}>Cancelar</button>
+              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setObraAEliminar(null); setModalError('');}}>Cancelar</button>
               <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
             </div>
           </div>

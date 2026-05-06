@@ -200,19 +200,27 @@
 
 .solicitudesWrapper {
   background-color: #a3bbcf; 
-  padding: 15px; 
+  padding: 0 15px 15px 15px; 
   display: flex;
   flex-direction: column;
   gap: 8px; 
+  max-height: 350px;
+  overflow-y: auto;
 }
 
 
 .solicitudesHeader {
+  position: sticky;
   display: flex;
-  padding: 5px 20px;
+  padding: 15px 20px 12px 20px;
   color: #ffffff;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 15px;
+  top: 0;
+  background-color: #a3bbcf;
+  border-bottom: 2px solid #97adc0;
+  z-index: 100;
+  
 }
 
 .solicitudRowLink {
