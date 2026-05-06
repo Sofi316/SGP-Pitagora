@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header/Header';
 import LoginPanel from './components/LoginPanel/LoginPanel';
 import RecoverPassword from './components/RecoverPassword/RecoverPassword';
+import ResetPassword from './components/ResetPassword/ResetPassword';
 import AdminLayout from './components/AdminLayout/AdminLayout';
 import InicioAdmin from './components/InicioAdmin/InicioAdmin';
 import './index.css';
@@ -19,9 +20,15 @@ function App() {
         }/>
 
         <Route path="/recuperar" element={
-          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
             <Header showLogout={false} />
             <RecoverPassword />
+          </div>
+        } />
+        <Route path="/reset-password" element={
+          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
+            <Header showLogout={false} />
+            <ResetPassword />
           </div>
         } />
 

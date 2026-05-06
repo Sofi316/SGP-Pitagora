@@ -7,6 +7,7 @@ import com.pitagora.backend.SGP_Pitagora.dto.ResetPasswordDTO;
 import com.pitagora.backend.SGP_Pitagora.service.JwtService;
 import com.pitagora.backend.SGP_Pitagora.service.UsuarioService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -50,13 +51,26 @@ public class AuthController {
     }
     @PostMapping("/solicitar-recuperacion")
     public ResponseEntity<String> solicitarRecuperacion(@RequestParam String correo) {
-        usuarioService.solicitarRecuperacion(correo);
-        return ResponseEntity.ok("Proceso iniciado.");
+        try {
+            usuarioService.solicitarRecuperacion(correo);
+            return ResponseEntity.ok("Proceso iniciado.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO request) {
-        usuarioService.cambiarPasswordConToken(request.token(), request.nuevaPassword());
-        return ResponseEntity.ok("Contraseña actualizada.");
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO request) {
+        try {
+            // Se invoca el servicio pasando el token y la nueva contraseña procesada
+            usuarioService.cambiarPasswordConToken(request.token(), request.nuevaPassword());
+            return ResponseEntity.ok("Contraseña actualizada con éxito.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // Atrapa errores de negocio controlados (ej: token expirado, token no encontrado)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            // Atrapa cualquier otra falla inesperada del servidor
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error inesperado al procesar la solicitud.");
+        }
     }
 }

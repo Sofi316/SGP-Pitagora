@@ -113,7 +113,7 @@ public class UsuarioService implements UserDetailsService {
                 <h2 style="color: #364a5e;">Restablecer Contraseña</h2>
                 <p>Has solicitado recuperar tu acceso al sistema <strong>SGP Pitagora</strong>.</p>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="http://localhost:8080/reset-password?token=%s" 
+                    <a href="http://localhost:3000/reset-password?token=%s" 
                     style="background-color: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     Cambiar Contraseña
                     </a>
