@@ -1,0 +1,37 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  color: #ffffff;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.menuBox {
+  background-color: #aec4d6;
+  padding: 30px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menuItem {
+  background-color: #7e9ab2;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 15px 20px;
+  font-size: 16px;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+  display: block;
+}
+
+.menuItem:hover {
+  background-color: #7b91a3;
+}

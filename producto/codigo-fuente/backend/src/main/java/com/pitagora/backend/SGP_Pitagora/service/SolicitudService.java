@@ -12,7 +12,6 @@ import com.pitagora.backend.SGP_Pitagora.repository.SolicitudRepository;
 @Service
 public class SolicitudService {
 
-    // Le agregamos 'final' por buena práctica de inyección
     private final SolicitudRepository solicitudRepository;
 
     public SolicitudService(SolicitudRepository solicitudRepository) {
@@ -20,7 +19,7 @@ public class SolicitudService {
     }
 
     public List<Solicitud> obtenerTodas() {
-        return solicitudRepository.findAll();
+        return solicitudRepository.findAllConDetalles();
     }
 
     public Solicitud obtenerPorId(Long id) {
@@ -29,11 +28,11 @@ public class SolicitudService {
     }
 
     public List<Solicitud> obtenerPorUsuario(Long id) {
-        return solicitudRepository.findByUsuarioId(id);
+        return solicitudRepository.findByUsuarioIdConDetalles(id);
     }
 
     public List<Solicitud> obtenerPorObra(Long id) {
-        return solicitudRepository.findByObraId(id);
+        return solicitudRepository.findByObraIdConDetalles(id);
     }
 
     public Solicitud guardar(Solicitud solicitud) {

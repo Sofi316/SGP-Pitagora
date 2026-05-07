@@ -12,7 +12,6 @@ import com.pitagora.backend.SGP_Pitagora.repository.TipoEvidenciaRepository;
 @Service
 public class TipoEvidenciaService {
 
-    // Se agrega 'final' por buenas prácticas de inyección de dependencias
     private final TipoEvidenciaRepository tipoEvidenciaRepository;
 
     public TipoEvidenciaService(TipoEvidenciaRepository tipoEvidenciaRepository) {

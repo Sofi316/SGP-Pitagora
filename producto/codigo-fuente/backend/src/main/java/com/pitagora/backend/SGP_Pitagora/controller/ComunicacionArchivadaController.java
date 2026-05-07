@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pitagora.backend.SGP_Pitagora.dto.MensajeSalienteDto;
 import com.pitagora.backend.SGP_Pitagora.model.ComunicacionArchivada;
 import com.pitagora.backend.SGP_Pitagora.service.ComunicacionArchivadaService;
 
@@ -76,6 +77,11 @@ public class ComunicacionArchivadaController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La comunicación debe mantener una solicitud válida.");
         }
         return ResponseEntity.ok(comunicacionArchivadaService.update(id, comunicacion));
+    }
+    @PostMapping("/solicitud/{id}/enviar")
+    public ResponseEntity<ComunicacionArchivada> enviarRespuesta(@PathVariable Long id, @RequestBody MensajeSalienteDto dto) {
+        ComunicacionArchivada comunicacionGuardada = comunicacionArchivadaService.enviarRespuestaCliente(id, dto);
+        return ResponseEntity.ok(comunicacionGuardada);
     }
 }
 

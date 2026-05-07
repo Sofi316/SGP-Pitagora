@@ -1,0 +1,104 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.createBtn {
+  background-color: #0d3b66;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.createBtn:hover {
+  background-color: #082a4a;
+}
+
+.listBox {
+  background-color: #aec4d6;
+  padding: 20px;
+  border-radius: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.itemRow {
+  background-color: #7e9ab2;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 2px;
+}
+
+.itemName {
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.editBtn, .deleteBtn {
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #ffffff;
+  transition: opacity 0.2s;
+}
+
+.editBtn:hover, .deleteBtn:hover {
+  opacity: 0.8;
+}
+
+.editBtn {
+  background-color: #5d7b99;
+}
+
+.deleteBtn {
+  background-color: #d9534f;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.backButton {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 28px;
+  line-height: 1;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.backButton:hover {
+  opacity: 0.8;
+  transform: translateX(-4px); 
+}
