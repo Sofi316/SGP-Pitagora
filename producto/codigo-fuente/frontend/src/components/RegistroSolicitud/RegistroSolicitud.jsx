@@ -34,7 +34,6 @@ const RegistroSolicitud = () => {
   useEffect(() => {
     const cargarDatosIniciales = async () => {
       const token = localStorage.getItem('token');
-      // Importante: Usar formato Bearer para evitar 403
       const config = { headers: { Authorization: `Bearer ${token}` } };
       try {
         const resObra = await axios.get(`http://localhost:8080/api/obras/${id}`, config);
@@ -97,13 +96,12 @@ const RegistroSolicitud = () => {
     setPreviewsEvidencias(prev => prev.filter((_, i) => i !== index));
   };
 
-  // --- PROCESO DE GUARDADO ---
+  // --- PROCESO DE GUARDADO CON LOGS DE DIAGNÓSTICO ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMensaje(null);
 
-    // --- DIAGNÓSTICO DE TOKEN ---
     const token = localStorage.getItem('token');
     console.log("Diagnóstico - Token en localStorage:", token);
     
@@ -114,7 +112,8 @@ const RegistroSolicitud = () => {
     }
 
     try {
-      // PASO 1: Crear la Solicitud en Spring Boot
+      // --- PASO 1: CREAR SOLICITUD EN JAVA ---
+      console.log("1. Intentando guardar Solicitud en Java...");
       const solicitudData = {
         descripcion: datosFormulario.descripcion,
         ubicacionExacta: datosFormulario.ubicacion,
@@ -126,43 +125,50 @@ const RegistroSolicitud = () => {
         subCategoria: { id: parseInt(datosFormulario.idSubcategoria) }
       };
 
-      // Realizamos el POST con el header Authorization correcto
       const resSolicitud = await axios.post('http://localhost:8080/api/solicitudes', solicitudData, {
         headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
         }
       });
-
+      
       const solicitudCreada = resSolicitud.data;
+      console.log("¡PASO 1 EXITOSO! Solicitud guardada con ID:", solicitudCreada.id);
 
-      // PASO 2: Subir archivos a Supabase Storage y registrar evidencias
+      // --- PASO 2: SUBIR A SUPABASE STORAGE ---
       if (evidencias.length > 0) {
         for (const file of evidencias) {
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
           
+          console.log("2. Intentando subir archivo a Supabase Storage:", fileName);
           const { error: uploadError } = await supabase.storage
             .from('archivo_evidencia')
             .upload(fileName, file);
 
-          if (uploadError) throw new Error(`Error en Storage: ${uploadError.message}`);
+          if (uploadError) {
+            console.error("¡FALLO EN PASO 2 (Supabase Storage)!", uploadError);
+            throw new Error(`Supabase bloqueó la subida. Detalle: ${uploadError.message}`);
+          }
+          console.log("¡PASO 2 EXITOSO! Archivo subido a Supabase.");
 
           const { data: urlData } = supabase.storage.from('archivo_evidencia').getPublicUrl(fileName);
           
-          // PASO 3: Registrar el link en la tabla 'archivo_evidencia'
+          // --- PASO 3: GUARDAR LINK EN JAVA ---
           const evidenciaData = {
             rutaArchivo: urlData.publicUrl,
             tipoEvidencia: { id: file.type === 'application/pdf' ? 2 : 1 },
             solicitud: { id: solicitudCreada.id }
           };
 
+          console.log("3. Intentando guardar el link de evidencia en Java...", evidenciaData);
           await axios.post('http://localhost:8080/api/archivos-evidencia', evidenciaData, {
             headers: { 
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
           });
+          console.log("¡PASO 3 EXITOSO! Link de evidencia guardado en Java.");
         }
       }
 
@@ -170,9 +176,9 @@ const RegistroSolicitud = () => {
       setTimeout(() => navigate(-1), 1500);
 
     } catch (error) {
-      console.error("Error completo:", error);
-      const msg = error.response?.data?.message || error.message || "Error al procesar el registro";
-      setMensaje({ tipo: 'error', texto: `No se pudo registrar: ${msg}` });
+      console.error("=== ERROR DETECTADO EN EL PROCESO ===", error);
+      const msg = error.response?.data?.message || error.message || "Error desconocido";
+      setMensaje({ tipo: 'error', texto: `Error: ${msg}` });
     } finally {
       setLoading(false);
     }

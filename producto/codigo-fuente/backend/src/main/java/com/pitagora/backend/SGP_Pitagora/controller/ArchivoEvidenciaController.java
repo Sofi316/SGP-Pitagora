@@ -16,7 +16,7 @@ import com.pitagora.backend.SGP_Pitagora.model.ArchivoEvidencia;
 import com.pitagora.backend.SGP_Pitagora.service.ArchivoEvidenciaService;
 
 @RestController
-@RequestMapping("/api/archivos-evidencia")
+@RequestMapping("/api/archivo-evidencia")
 public class ArchivoEvidenciaController {
 
     private final ArchivoEvidenciaService archivoEvidenciaService;
