@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pitagora.backend.SGP_Pitagora.model.EmpresaCliente;
 import com.pitagora.backend.SGP_Pitagora.service.EmpresaClienteService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/empresas-clientes")
 public class EmpresaClienteController {
@@ -36,13 +38,13 @@ public class EmpresaClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<EmpresaCliente> create(@RequestBody EmpresaCliente empresa) {
+    public ResponseEntity<EmpresaCliente> create(@RequestBody @Valid EmpresaCliente empresa) {
         EmpresaCliente nuevaEmpresa = empresaClienteService.save(empresa);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaEmpresa);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmpresaCliente> update(@PathVariable Long id, @RequestBody EmpresaCliente empresa) {
+    public ResponseEntity<EmpresaCliente> update(@PathVariable Long id, @RequestBody @Valid EmpresaCliente empresa) {
         return ResponseEntity.ok(empresaClienteService.update(id, empresa));
     }
 
