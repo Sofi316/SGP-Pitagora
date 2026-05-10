@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import InputGroup from '../InputGroup/InputGroup';
 import styles from './ResetPassword.module.css';
 
 const ResetPassword = () => {
     const [searchParams] = useSearchParams();
-    const token = searchParams.get('token'); // Captura el token de la URL (?token=...)
+    const token = searchParams.get('token');
     const navigate = useNavigate();
 
     const [password, setPassword] = useState('');
@@ -28,7 +28,7 @@ const ResetPassword = () => {
         setMensaje('');
 
         if (!password.trim() || !confirmPassword.trim()) {
-            setError('Por favor, completa ambos campos.');
+            setError('Error: Los campos no pueden estar vacíos.');
             return;
         }
 
@@ -38,27 +38,28 @@ const ResetPassword = () => {
         }
 
         if (password.length < 6) {
-            setError('La contraseña debe tener al menos 6 caracteres.');
+            setError('La contraseña es demasiado corta. Debe tener al menos 6 caracteres.');
             return;
         }
 
         try {
-            await axios.post('http://localhost:8080/api/auth/reset-password', {
+            await api.post('/auth/reset-password', {
                 token: token,
                 nuevaPassword: password
             });
             
-            setMensaje('Contraseña restablecida con éxito. Redirigiendo al inicio de sesión...');
+            setMensaje('Contraseña actualizada con éxito en la base de datos. Redirigiendo...');
             
             setTimeout(() => {
-                navigate('/'); // Redirige al login usando tu ruta raíz
+                navigate('/');
             }, 3000);
 
         } catch (err) {
-            if (err.response && err.response.data) {
-                setError(err.response.data);
+            if (err.response && err.response.status === 400) {
+                setError('El link de recuperación ha expirado o ya fue utilizado.');
+                setInvalidToken(true);
             } else {
-                setError('El enlace de recuperación es inválido o ha expirado.');
+                setError('Ocurrió un error al intentar actualizar la contraseña.');
             }
         }
     };
@@ -72,7 +73,7 @@ const ResetPassword = () => {
                     </div>
                     
                     <p className={styles.instructionsText}>
-                        Ingresa tu nueva contraseña para actualizar las credenciales de seguridad de tu cuenta.
+                        Ingresa tu nueva contraseña para actualizar las credenciales de acceso de tu cuenta.
                     </p>
 
                     {!invalidToken && (
@@ -95,16 +96,39 @@ const ResetPassword = () => {
                         </>
                     )}
 
-                    {mensaje && <p className={styles.successMessage}>{mensaje}</p>}
-                    {error && <p className={styles.errorMessage}>{error}</p>}
+                    {mensaje && (
+                        <p style={{
+                            color: '#155724',
+                            backgroundColor: '#d4edda',
+                            padding: '10px',
+                            borderRadius: '4px',
+                            textAlign: 'center'
+                        }}>
+                            {mensaje}
+                        </p>
+                    )}
+                    
+                    {error && (
+                        <p style={{
+                            color: '#721c24',
+                            backgroundColor: '#f8d7da',
+                            padding: '10px',
+                            borderRadius: '4px',
+                            textAlign: 'center'
+                        }}>
+                            {error}
+                        </p>
+                    )}
 
                     <div className={styles.formOptions}>
                         <Link to="/" className={styles.forgotPasswordLink}>Volver al inicio de sesión</Link>
                     </div>
 
-                    {!invalidToken && (
+                    {!invalidToken && !mensaje && (
                         <div className={styles.buttonContainer}>
-                            <button type="submit" className={styles.pitagoraSubmitButton}>Actualizar Contraseña</button>
+                            <button type="submit" className={styles.pitagoraSubmitButton}>
+                                Actualizar Contraseña
+                            </button>
                         </div>
                     )}
                 </form>

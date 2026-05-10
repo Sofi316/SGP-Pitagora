@@ -44,7 +44,7 @@ public class EmailPollerService {
         this.comunicacionRepository = comunicacionRepository;
     }
 
-    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRate = 120000)
     public void leerCorreosNuevos() {
         Properties props = new Properties();
         props.put("mail.store.protocol", "imaps");

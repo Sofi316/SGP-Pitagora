@@ -12,7 +12,6 @@ import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 @Repository
 public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
     
-    
     @Query("SELECT s FROM Solicitud s " +
            "JOIN FETCH s.estadoSolicitud " +
            "JOIN FETCH s.subCategoria sub " +

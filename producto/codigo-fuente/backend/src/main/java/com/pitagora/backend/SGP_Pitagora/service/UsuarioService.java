@@ -1,8 +1,10 @@
 package com.pitagora.backend.SGP_Pitagora.service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -12,7 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.UUID;
+
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.repository.UsuarioRepository;
 
@@ -34,6 +36,7 @@ public class UsuarioService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mailSender = mailSender;
     }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return usuarioRepository.findByCorreo(email)
@@ -51,18 +54,51 @@ public class UsuarioService implements UserDetailsService {
     public Usuario findById(Long id) {
         return usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
     }
-    public List<Usuario> listarPorEmpresa(Long id){
-        return usuarioRepository.findByEmpresaIdAndActivoTrue(id);
+
+    public List<Usuario> filtrarUsuarios(Long empresaId, Long obraId, String keyword) {
+        String busqueda = (keyword == null || keyword.trim().isEmpty()) ? null : keyword;
+        return usuarioRepository.filtrarUsuariosOptimizados(empresaId, obraId, busqueda);
     }
 
-    public Usuario save(Usuario usuario){
-        usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
-        return usuarioRepository.save(usuario);
+   @Transactional
+    public Usuario save(Usuario usuario) {
+        return usuarioRepository.findByRut(usuario.getRut())
+            .map(existente -> {
+                if (existente.getActivo()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El RUT ya está registrado y activo.");
+                }
+                // Si existe pero está inactivo, lo reactivamos (Punto 11.b)
+                actualizarCamposBase(existente, usuario);
+                existente.setActivo(true);
+                existente.setRecibe_notificaciones(true); // Punto 6 del CU04 (inverso)
+                return usuarioRepository.save(existente);
+            })
+            .orElseGet(() -> {
+                // Si no existe, validamos el correo y creamos nuevo
+                if (usuarioRepository.existsByCorreo(usuario.getCorreo())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo ya está registrado.");
+                }
+                usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+                usuario.setActivo(true);
+                return usuarioRepository.save(usuario);
+            });
     }
 
     public Usuario update(Long id, Usuario usuarioModificado) {
         return usuarioRepository.findById(id)
             .map(usuarioAEditar -> {
+                // Validación extra: Si el correo cambió, verificar que el nuevo no exista
+                if (!usuarioAEditar.getCorreo().equals(usuarioModificado.getCorreo()) &&
+                    usuarioRepository.existsByCorreo(usuarioModificado.getCorreo())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nuevo correo ya está en uso por otro usuario.");
+                }
+
+                // Validación extra: Si el RUT cambió, verificar duplicidad
+                if (!usuarioAEditar.getRut().equals(usuarioModificado.getRut()) &&
+                    usuarioRepository.existsByRut(usuarioModificado.getRut())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nuevo RUT ya está registrado.");
+                }
+
                 actualizarCamposBase(usuarioAEditar, usuarioModificado);
 
                 Optional.ofNullable(usuarioModificado.getContrasena())
@@ -85,19 +121,24 @@ public class UsuarioService implements UserDetailsService {
         destino.setRecibe_notificaciones(origen.getRecibe_notificaciones());
         destino.setActivo(origen.getActivo());
         destino.setRol(origen.getRol());
-        destino.setEmpresa(origen.getEmpresa());
+        destino.setObras(origen.getObras());
     }
     
     public void delete(Long id) {
-    usuarioRepository.findById(id)
-        .map(usuario -> {
-            usuario.setActivo(false);
-            usuario.setRecibe_notificaciones(false);
-            return usuarioRepository.save(usuario);
-        })
-        .orElseThrow(() -> new ResponseStatusException(
-            HttpStatus.NOT_FOUND, "No se puede eliminar, ID no existe"
-        ));
+        
+        Long authUserId = obtenerIdUsuarioAutenticado(); 
+
+        if (id.equals(authUserId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No puedes desactivar tu propia cuenta de sesión actual.");
+        }
+
+        usuarioRepository.findById(id)
+            .map(usuario -> {
+                usuario.setActivo(false);
+                usuario.setRecibe_notificaciones(false);
+                return usuarioRepository.save(usuario);
+            })
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ID no existe"));
     }
 
     private void enviarEmailHTML(String destinatario, String token) throws MessagingException {
@@ -107,7 +148,6 @@ public class UsuarioService implements UserDetailsService {
         helper.setTo(destinatario);
         helper.setSubject("Recuperación de Contraseña - Constructora Pitágoras");
 
-    
         String contenidoHtml = """
             <div style="font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
                 <h2 style="color: #364a5e;">Restablecer Contraseña</h2>
@@ -127,6 +167,7 @@ public class UsuarioService implements UserDetailsService {
         helper.setText(contenidoHtml, true); 
         mailSender.send(message);
     }
+
     public void solicitarRecuperacion(String correo) {
         usuarioRepository.findByCorreo(correo).ifPresent(usuario -> {
             String token = UUID.randomUUID().toString();
@@ -135,10 +176,8 @@ public class UsuarioService implements UserDetailsService {
             usuarioRepository.save(usuario);
 
             try {
-                // Se envía el correo al usuario encontrado
                 enviarEmailHTML(usuario.getCorreo(), token);
             } catch (MessagingException e) {
-                // Manejo de error de envío
                 throw new RuntimeException("Error al enviar el email de recuperación", e);
             }
         });
@@ -149,13 +188,20 @@ public class UsuarioService implements UserDetailsService {
             .filter(u -> u.getTokenExpiracion().isAfter(LocalDateTime.now()))
             .map(u -> {
                 u.setContrasena(passwordEncoder.encode(nuevaPassword));
-                u.setTokenRecuperacion(null); // Limpiar el token tras el uso
+                u.setTokenRecuperacion(null);
                 u.setTokenExpiracion(null);
                 return usuarioRepository.save(u);
             })
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token inválido o expirado"));
     }
-    
-
-
+    private Long obtenerIdUsuarioAutenticado() {
+        Object principal = org.springframework.security.core.context.SecurityContextHolder
+                            .getContext().getAuthentication().getPrincipal();
+        
+        if (principal instanceof Usuario) {
+            return ((Usuario) principal).getId();
+        }
+        
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sesión no válida");
+    }
 }

@@ -21,12 +21,12 @@ public class TipoEvidenciaController {
 
     private final TipoEvidenciaService tipoEvidenciaService;
 
-    // Inyección por constructor
+ 
     public TipoEvidenciaController (TipoEvidenciaService tipoEvidenciaService){
         this.tipoEvidenciaService = tipoEvidenciaService;
     }
 
-    // GET: /api/tipos-evidencia
+  
     @GetMapping
     public ResponseEntity<List<TipoEvidencia>> listarTodos() {
         return ResponseEntity.ok(tipoEvidenciaService.obtenerTodos());

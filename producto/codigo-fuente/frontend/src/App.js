@@ -14,11 +14,14 @@ import SolicitudesAdmin from './components/SolicitudesAdmin/SolicitudesAdmin';
 import SolicitudesObras from './components/SolicitudesAdmin/SolicitudesObra';
 import ResetPassword from './components/ResetPassword/ResetPassword';
 import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin';
+import ArchivadosAdmin from './components/ArchivadosAdmin/ArchivadosAdmin';
+import AutoLogout from './services/Autologout';
 import './index.css';
 
 function App() {
   return (
     <Router>
+      <AutoLogout>
        <Routes>
         <Route path="/" element={
           <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
@@ -45,16 +48,18 @@ function App() {
           <Route path="dashboard" element={<div style={{color: 'white'}}>Dashboard</div>} />
           <Route path="solicitudes" element={<SolicitudesAdmin/>} />
           <Route path="solicitudes/empresa/:id" element={<SolicitudesObras/>} />
-          <Route path="archivados" element={<div style={{color: 'white'}}>Archivados</div>} />
           <Route path="gestion" element={<GestionAdmin />} />
           <Route path="gestion/categorias" element={<CategoriasAdmin />} />
           <Route path="gestion/subcategorias" element={<SubcategoriasAdmin />} />
           <Route path="gestion/empresas" element={<EmpresasAdmin />} />
           <Route path="gestion/obras" element={<ObrasAdmin/>}/>
           <Route path="gestion/usuarios" element={<UsuariosAdmin/>}/>
+          <Route path="archivados" element={<ArchivadosAdmin/>}/>
+
         </Route>
 
         </Routes>
+        </AutoLogout>
     </Router>
   );
 }

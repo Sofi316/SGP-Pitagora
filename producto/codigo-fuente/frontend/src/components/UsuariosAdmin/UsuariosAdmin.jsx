@@ -1,59 +1,115 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
-import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
+import api from '../../services/api';
+import styles from './UsuariosAdmin.module.css';
 
 const UsuariosAdmin = () => {
   const [usuarios, setUsuarios] = useState([]);
-  const [empresas, setEmpresas] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [error, setError] = useState('');
+  const [todasLasObras, setTodasLasObras] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filtroObraId, setFiltroObraId] = useState('');
+  const [keyword, setKeyword] = useState('');
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  const [formErrors, setFormErrors] = useState({});
+  const [backendError, setBackendError] = useState('');
 
   const [formCrear, setFormCrear] = useState({
-    rut: '',
-    nombre: '',
-    apellido: '',
-    correo: '',
-    contrasena: '',
-    celular: '',
-    cargo: '',
-    recibe_notificaciones: true,
-    rolId: '',
-    empresaId: ''
+    rut: '', nombre: '', apellido: '', correo: '', contrasena: '', 
+    celular: '', cargo: '', recibe_notificaciones: true, rolId: '', 
+    obrasIds: []
   });
 
   const [usuarioAEditar, setUsuarioAEditar] = useState(null);
   const [usuarioAEliminar, setUsuarioAEliminar] = useState(null);
 
-  const [modalError, setModalError] = useState('');
+  const validarRutChileno = (rutCompleto) => {
+    if (!/^[0-9]+-[0-9kK]{1}$/.test(rutCompleto)) return false;
+    const tmp = rutCompleto.split('-');
+    let digv = tmp[1].toUpperCase();
+    const rut = tmp[0];
+    let M = 0, S = 1;
+    let T = parseInt(rut, 10);
+    for (; T; T = Math.floor(T / 10)) {
+      S = (S + T % 10 * (9 - M++ % 6)) % 11;
+    }
+    const dvEsperado = S ? S - 1 : 'K';
+    return dvEsperado.toString() === digv;
+  };
+
+  const formatRut = (rut) => {
+    let value = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+    if (value.length > 1) value = value.slice(0, -1) + '-' + value.slice(-1);
+    return value;
+  };
+
+  const formatCelular = (valor) => {
+    let value = valor.replace(/[^0-9+]/g, '');
+    if (value.length > 0 && !value.startsWith('+')) value = '+' + value;
+    if (value.length > 3 && !value.startsWith('+569')) {
+      value = '+569' + value.replace('+569', '').replace('+', '');
+    }
+    return value.slice(0, 12); 
+  };
+
+  const validarFormulario = (datos, esEdicion = false) => {
+    const errores = {};
+    if (!datos.rut) errores.rut = 'El RUT es obligatorio.';
+    else if (!validarRutChileno(datos.rut)) errores.rut = 'RUT inválido.';
+    
+    if (!datos.nombre) errores.nombre = 'El nombre es obligatorio.';
+    if (!datos.apellido) errores.apellido = 'El apellido es obligatorio.';
+    
+    if (!datos.correo) errores.correo = 'El correo es obligatorio.';
+    else if (!datos.correo.includes('@')) errores.correo = 'Correo inválido.';
+    
+    if (!esEdicion && (!datos.contrasena || datos.contrasena.length < 4)) {
+      errores.contrasena = 'La contraseña debe tener al menos 4 caracteres.';
+    }
+
+    if (!esEdicion && !datos.rolId) errores.rolId = 'Debe seleccionar un rol.';
+    if (esEdicion && !datos.rolIdForm) errores.rolId = 'Debe seleccionar un rol.';
+
+    if (datos.celular && !/^\+569[0-9]{8}$/.test(datos.celular)) {
+      errores.celular = 'Formato inválido: +569XXXXXXXX';
+    }
+
+    return errores;
+  };
 
   useEffect(() => {
-    cargarDatos();
+    cargarDatosIniciales();
   }, []);
 
-  const cargarDatos = async () => {
+  const cargarDatosIniciales = async () => {
     setLoading(true);
-    setError('');
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
-      const [resUsuarios, resEmpresas, resRoles] = await Promise.all([
-        axios.get('http://localhost:8080/api/usuarios', config),
-        axios.get('http://localhost:8080/api/empresas-clientes', config).catch(() => ({ data: [] })),
-        axios.get('http://localhost:8080/api/roles', config).catch(() => ({ data: [] }))
-      ]);
-
-      setUsuarios(resUsuarios.data);
-      setEmpresas(resEmpresas.data);
-      setRoles(resRoles.data);
+      const [resRol, resObr] = await Promise.all([api.get('/roles'), api.get('/obras')]);
+      setRoles(resRol.data);
+      setTodasLasObras(resObr.data);
+      await aplicarFiltros();
     } catch (err) {
-      setError('Ocurrió un error al cargar los datos.');
+      if (err.response?.status !== 401) console.error('Error al cargar datos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const aplicarFiltros = async (e) => {
+    if (e) e.preventDefault();
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filtroObraId) params.append('obraId', filtroObraId);
+      if (keyword) params.append('keyword', keyword);
+      const response = await api.get(`/usuarios/filtrar?${params.toString()}`);
+      setUsuarios(response.data);
+    } catch (err) {
+      if (err.response?.status !== 401) console.error('Error al filtrar');
     } finally {
       setLoading(false);
     }
@@ -61,325 +117,195 @@ const UsuariosAdmin = () => {
 
   const handleCrear = async (e) => {
     e.preventDefault();
-    setModalError('');
-
-    if (!formCrear.rut.trim() || !formCrear.nombre.trim() || !formCrear.apellido.trim() || !formCrear.correo.trim() || !formCrear.contrasena || !formCrear.rolId) {
-      setModalError('Por favor complete todos los campos obligatorios.');
+    const errores = validarFormulario(formCrear);
+    if (Object.keys(errores).length > 0) {
+      setFormErrors(errores);
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8080/api/usuarios', 
-        {
-          rut: formCrear.rut,
-          nombre: formCrear.nombre,
-          apellido: formCrear.apellido,
-          correo: formCrear.correo,
-          contrasena: formCrear.contrasena,
-          celular: formCrear.celular,
-          cargo: formCrear.cargo,
-          recibe_notificaciones: formCrear.recibe_notificaciones,
-          activo: true,
-          rol: { id: parseInt(formCrear.rolId) },
-          empresa: formCrear.empresaId ? { id: parseInt(formCrear.empresaId) } : null
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const nuevoUsuario = response.data;
-      const empresaAsociada = empresas.find(emp => emp.id === parseInt(formCrear.empresaId));
-      const rolAsociado = roles.find(r => r.id === parseInt(formCrear.rolId));
-
-      if (empresaAsociada) nuevoUsuario.empresa = empresaAsociada;
-      if (rolAsociado) nuevoUsuario.rol = rolAsociado;
-
-      setUsuarios([...usuarios, nuevoUsuario]);
+      const payload = { ...formCrear, rol: { id: parseInt(formCrear.rolId) }, obras: formCrear.obrasIds.map(id => ({ id: parseInt(id) })) };
+      await api.post('/usuarios', payload);
       setShowCreateModal(false);
-      setFormCrear({ rut: '', nombre: '', apellido: '', correo: '', contrasena: '', celular: '', cargo: '', recibe_notificaciones: true, rolId: '', empresaId: '' });
+      setFormCrear({ rut: '', nombre: '', apellido: '', correo: '', contrasena: '', celular: '', cargo: '', recibe_notificaciones: true, rolId: '', obrasIds: [] });
+      setFormErrors({});
+      aplicarFiltros();
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al guardar el usuario.');
+      setBackendError(err.response?.data?.message || 'Error al guardar.');
     }
-  };
-
-  const abrirModalEditar = (usuario) => {
-    setModalError('');
-    setUsuarioAEditar({
-      ...usuario,
-      contrasena: '',
-      rolIdForm: usuario.rol ? usuario.rol.id : '',
-      empresaIdForm: usuario.empresa ? usuario.empresa.id : ''
-    });
-    setShowEditModal(true);
   };
 
   const handleEditar = async (e) => {
     e.preventDefault();
-    setModalError('');
-
-    if (!usuarioAEditar.rut.trim() || !usuarioAEditar.nombre.trim() || !usuarioAEditar.apellido.trim() || !usuarioAEditar.correo.trim() || !usuarioAEditar.rolIdForm) {
-      setModalError('Por favor complete todos los campos obligatorios.');
+    const errores = validarFormulario(usuarioAEditar, true);
+    if (Object.keys(errores).length > 0) {
+      setFormErrors(errores);
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const payload = {
-        rut: usuarioAEditar.rut,
-        nombre: usuarioAEditar.nombre,
-        apellido: usuarioAEditar.apellido,
-        correo: usuarioAEditar.correo,
-        celular: usuarioAEditar.celular,
-        cargo: usuarioAEditar.cargo,
-        recibe_notificaciones: usuarioAEditar.recibe_notificaciones,
-        activo: usuarioAEditar.activo,
+      const payload = { 
+        ...usuarioAEditar, 
         rol: { id: parseInt(usuarioAEditar.rolIdForm) },
-        empresa: usuarioAEditar.empresaIdForm ? { id: parseInt(usuarioAEditar.empresaIdForm) } : null
+        obras: usuarioAEditar.obrasIdsForm.map(id => ({ id: parseInt(id) }))
       };
+      if (usuarioAEditar.nuevaContrasena) payload.contrasena = usuarioAEditar.nuevaContrasena;
+      else delete payload.contrasena;
 
-      if (usuarioAEditar.contrasena) {
-        payload.contrasena = usuarioAEditar.contrasena;
-      }
-
-      const response = await axios.put(`http://localhost:8080/api/usuarios/${usuarioAEditar.id}`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const usuarioActualizado = response.data;
-      const empresaAsociada = empresas.find(emp => emp.id === parseInt(usuarioAEditar.empresaIdForm));
-      const rolAsociado = roles.find(r => r.id === parseInt(usuarioAEditar.rolIdForm));
-
-      if (empresaAsociada) usuarioActualizado.empresa = empresaAsociada;
-      if (rolAsociado) usuarioActualizado.rol = rolAsociado;
-
-      setUsuarios(usuarios.map(u => u.id === usuarioAEditar.id ? usuarioActualizado : u));
+      await api.put(`/usuarios/${usuarioAEditar.id}`, payload);
       setShowEditModal(false);
-      setUsuarioAEditar(null);
+      setFormErrors({});
+      aplicarFiltros();
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al actualizar el usuario.');
+      setBackendError(err.response?.data?.message || 'Error al actualizar.');
     }
   };
 
-  const abrirModalEliminar = (usuario) => {
-    setModalError('');
-    setUsuarioAEliminar(usuario);
-    setShowDeleteModal(true);
-  };
-
-  const handleEliminar = async () => {
-    setModalError('');
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/usuarios/${usuarioAEliminar.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      setUsuarios(usuarios.filter(u => u.id !== usuarioAEliminar.id));
-      setShowDeleteModal(false);
-      setUsuarioAEliminar(null);
-    } catch (err) {
-      setModalError(err.response?.data?.message || 'No se puede eliminar el usuario.');
+  const toggleObraSelection = (id, isEdit = false) => {
+    if (isEdit) {
+      const current = usuarioAEditar.obrasIdsForm || [];
+      const nuevo = current.includes(id) ? current.filter(oid => oid !== id) : [...current, id];
+      setUsuarioAEditar({ ...usuarioAEditar, obrasIdsForm: nuevo });
+    } else {
+      const current = formCrear.obrasIds;
+      const nuevo = current.includes(id) ? current.filter(oid => oid !== id) : [...current, id];
+      setFormCrear({ ...formCrear, obrasIds: nuevo });
     }
   };
 
-  const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const modalContentStyle = { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', width: '500px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto', color: '#333' };
-  const inputStyle = { width: '100%', padding: '8px', margin: '8px 0 15px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' };
-  const checkboxStyle = { margin: '8px 0 15px' };
-  const buttonGroupStyle = { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' };
-  const btnStyle = { padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer' };
-  const cancelBtnStyle = { ...btnStyle, backgroundColor: '#ccc', color: '#333' };
-  const confirmBtnStyle = { ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' };
-  const deleteBtnStyle = { ...btnStyle, backgroundColor: '#d9534f', color: '#fff' };
+  const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
+  const modalContentStyle = { backgroundColor: '#fff', padding: '25px', borderRadius: '4px', width: '650px', color: '#333', maxHeight: '95vh', overflowY: 'auto' };
+  const gridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '5px' };
+  const inputGroupStyle = { display: 'flex', flexDirection: 'column', minHeight: '85px' };
+  const labelStyle = { fontSize: '13px', fontWeight: 'bold', marginBottom: '4px', color: '#555' };
+  const modalInputStyle = (error) => ({ padding: '10px', borderRadius: '2px', border: error ? '2px solid #d9534f' : '1px solid #ccc', fontSize: '14px', outline: 'none' });
+  const errorTextStyle = { color: '#d9534f', fontSize: '11px', marginTop: '2px', fontWeight: 'bold' };
 
   return (
     <div className={styles.container}>
       <div className={styles.headerRow}>
         <div className={styles.titleContainer}>
-          <Link to="/admin/gestion" className={styles.backButton} title="Volver a Gestión">&#8592;</Link>
-          <h1 className={styles.title}>Usuarios</h1>
+          <Link to="/admin/gestion" className={styles.backButton}>←</Link>
+          <h1 className={styles.title}>Gestión de Usuarios</h1>
         </div>
-        <button className={styles.createBtn} onClick={() => { setModalError(''); setShowCreateModal(true); }}>
-          Crear Nuevo
-        </button>
+        <button className={styles.createBtn} onClick={() => { setShowCreateModal(true); setFormErrors({}); setBackendError(''); }}>Crear Nueva</button>
       </div>
 
-      {error && <p style={{ color: '#ffcccc', marginBottom: '15px' }}>{error}</p>}
+      <div className={styles.menuBox}>
+        <form onSubmit={aplicarFiltros} className={styles.filtersForm}>
+          <div className={styles.formGroupLarge}>
+            <label className={styles.selectLabel}>Obra</label>
+            <select className={styles.menuItem} value={filtroObraId} onChange={(e) => setFiltroObraId(e.target.value)}>
+              <option value="">-- Seleccione Obra --</option>
+              {todasLasObras.map(o => <option key={o.id} value={o.id}>{o.nombre}</option>)}
+            </select>
+          </div>
+          <div className={styles.formGroupLarge}>
+            <label className={styles.selectLabel}>Búsqueda Rápida</label>
+            <input type="text" placeholder="RUT, Nombre..." className={styles.menuItem} value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+          </div>
+          <div className={styles.btnGroup}>
+            <button type="submit" className={styles.btnPrimary}>Filtrar</button>
+            <button type="button" onClick={() => { setFiltroObraId(''); setKeyword(''); aplicarFiltros(); }} className={styles.btnSecondary}>Limpiar</button>
+          </div>
+        </form>
+      </div>
 
       <div className={styles.listBox}>
-        {loading ? (
-          <p style={{ color: 'white', textAlign: 'center' }}>Cargando usuarios...</p>
-        ) : usuarios.length === 0 && !error ? (
-          <p style={{ color: 'white' }}>No hay usuarios registrados.</p>
-        ) : (
-          usuarios.map((u) => (
+        {loading ? <p style={{color: 'white', textAlign: 'center'}}>Sincronizando...</p> : 
+          usuarios.map(u => (
             <div key={u.id} className={styles.itemRow}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className={styles.itemName}>{u.nombre} {u.apellido}</span>
-                <span style={{ fontSize: '12px', color: '#e0e0e0' }}>
-                  RUT: {u.rut} | Correo: {u.correo} | Rol: {u.rol ? u.rol.nombre : 'Sin Rol'} | Empresa: {u.empresa ? u.empresa.razonSocial : 'Sin Empresa'}
-                </span>
+              <div className={styles.itemInfo}>
+                <h4 className={styles.itemName}>{u.nombre} {u.apellido}</h4>
+                <p className={styles.itemSubtext}>{u.cargo || 'Sin cargo'} | {u.correo}</p>
+                <p className={styles.itemSubtext}>RUT: {u.rut} | Rol: {u.rol?.nombre}</p>
               </div>
               <div className={styles.actions}>
-                <button className={styles.editBtn} onClick={() => abrirModalEditar(u)}>Editar</button>
-                <button className={styles.deleteBtn} onClick={() => abrirModalEliminar(u)}>Eliminar</button>
+                <button className={styles.editBtn} onClick={() => { 
+                  setUsuarioAEditar({...u, rolIdForm: u.rol?.id, obrasIdsForm: u.obras.map(o => o.id), nuevaContrasena: ''}); 
+                  setShowEditModal(true); setFormErrors({}); setBackendError('');
+                }}>Editar</button>
+                <button className={styles.deleteBtn} onClick={() => { setUsuarioAEliminar(u); setShowDeleteModal(true); }}>Eliminar</button>
               </div>
             </div>
           ))
-        )}
+        }
       </div>
 
       {showCreateModal && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h3>Crear Nuevo Usuario</h3>
-            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
-            <form onSubmit={handleCrear}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>RUT:</label>
-              <input type="text" value={formCrear.rut} onChange={(e) => setFormCrear({...formCrear, rut: e.target.value})} style={inputStyle} />
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre:</label>
-                  <input type="text" value={formCrear.nombre} onChange={(e) => setFormCrear({...formCrear, nombre: e.target.value})} style={inputStyle} />
+            <h3 style={{margin: '0 0 20px 0', borderBottom: '1px solid #eee', paddingBottom: '10px'}}>Registrar Nuevo Usuario</h3>
+            {backendError && <p style={errorTextStyle}>{backendError}</p>}
+            
+            <form onSubmit={handleCrear} noValidate>
+              <div style={gridStyle}>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>RUT</label>
+                  <input type="text" placeholder="12345678-K" style={modalInputStyle(formErrors.rut)} value={formCrear.rut} onChange={(e) => setFormCrear({...formCrear, rut: formatRut(e.target.value)})} />
+                  {formErrors.rut && <span style={errorTextStyle}>{formErrors.rut}</span>}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Apellido:</label>
-                  <input type="text" value={formCrear.apellido} onChange={(e) => setFormCrear({...formCrear, apellido: e.target.value})} style={inputStyle} />
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Cargo</label>
+                  <input type="text" placeholder="Ej: Jefe de Obra" style={modalInputStyle()} value={formCrear.cargo} onChange={(e) => setFormCrear({...formCrear, cargo: e.target.value})} />
                 </div>
-              </div>
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Correo Electrónico:</label>
-              <input type="email" value={formCrear.correo} onChange={(e) => setFormCrear({...formCrear, correo: e.target.value})} style={inputStyle} />
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Contraseña:</label>
-              <input type="password" value={formCrear.contrasena} onChange={(e) => setFormCrear({...formCrear, contrasena: e.target.value})} style={inputStyle} />
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Celular:</label>
-                  <input type="text" value={formCrear.celular} onChange={(e) => setFormCrear({...formCrear, celular: e.target.value})} style={inputStyle} />
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Nombre</label>
+                  <input type="text" placeholder="Juan" style={modalInputStyle(formErrors.nombre)} value={formCrear.nombre} onChange={(e) => setFormCrear({...formCrear, nombre: e.target.value})} />
+                  {formErrors.nombre && <span style={errorTextStyle}>{formErrors.nombre}</span>}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cargo:</label>
-                  <input type="text" value={formCrear.cargo} onChange={(e) => setFormCrear({...formCrear, cargo: e.target.value})} style={inputStyle} />
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Apellido</label>
+                  <input type="text" placeholder="Pérez" style={modalInputStyle(formErrors.apellido)} value={formCrear.apellido} onChange={(e) => setFormCrear({...formCrear, apellido: e.target.value})} />
+                  {formErrors.apellido && <span style={errorTextStyle}>{formErrors.apellido}</span>}
                 </div>
-              </div>
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Rol:</label>
-              <select value={formCrear.rolId} onChange={(e) => setFormCrear({...formCrear, rolId: e.target.value})} style={inputStyle}>
-                <option value="">-- Seleccione un Rol --</option>
-                {roles.map(r => (
-                  <option key={r.id} value={r.id}>{r.nombre}</option>
-                ))}
-              </select>
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
-              <select value={formCrear.empresaId} onChange={(e) => setFormCrear({...formCrear, empresaId: e.target.value})} style={inputStyle}>
-                <option value="">-- Seleccione una empresa (Opcional) --</option>
-                {empresas.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.razonSocial}</option>
-                ))}
-              </select>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input type="checkbox" checked={formCrear.recibe_notificaciones} onChange={(e) => setFormCrear({...formCrear, recibe_notificaciones: e.target.checked})} style={checkboxStyle} id="createRecibeNotif" />
-                <label htmlFor="createRecibeNotif" style={{ fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Recibe Notificaciones</label>
-              </div>
-
-              <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({rut: '', nombre: '', apellido: '', correo: '', contrasena: '', celular: '', cargo: '', recibe_notificaciones: true, rolId: '', empresaId: ''}); setModalError('');}}>Cancelar</button>
-                <button type="submit" style={confirmBtnStyle}>Guardar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showEditModal && usuarioAEditar && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h3>Editar Usuario</h3>
-            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
-            <form onSubmit={handleEditar}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>RUT:</label>
-              <input type="text" value={usuarioAEditar.rut} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, rut: e.target.value})} style={inputStyle} />
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre:</label>
-                  <input type="text" value={usuarioAEditar.nombre} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, nombre: e.target.value})} style={inputStyle} />
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Correo Electrónico</label>
+                  <input type="email" placeholder="ejemplo@correo.cl" style={modalInputStyle(formErrors.correo)} value={formCrear.correo} onChange={(e) => setFormCrear({...formCrear, correo: e.target.value})} />
+                  {formErrors.correo && <span style={errorTextStyle}>{formErrors.correo}</span>}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Apellido:</label>
-                  <input type="text" value={usuarioAEditar.apellido} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, apellido: e.target.value})} style={inputStyle} />
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Celular</label>
+                  <input type="text" placeholder="+56912345678" style={modalInputStyle(formErrors.celular)} value={formCrear.celular} onChange={(e) => setFormCrear({...formCrear, celular: formatCelular(e.target.value)})} />
+                  {formErrors.celular && <span style={errorTextStyle}>{formErrors.celular}</span>}
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Contraseña Inicial</label>
+                  <input type="password" placeholder="********" style={modalInputStyle(formErrors.contrasena)} value={formCrear.contrasena} onChange={(e) => setFormCrear({...formCrear, contrasena: e.target.value})} />
+                  {formErrors.contrasena && <span style={errorTextStyle}>{formErrors.contrasena}</span>}
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Rol del Sistema</label>
+                  <select style={modalInputStyle(formErrors.rolId)} value={formCrear.rolId} onChange={(e) => setFormCrear({...formCrear, rolId: e.target.value})}>
+                    <option value="">-- Seleccione --</option>
+                    {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+                  </select>
+                  {formErrors.rolId && <span style={errorTextStyle}>{formErrors.rolId}</span>}
                 </div>
               </div>
 
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Correo Electrónico:</label>
-              <input type="email" value={usuarioAEditar.correo} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, correo: e.target.value})} style={inputStyle} />
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nueva Contraseña (dejar vacío para mantener actual):</label>
-              <input type="password" value={usuarioAEditar.contrasena} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, contrasena: e.target.value})} style={inputStyle} />
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Celular:</label>
-                  <input type="text" value={usuarioAEditar.celular} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, celular: e.target.value})} style={inputStyle} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cargo:</label>
-                  <input type="text" value={usuarioAEditar.cargo} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, cargo: e.target.value})} style={inputStyle} />
+              <div style={{margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <input type="checkbox" checked={formCrear.recibe_notificaciones} onChange={(e) => setFormCrear({...formCrear, recibe_notificaciones: e.target.checked})} />
+                <label style={{fontSize: '14px'}}>Recibir Notificaciones</label>
+              </div>
+              
+              <div>
+                <label style={labelStyle}>Obras Asignadas</label>
+                <div style={{maxHeight: '100px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', borderRadius: '2px', background: '#f9f9f9'}}>
+                  {todasLasObras.map(o => (
+                    <div key={o.id} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '2px 0'}}>
+                      <input type="checkbox" checked={formCrear.obrasIds.includes(o.id)} onChange={() => toggleObraSelection(o.id)} />
+                      <span style={{fontSize: '13px'}}>{o.nombre}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Rol:</label>
-              <select value={usuarioAEditar.rolIdForm} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, rolIdForm: e.target.value})} style={inputStyle}>
-                <option value="">-- Seleccione un Rol --</option>
-                {roles.map(r => (
-                  <option key={r.id} value={r.id}>{r.nombre}</option>
-                ))}
-              </select>
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
-              <select value={usuarioAEditar.empresaIdForm} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, empresaIdForm: e.target.value})} style={inputStyle}>
-                <option value="">-- Seleccione una empresa (Opcional) --</option>
-                {empresas.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.razonSocial}</option>
-                ))}
-              </select>
-
-              <div style={{ display: 'flex', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input type="checkbox" checked={usuarioAEditar.recibe_notificaciones} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, recibe_notificaciones: e.target.checked})} style={checkboxStyle} id="editRecibeNotif" />
-                  <label htmlFor="editRecibeNotif" style={{ fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Recibe Notificaciones</label>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input type="checkbox" checked={usuarioAEditar.activo} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, activo: e.target.checked})} style={checkboxStyle} id="editActivo" />
-                  <label htmlFor="editActivo" style={{ fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Activo</label>
-                </div>
-              </div>
-
-              <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setUsuarioAEditar(null); setModalError('');}}>Cancelar</button>
-                <button type="submit" style={confirmBtnStyle}>Actualizar</button>
+              <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
+                <button type="button" onClick={() => setShowCreateModal(false)} className={styles.btnSecondary} style={{border: '1px solid #ccc', color: '#333'}}>Cancelar</button>
+                <button type="submit" className={styles.btnPrimary} style={{backgroundColor: '#0d3b66'}}>Guardar</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {showDeleteModal && usuarioAEliminar && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h3>Confirmar Eliminación</h3>
-            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
-            <p>¿Estás seguro de que deseas eliminar al usuario <strong>"{usuarioAEliminar.nombre} {usuarioAEliminar.apellido}"</strong>?</p>
-            <div style={buttonGroupStyle}>
-              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setUsuarioAEliminar(null); setModalError('');}}>Cancelar</button>
-              <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
-            </div>
           </div>
         </div>
       )}

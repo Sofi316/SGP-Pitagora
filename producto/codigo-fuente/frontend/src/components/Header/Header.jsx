@@ -8,6 +8,7 @@ const Header = ({ showLogout }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('rol');
     navigate('/');
   };
 

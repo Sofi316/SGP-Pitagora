@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from './SolicitudesAdmin.module.css';
 
@@ -24,19 +24,18 @@ const SolicitudesObras = () => {
   const cargarDatosBasicos = async () => {
     setLoading(true);
     setError('');
-    try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      
+    try {      
       const [resEmpresa, resObras] = await Promise.all([
-        axios.get(`http://localhost:8080/api/empresas-clientes/${id}`, config),
-        axios.get(`http://localhost:8080/api/obras/empresa/${id}`, config).catch(() => ({ data: [] }))
+        api.get(`/empresas-clientes/${id}`),
+        api.get(`/obras/empresa/${id}`).catch(() => ({ data: [] }))
       ]);
       
       setEmpresa(resEmpresa.data);
       setObras(resObras.data);
     } catch (err) {
-      setError('Ocurrió un error al cargar los datos de la empresa.');
+      if(err.response?.status !== 401){
+        setError('Ocurrió un error al cargar los datos de la empresa.');
+      }
     } finally {
       setLoading(false);
     }
@@ -53,16 +52,17 @@ const SolicitudesObras = () => {
     if (!solicitudesPorObra[obraId]) {
       setLoadingObraId(obraId); 
       try {
-        const token = localStorage.getItem('token');
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const resSolicitudes = await axios.get(`http://localhost:8080/api/solicitudes/obra/${obraId}`, config);
+        const resSolicitudes = await api.get(`/solicitudes/obra/${obraId}`);
         
         setSolicitudesPorObra(prev => ({
           ...prev,
           [obraId]: resSolicitudes.data
         }));
       } catch (err) {
-        console.error("Error al cargar solicitudes de la obra", err);
+        if(err.response?.status !== 401){
+          console.error(`Error en obra ${obraId}:`, err.response?.data || err.message);
+          setError("No se pudieron cargar las solicitudes de esta obra.");
+        }
       } finally {
         setLoadingObraId(null); 
       }

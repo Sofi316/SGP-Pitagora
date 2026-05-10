@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
 
@@ -31,20 +31,20 @@ const ObrasAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
       
       const [resObras, resEmpresas, resComunas] = await Promise.all([
-        axios.get('http://localhost:8080/api/obras', config),
-        axios.get('http://localhost:8080/api/empresas-clientes', config),
-        axios.get('http://localhost:8080/api/comunas', config).catch(() => ({ data: [] })) 
+        api.get('/obras'),
+        api.get('/empresas-clientes'),
+        api.get('/comunas').catch(() => ({ data: [] })) 
       ]);
       
       setObras(resObras.data);
       setEmpresas(resEmpresas.data);
       setComunas(resComunas.data);
     } catch (err) {
-      setError('Ocurrió un error al cargar los datos.');
+      if (err.response?.status !== 401) {
+        setError('Ocurrió un error al cargar los datos.');
+      }    
     } finally {
       setLoading(false);
     }
@@ -59,8 +59,7 @@ const ObrasAdmin = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8080/api/obras', 
+      const response = await api.post('/obras', 
         { 
           nombre: formCrear.nombre,
           direccion: formCrear.direccion,
@@ -69,8 +68,7 @@ const ObrasAdmin = () => {
           empresaCliente: { id: parseInt(formCrear.empresaId) },
           comuna: { id: parseInt(formCrear.comunaId) },
           activo: true
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
       const nuevaObra = response.data;
@@ -84,7 +82,9 @@ const ObrasAdmin = () => {
       setShowCreateModal(false);
       setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', comunaId: '' });
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al guardar: Verifica los datos ingresados.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'Error al guardar: Verifica los datos ingresados.');
+      }
     }
   };
 
@@ -107,8 +107,7 @@ const ObrasAdmin = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`http://localhost:8080/api/obras/${obraAEditar.id}`, 
+      const response = await api.put(`/obras/${obraAEditar.id}`, 
         { 
           nombre: obraAEditar.nombre,
           direccion: obraAEditar.direccion,
@@ -116,8 +115,7 @@ const ObrasAdmin = () => {
           fechaCierrePostventa: obraAEditar.fechaCierrePostventa,
           empresaCliente: { id: parseInt(obraAEditar.empresaIdForm) },
           comuna: { id: parseInt(obraAEditar.comunaIdForm) }
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       const obraActualizada = response.data;
@@ -131,7 +129,9 @@ const ObrasAdmin = () => {
       setShowEditModal(false);
       setObraAEditar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al actualizar la obra.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'Error al actualizar la obra.');
+      }
     }
   };
 
@@ -144,16 +144,16 @@ const ObrasAdmin = () => {
   const handleEliminar = async () => {
     setModalError('');
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/obras/${obraAEliminar.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/obras/${obraAEliminar.id}`);
 
       setObras(obras.filter(ob => ob.id !== obraAEliminar.id));
       setShowDeleteModal(false);
       setObraAEliminar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'No se puede eliminar la obra. Es probable que tenga solicitudes asociadas.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'No se puede eliminar la obra. Es probable que tenga solicitudes asociadas.');
+    
+      }
     }
   };
 

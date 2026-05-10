@@ -1,7 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
+
+
+const validarRutChileno = (rutCompleto) => {
+  if (!/^[0-9]+-[0-9kK]{1}$/.test(rutCompleto)) return false;
+  const tmp = rutCompleto.split('-');
+  let digv = tmp[1].toUpperCase();
+  const rut = tmp[0];
+  let M = 0, S = 1;
+  let T = parseInt(rut, 10);
+  for (; T; T = Math.floor(T / 10)) {
+    S = (S + T % 10 * (9 - M++ % 6)) % 11;
+  }
+  const dvEsperado = S ? S - 1 : 'K';
+  return dvEsperado.toString() === digv;
+};
+
+const formatRut = (rut) => {
+  let value = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+  if (value.length > 1) {
+    value = value.slice(0, -1) + '-' + value.slice(-1);
+  }
+  return value;
+};
 
 const EmpresasAdmin = () => {
   const [empresas, setEmpresas] = useState([]);
@@ -17,7 +40,6 @@ const EmpresasAdmin = () => {
   const [empresaAEliminar, setEmpresaAEliminar] = useState(null);
 
   const [modalError, setModalError] = useState('');
-
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -26,13 +48,12 @@ const EmpresasAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/empresas-clientes', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/empresas-clientes');
       setEmpresas(response.data);
     } catch (err) {
-      setError('Ocurrió un error al cargar las empresas clientes.');
+      if(err.response?.status !== 401){
+        setError('Ocurrió un error al cargar las empresas clientes.');
+      }
     } finally {
       setLoading(false);
     }
@@ -46,22 +67,27 @@ const EmpresasAdmin = () => {
       return;
     }
 
+    if (!validarRutChileno(formCrear.rut)) {
+      setModalError('El RUT ingresado no es válido.');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8080/api/empresas-clientes', 
+      const response = await api.post('/empresas-clientes', 
         { 
           rut: formCrear.rut,
           razonSocial: formCrear.razonSocial,
           activo: true
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
       setEmpresas([...empresas, response.data]);
       setShowCreateModal(false);
       setFormCrear({ rut: '', razonSocial: '' });
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al guardar: Verifica que el RUT no esté duplicado.');
+      if (err.response?.status !== 401) {
+            setModalError(err.response?.data?.message || 'Error al guardar: Verifica que el RUT no esté duplicado.');
+      }    
     }
   };
 
@@ -78,22 +104,25 @@ const EmpresasAdmin = () => {
       setModalError('Todos los campos son obligatorios.');
       return;
     }
-
+    if (!validarRutChileno(empresaAEditar.rut)) {
+      setModalError('El RUT ingresado no es válido.');
+      return;
+    }
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`http://localhost:8080/api/empresas-clientes/${empresaAEditar.id}`, 
+      const response = await api.put(`/empresas-clientes/${empresaAEditar.id}`, 
         { 
           rut: empresaAEditar.rut,
           razonSocial: empresaAEditar.razonSocial
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       setEmpresas(empresas.map(emp => emp.id === empresaAEditar.id ? response.data : emp));
       setShowEditModal(false);
       setEmpresaAEditar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al actualizar: Verifica que el RUT no pertenezca a otra empresa.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'Error al actualizar: Verifica que el RUT no pertenezca a otra empresa.');
+      }
     }
   };
 
@@ -106,16 +135,15 @@ const EmpresasAdmin = () => {
   const handleEliminar = async () => {
     setModalError('');
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/empresas-clientes/${empresaAEliminar.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/empresas-clientes/${empresaAEliminar.id}`);
 
       setEmpresas(empresas.filter(emp => emp.id !== empresaAEliminar.id));
       setShowDeleteModal(false);
       setEmpresaAEliminar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas.');
+      }
     }
   };
 
@@ -164,17 +192,30 @@ const EmpresasAdmin = () => {
         )}
       </div>
 
-      {showCreateModal && (
+     {showCreateModal && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Crear Nueva Empresa</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>RUT:</label>
-              <input type="text" value={formCrear.rut} onChange={(e) => setFormCrear({...formCrear, rut: e.target.value})} style={inputStyle} autoFocus />
+              <input 
+                type="text" 
+                value={formCrear.rut} 
+                onChange={(e) => setFormCrear({...formCrear, rut: formatRut(e.target.value)})} 
+                style={inputStyle} 
+                autoFocus 
+                maxLength="10"
+                placeholder="Ej: 12345678-9"
+              />
               
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Razón Social:</label>
-              <input type="text" value={formCrear.razonSocial} onChange={(e) => setFormCrear({...formCrear, razonSocial: e.target.value})} style={inputStyle} />
+              <input 
+                type="text" 
+                value={formCrear.razonSocial} 
+                onChange={(e) => setFormCrear({...formCrear, razonSocial: e.target.value})} 
+                style={inputStyle} 
+              />
               
               <div style={buttonGroupStyle}>
                 <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({rut:'', razonSocial:''}); setModalError('');}}>Cancelar</button>
@@ -192,10 +233,22 @@ const EmpresasAdmin = () => {
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>RUT:</label>
-              <input type="text" value={empresaAEditar.rut} onChange={(e) => setEmpresaAEditar({...empresaAEditar, rut: e.target.value})} style={inputStyle} />
+              <input 
+                type="text" 
+                value={empresaAEditar.rut} 
+                onChange={(e) => setEmpresaAEditar({...empresaAEditar, rut: formatRut(e.target.value)})} 
+                style={inputStyle} 
+                maxLength="10"
+              />
               
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Razón Social:</label>
-              <input type="text" value={empresaAEditar.razonSocial} onChange={(e) => setEmpresaAEditar({...empresaAEditar, razonSocial: e.target.value})} style={inputStyle} autoFocus />
+              <input 
+                type="text" 
+                value={empresaAEditar.razonSocial} 
+                onChange={(e) => setEmpresaAEditar({...empresaAEditar, razonSocial: e.target.value})} 
+                style={inputStyle} 
+                autoFocus 
+              />
               
               <div style={buttonGroupStyle}>
                 <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setEmpresaAEditar(null); setModalError('');}}>Cancelar</button>
