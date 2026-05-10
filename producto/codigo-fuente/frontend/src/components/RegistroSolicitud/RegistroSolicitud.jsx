@@ -162,7 +162,7 @@ const RegistroSolicitud = () => {
           };
 
           console.log("3. Intentando guardar el link de evidencia en Java...", evidenciaData);
-          await axios.post('http://localhost:8080/api/archivo_evidencia', evidenciaData, {
+          await axios.post('http://localhost:8080/api/archivos-evidencia', evidenciaData, {
             headers: { 
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'

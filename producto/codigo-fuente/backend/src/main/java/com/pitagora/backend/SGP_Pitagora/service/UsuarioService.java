@@ -2,6 +2,7 @@ package com.pitagora.backend.SGP_Pitagora.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,7 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.UUID;
+
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.repository.UsuarioRepository;
 
@@ -113,7 +114,7 @@ public class UsuarioService implements UserDetailsService {
                 <h2 style="color: #364a5e;">Restablecer Contraseña</h2>
                 <p>Has solicitado recuperar tu acceso al sistema <strong>SGP Pitagora</strong>.</p>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="http://localhost:8080/reset-password?token=%s" 
+                    <a href="http://localhost:3000/reset-password?token=%s" 
                     style="background-color: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     Cambiar Contraseña
                     </a>

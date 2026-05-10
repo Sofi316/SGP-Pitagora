@@ -12,6 +12,8 @@ import ObrasAdmin from './components/ObrasAdmin/ObrasAdmin';
 import EmpresasAdmin from './components/EmpresasAdmin/EmpresasAdmin';
 import SolicitudesAdmin from './components/SolicitudesAdmin/SolicitudesAdmin';
 import SolicitudesObras from './components/SolicitudesAdmin/SolicitudesObra';
+import ResetPassword from './components/ResetPassword/ResetPassword';
+import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin';
 import RegistroSolicitud from './components/RegistroSolicitud/RegistroSolicitud';
 import './index.css';
 
@@ -27,13 +29,19 @@ function App() {
         }/>
 
         <Route path="/recuperar" element={
-          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
             <Header showLogout={false} />
             <RecoverPassword />
           </div>
         } />
+        <Route path="/reset-password" element={
+          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
+            <Header showLogout={false} />
+            <ResetPassword />
+          </div>
+        } />
 
-        <Route path="/admin" element={<AdminLayout />}>
+       <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<InicioAdmin />} />
           <Route path="dashboard" element={<div style={{color: 'white'}}>Dashboard</div>} />
           <Route path="solicitudes" element={<SolicitudesAdmin/>} />
@@ -44,7 +52,8 @@ function App() {
           <Route path="gestion/categorias" element={<CategoriasAdmin />} />
           <Route path="gestion/subcategorias" element={<SubcategoriasAdmin />} />
           <Route path="gestion/empresas" element={<EmpresasAdmin />} />
-          <Route path="gestion/obras" element={<ObrasAdmin/>}/>      
+          <Route path="gestion/obras" element={<ObrasAdmin/>}/>
+          <Route path="gestion/usuarios" element={<UsuariosAdmin/>}/>
         </Route>
 
         </Routes>
