@@ -1,7 +1,9 @@
 package com.pitagora.backend.SGP_Pitagora.service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,7 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.UUID;
+
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.repository.UsuarioRepository;
 
@@ -34,6 +36,7 @@ public class UsuarioService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.mailSender = mailSender;
     }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return usuarioRepository.findByCorreo(email)
@@ -51,8 +54,10 @@ public class UsuarioService implements UserDetailsService {
     public Usuario findById(Long id) {
         return usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
     }
-    public List<Usuario> listarPorEmpresa(Long id){
-        return usuarioRepository.findByEmpresaIdAndActivoTrue(id);
+
+    public List<Usuario> filtrarUsuarios(Long empresaId, Long obraId, String keyword) {
+        String busqueda = (keyword == null || keyword.trim().isEmpty()) ? null : keyword;
+        return usuarioRepository.filtrarUsuariosOptimizados(empresaId, obraId, busqueda);
     }
 
     public Usuario save(Usuario usuario){
@@ -85,7 +90,7 @@ public class UsuarioService implements UserDetailsService {
         destino.setRecibe_notificaciones(origen.getRecibe_notificaciones());
         destino.setActivo(origen.getActivo());
         destino.setRol(origen.getRol());
-        destino.setEmpresa(origen.getEmpresa());
+        destino.setObras(origen.getObras());
     }
     
     public void delete(Long id) {
@@ -107,13 +112,12 @@ public class UsuarioService implements UserDetailsService {
         helper.setTo(destinatario);
         helper.setSubject("Recuperación de Contraseña - Constructora Pitágoras");
 
-    
         String contenidoHtml = """
             <div style="font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
                 <h2 style="color: #364a5e;">Restablecer Contraseña</h2>
                 <p>Has solicitado recuperar tu acceso al sistema <strong>SGP Pitagora</strong>.</p>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="http://localhost:8080/reset-password?token=%s" 
+                    <a href="http://localhost:3000/reset-password?token=%s" 
                     style="background-color: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     Cambiar Contraseña
                     </a>
@@ -127,6 +131,7 @@ public class UsuarioService implements UserDetailsService {
         helper.setText(contenidoHtml, true); 
         mailSender.send(message);
     }
+
     public void solicitarRecuperacion(String correo) {
         usuarioRepository.findByCorreo(correo).ifPresent(usuario -> {
             String token = UUID.randomUUID().toString();
@@ -135,10 +140,8 @@ public class UsuarioService implements UserDetailsService {
             usuarioRepository.save(usuario);
 
             try {
-                // Se envía el correo al usuario encontrado
                 enviarEmailHTML(usuario.getCorreo(), token);
             } catch (MessagingException e) {
-                // Manejo de error de envío
                 throw new RuntimeException("Error al enviar el email de recuperación", e);
             }
         });
@@ -149,13 +152,10 @@ public class UsuarioService implements UserDetailsService {
             .filter(u -> u.getTokenExpiracion().isAfter(LocalDateTime.now()))
             .map(u -> {
                 u.setContrasena(passwordEncoder.encode(nuevaPassword));
-                u.setTokenRecuperacion(null); // Limpiar el token tras el uso
+                u.setTokenRecuperacion(null);
                 u.setTokenExpiracion(null);
                 return usuarioRepository.save(u);
             })
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token inválido o expirado"));
     }
-    
-
-
 }

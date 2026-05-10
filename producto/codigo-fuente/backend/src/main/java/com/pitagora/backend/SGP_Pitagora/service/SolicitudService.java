@@ -12,7 +12,6 @@ import com.pitagora.backend.SGP_Pitagora.repository.SolicitudRepository;
 @Service
 public class SolicitudService {
 
-    // Le agregamos 'final' por buena práctica de inyección
     private final SolicitudRepository solicitudRepository;
 
     public SolicitudService(SolicitudRepository solicitudRepository) {

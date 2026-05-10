@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pitagora.backend.SGP_Pitagora.model.Obra;
+import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.service.ObraService;
 
 @RestController
@@ -32,11 +35,23 @@ public class ObraController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Obra> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(obraService.findById(id));
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<?> getById(@PathVariable Long id, @AuthenticationPrincipal Usuario principal) {
+        Obra obra = obraService.findById(id);
+        
+        if (principal.getRol().getNombre().equals("CLIENTE")) {
+            boolean tieneAcceso = principal.getObras().stream()
+                    .anyMatch(o -> o.getId().equals(obra.getId()));
+                    
+            if (!tieneAcceso) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permisos para ver esta obra.");
+            }
+        }
+        return ResponseEntity.ok(obra);
     }
 
     @GetMapping("/empresa/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.obras.![empresaCliente.id].contains(#id))")
     public ResponseEntity<List<Obra>> getByEmpresa(@PathVariable Long id) {
         List<Obra> obras = obraService.listarPorEmpresa(id);
         if (obras.isEmpty()) {

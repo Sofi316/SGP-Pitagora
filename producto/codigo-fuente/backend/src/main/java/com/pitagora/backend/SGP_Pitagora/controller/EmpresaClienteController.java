@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pitagora.backend.SGP_Pitagora.model.EmpresaCliente;
 import com.pitagora.backend.SGP_Pitagora.service.EmpresaClienteService;
 
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/empresas-clientes")
 public class EmpresaClienteController {
@@ -27,24 +26,26 @@ public class EmpresaClienteController {
     public EmpresaClienteController(EmpresaClienteService empresaClienteService) {
         this.empresaClienteService = empresaClienteService;
     }
+    
     @GetMapping
     public ResponseEntity<List<EmpresaCliente>> getAll() {
         return ResponseEntity.ok(empresaClienteService.findAllActivas());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.obras.![empresaCliente.id].contains(#id))")
     public ResponseEntity<EmpresaCliente> getById(@PathVariable Long id) {
         return ResponseEntity.ok(empresaClienteService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<EmpresaCliente> create(@RequestBody @Valid EmpresaCliente empresa) {
+    public ResponseEntity<EmpresaCliente> create(@RequestBody EmpresaCliente empresa) {
         EmpresaCliente nuevaEmpresa = empresaClienteService.save(empresa);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaEmpresa);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmpresaCliente> update(@PathVariable Long id, @RequestBody @Valid EmpresaCliente empresa) {
+    public ResponseEntity<EmpresaCliente> update(@PathVariable Long id, @RequestBody EmpresaCliente empresa) {
         return ResponseEntity.ok(empresaClienteService.update(id, empresa));
     }
 

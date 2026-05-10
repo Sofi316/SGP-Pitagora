@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -18,11 +19,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 @Entity
 @Table(name="usuario")
 @Data
@@ -47,7 +51,7 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, unique = true)
     private String correo;
 
-    @Column(nullable = false,columnDefinition="TEXT")
+    @Column(nullable = false, columnDefinition="TEXT")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String contrasena;
 
@@ -62,7 +66,8 @@ public class Usuario implements UserDetails {
 
     @Column(nullable = false)
     private Boolean activo = true;
-    @Column(name = "token_recuperacion",columnDefinition = "TEXT")
+
+    @Column(name = "token_recuperacion", columnDefinition = "TEXT")
     private String tokenRecuperacion;
 
     @Column(name = "token_expiracion")
@@ -72,13 +77,17 @@ public class Usuario implements UserDetails {
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
-    @ManyToOne
-    @JoinColumn(name = "id_empresa_cliente")
-    private EmpresaCliente empresa;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "usuario_obra",
+        joinColumns = @JoinColumn(name = "id_usuario"),
+        inverseJoinColumns = @JoinColumn(name = "id_obra")
+    )
+    private List<Obra> obras = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_"+rol.getNombre()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + rol.getNombre()));
     }
 
     @Override
@@ -92,24 +101,27 @@ public class Usuario implements UserDetails {
     public String getUsername() {
         return correo;
     }
+
     @Override
     @JsonIgnore
     public boolean isAccountNonExpired(){
         return true;
     }
+
     @Override
     @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
+
     @Override
     @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
+
     @Override
     public boolean isEnabled() {
         return activo;
     }
-    
 }

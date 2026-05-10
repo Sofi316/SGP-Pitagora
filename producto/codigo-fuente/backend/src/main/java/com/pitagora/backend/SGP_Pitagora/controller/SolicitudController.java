@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
+import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
 
 @RestController
@@ -24,8 +27,7 @@ public class SolicitudController {
 
     private final SolicitudService solicitudService;
 
-    // Inyección por constructor
-    public SolicitudController (SolicitudService solicitudService) {
+    public SolicitudController(SolicitudService solicitudService) {
         this.solicitudService = solicitudService;
     }
 
@@ -35,16 +37,36 @@ public class SolicitudController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Solicitud> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(solicitudService.obtenerPorId(id));
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario principal) {
+        Solicitud solicitud = solicitudService.obtenerPorId(id);
+        
+        if (principal.getRol().getNombre().equals("CLIENTE")) {
+            if (solicitud.getObra() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("La solicitud consultada no tiene una obra válida asociada.");
+            }
+            
+            boolean tieneAccesoAObra = principal.getObras().stream()
+                    .anyMatch(obra -> obra.getId().equals(solicitud.getObra().getId()));
+            
+            if (!tieneAccesoAObra) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("No tienes acceso a las solicitudes de esta obra.");
+            }
+        }
+        
+        return ResponseEntity.ok(solicitud);
     }
 
     @GetMapping("/usuario/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and #id == authentication.principal.id)")
     public ResponseEntity<List<Solicitud>> obtenerPorUsuario(@PathVariable Long id) {
         return ResponseEntity.ok(solicitudService.obtenerPorUsuario(id));
     }
 
     @GetMapping("/obra/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.obras.![id].contains(#id))")
     public ResponseEntity<List<Solicitud>> obtenerPorObra(@PathVariable Long id) {
         return ResponseEntity.ok(solicitudService.obtenerPorObra(id));
     }
@@ -67,8 +89,23 @@ public class SolicitudController {
     }
 
     @PatchMapping("/{id}/calificar")
-    public ResponseEntity<Solicitud> calificar(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
+    @PreAuthorize("hasRole('CLIENTE')")
+    public ResponseEntity<?> calificar(@PathVariable Long id, @RequestBody Map<String, Integer> body, @AuthenticationPrincipal Usuario principal) {
         Integer estrellas = body.get("estrellas");
-        return ResponseEntity.ok(solicitudService.registrarCalificacion(id, estrellas));
+        Solicitud solicitud = solicitudService.obtenerPorId(id);
+        
+        if (solicitud.getObra() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La solicitud no tiene una obra válida asociada.");
+        }
+        
+        boolean tieneAccesoAObra = principal.getObras().stream()
+                .anyMatch(obra -> obra.getId().equals(solicitud.getObra().getId()));
+        
+        if (!tieneAccesoAObra) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Solo los usuarios asignados a esta obra pueden calificar la solicitud.");
+        }
+        
+        Solicitud solicitudCalificada = solicitudService.registrarCalificacion(id, estrellas);
+        return ResponseEntity.ok(solicitudCalificada);
     }
 }
