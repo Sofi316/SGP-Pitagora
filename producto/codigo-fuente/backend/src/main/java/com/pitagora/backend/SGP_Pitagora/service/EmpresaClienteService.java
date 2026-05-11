@@ -5,18 +5,24 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pitagora.backend.SGP_Pitagora.model.EmpresaCliente;
+import com.pitagora.backend.SGP_Pitagora.model.Obra;
 import com.pitagora.backend.SGP_Pitagora.repository.EmpresaClienteRepository;
+import com.pitagora.backend.SGP_Pitagora.repository.ObraRepository;
 
 @Service
 public class EmpresaClienteService {
 
     private final EmpresaClienteRepository empresaClienteRepository;
 
-    public EmpresaClienteService(EmpresaClienteRepository empresaClienteRepository) {
+    private final ObraRepository obraRepository;
+
+    public EmpresaClienteService(EmpresaClienteRepository empresaClienteRepository, ObraRepository obraRepository) {
         this.empresaClienteRepository = empresaClienteRepository;
+        this.obraRepository = obraRepository;
     }
 
     public List<EmpresaCliente> findAll() {
@@ -70,12 +76,22 @@ public class EmpresaClienteService {
         return empresaClienteRepository.save(empresaAntigua);
     }
 
+    @Transactional 
     public boolean delete(Long id) {
         EmpresaCliente empresa = empresaClienteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
         
         empresa.setActivo(false);
         empresaClienteRepository.save(empresa);
+
+        List<Obra> obrasAsociadas = obraRepository.findByEmpresaClienteIdAndActivoTrue(id);
+        
+        for (Obra obra : obrasAsociadas) {
+            obra.setActivo(false);
+        }
+        
+        obraRepository.saveAll(obrasAsociadas);
+
         return true;
     }
 }

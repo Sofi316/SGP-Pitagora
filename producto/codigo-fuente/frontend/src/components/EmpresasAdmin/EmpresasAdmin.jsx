@@ -284,13 +284,20 @@ const EmpresasAdmin = () => {
       {showDeleteModal && empresaAEliminar && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h3>Confirmar Eliminación</h3>
+            <h3 style={{ color: '#d9534f' }}>Confirmar Eliminación</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
-            <p>¿Estás seguro de que deseas eliminar la empresa <strong>"{empresaAEliminar.razonSocial}"</strong>?</p>
-            <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
-            <div style={buttonGroupStyle}>
+            
+            <p style={{ marginTop: '15px' }}>
+              ¿Estás seguro de que deseas eliminar la empresa <strong>"{empresaAEliminar.razonSocial}"</strong>?
+            </p>
+            
+            <div style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '10px', borderRadius: '4px', border: '1px solid #ffeeba', marginTop: '15px', fontSize: '13px' }}>
+              <strong>Advertencia:</strong> Esto eliminará automáticamente todas las obras asociadas a esta empresa. ¿Seguro que quiere continuar?
+            </div>
+            
+            <div style={{...buttonGroupStyle, marginTop: '25px'}}>
               <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setEmpresaAEliminar(null); setModalError('');}}>Cancelar</button>
-              <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
+              <button style={deleteBtnStyle} onClick={handleEliminar}>Sí, Eliminar Todo</button>
             </div>
           </div>
         </div>
