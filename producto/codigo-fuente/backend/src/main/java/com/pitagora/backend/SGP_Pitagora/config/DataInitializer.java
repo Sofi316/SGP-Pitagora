@@ -36,7 +36,7 @@ public class DataInitializer {
                 Usuario admin = new Usuario();
                 admin.setNombre("Admin");
                 admin.setApellido("Sistema");
-                admin.setRut("1-9");
+                admin.setRut("11842737-8");
                 admin.setCorreo("admin@pitagora.cl");
                 admin.setContrasena(passwordEncoder.encode("1234"));
                 admin.setRol(adminRol);
@@ -51,7 +51,7 @@ public class DataInitializer {
                 Usuario cliente = new Usuario();
                 cliente.setNombre("Juan");
                 cliente.setApellido("Prueba");
-                cliente.setRut("33333");
+                cliente.setRut("10477449-0");
                 cliente.setCorreo("cliente@test.cl");
                 cliente.setContrasena(passwordEncoder.encode("1234"));
                 cliente.setRol(clienteRol);

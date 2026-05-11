@@ -116,9 +116,7 @@ const SolicitudesObras = () => {
                 <div className={`${styles.itemRow} ${styles.obraRow}`}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }} onClick={() => toggleObra(obra.id)}>
                     <span className={styles.itemName}>{obra.nombre}</span>
-                    <span className={styles.indicator}>
-                      {isObraExpanded ? '▼' : '▶'} 
-                    </span>
+                   
                   </div>
 
                   {/* CORRECCIÓN: Botón agregado dentro de la fila de la OBRA */}

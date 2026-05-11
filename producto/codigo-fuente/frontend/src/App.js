@@ -15,6 +15,7 @@ import SolicitudesObras from './components/SolicitudesAdmin/SolicitudesObra';
 import ResetPassword from './components/ResetPassword/ResetPassword';
 import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin';
 import RegistroSolicitud from './components/RegistroSolicitud/RegistroSolicitud';
+import ArchivadosAdmin from './components/ArchivadosAdmin/ArchivadosAdmin';
 import './index.css';
 
 function App() {
@@ -47,13 +48,14 @@ function App() {
           <Route path="solicitudes" element={<SolicitudesAdmin/>} />
           <Route path="solicitudes/empresa/:id" element={<SolicitudesObras/>} />
           <Route path="solicitudes/registro/:id" element={<RegistroSolicitud />} />
-          <Route path="archivados" element={<div style={{color: 'white'}}>Archivados</div>} />
           <Route path="gestion" element={<GestionAdmin />} />
           <Route path="gestion/categorias" element={<CategoriasAdmin />} />
           <Route path="gestion/subcategorias" element={<SubcategoriasAdmin />} />
           <Route path="gestion/empresas" element={<EmpresasAdmin />} />
           <Route path="gestion/obras" element={<ObrasAdmin/>}/>
           <Route path="gestion/usuarios" element={<UsuariosAdmin/>}/>
+          <Route path="archivados" element={<ArchivadosAdmin/>}/>
+
         </Route>
 
         </Routes>

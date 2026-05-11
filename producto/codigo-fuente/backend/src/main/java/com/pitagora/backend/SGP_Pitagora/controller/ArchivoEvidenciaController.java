@@ -39,10 +39,15 @@ public class ArchivoEvidenciaController {
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id, @AuthenticationPrincipal Usuario principal) {
         ArchivoEvidencia archivo = archivoEvidenciaService.obtenerPorId(id);
         
-        if (principal.getRol().getNombre().equals("ROLE_CLIENTE")) {
-            if (archivo.getSolicitud() == null || archivo.getSolicitud().getObra() == null ||
-                archivo.getSolicitud().getObra().getEmpresaCliente() == null || principal.getEmpresa() == null ||
-                !archivo.getSolicitud().getObra().getEmpresaCliente().getId().equals(principal.getEmpresa().getId())) {
+        if (principal.getRol().getNombre().equals("CLIENTE")) {
+            if (archivo.getSolicitud() == null || archivo.getSolicitud().getObra() == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes acceso a las evidencias de esta solicitud.");
+            }
+            
+            boolean tieneAcceso = principal.getObras().stream()
+                    .anyMatch(obra -> obra.getId().equals(archivo.getSolicitud().getObra().getId()));
+                    
+            if (!tieneAcceso) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes acceso a las evidencias de esta solicitud.");
             }
         }
@@ -52,28 +57,29 @@ public class ArchivoEvidenciaController {
     @GetMapping("/solicitud/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     public ResponseEntity<?> obtenerPorSolicitud(@PathVariable Long id, @AuthenticationPrincipal Usuario principal) {
-        if (principal.getRol().getNombre().equals("ROLE_CLIENTE")) {
-            if (principal.getEmpresa() == null) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuario sin empresa asociada.");
-            }
+        List<ArchivoEvidencia> evidencias = archivoEvidenciaService.obtenerPorSolicitud(id);
 
-            // Buscamos las evidencias de la solicitud
-            List<ArchivoEvidencia> evidencias = archivoEvidenciaService.obtenerPorSolicitud(id);
-
-            // Si hay evidencias, validamos que la empresa de la obra coincida con la del cliente
+        if (principal.getRol().getNombre().equals("CLIENTE")) {
             if (!evidencias.isEmpty()) {
                 Solicitud solicitud = evidencias.get(0).getSolicitud();
-                if (solicitud.getObra() == null || solicitud.getObra().getEmpresaCliente() == null ||
-                    !solicitud.getObra().getEmpresaCliente().getId().equals(principal.getEmpresa().getId())) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("La solicitud indicada no pertenece a tu empresa.");
+                
+                if (solicitud.getObra() == null) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("La solicitud indicada no pertenece a tus obras.");
+                }
+                
+                boolean tieneAcceso = principal.getObras().stream()
+                        .anyMatch(obra -> obra.getId().equals(solicitud.getObra().getId()));
+                        
+                if (!tieneAcceso) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("La solicitud indicada no pertenece a tus obras.");
                 }
             }
-            
             return ResponseEntity.ok(evidencias);
         }
         
-        return ResponseEntity.ok(archivoEvidenciaService.obtenerPorSolicitud(id));
+        return ResponseEntity.ok(evidencias);
     }
+
     @PostMapping
     public ResponseEntity<ArchivoEvidencia> crear(@RequestBody ArchivoEvidencia archivoEvidencia) {
         ArchivoEvidencia nuevoArchivo = archivoEvidenciaService.guardar(archivoEvidencia);

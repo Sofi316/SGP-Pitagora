@@ -1,0 +1,133 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.title {
+  color: #ffffff;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.menuBox {
+  background-color: #aec4d6;
+  padding: 30px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.correoBox {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.menuItem {
+  background-color: #7e9ab2;
+  color: #ffffff;
+  padding: 15px 20px;
+  font-size: 16px;
+  border-radius: 2px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.selectLabel {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  background-color: #7e9ab2;
+  padding: 20px;
+  border-radius: 2px;
+  color: #ffffff;
+  margin-top: 10px;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.filtersForm {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.formGroup {
+  flex: 1;
+}
+
+.formGroupLarge {
+  flex: 2;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.btnPrimary {
+  background-color: #7e9ab2;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.btnSecondary {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.comHeader {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #ffffff;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.comSubject {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.comDate {
+  font-size: 12px;
+}
+
+.comMeta {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.comText {
+  white-space: pre-wrap;
+  font-size: 14px;
+}

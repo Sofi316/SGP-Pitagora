@@ -39,17 +39,19 @@ public class ObraController {
     public ResponseEntity<?> getById(@PathVariable Long id, @AuthenticationPrincipal Usuario principal) {
         Obra obra = obraService.findById(id);
         
-        if (principal.getRol().getNombre().equals("ROLE_CLIENTE")) {
-            if (obra.getEmpresaCliente() == null || principal.getEmpresa() == null || 
-                !obra.getEmpresaCliente().getId().equals(principal.getEmpresa().getId())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permisos para ver obras de otra empresa.");
+        if (principal.getRol().getNombre().equals("CLIENTE")) {
+            boolean tieneAcceso = principal.getObras().stream()
+                    .anyMatch(o -> o.getId().equals(obra.getId()));
+                    
+            if (!tieneAcceso) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permisos para ver esta obra.");
             }
         }
         return ResponseEntity.ok(obra);
     }
 
     @GetMapping("/empresa/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.empresa != null and #id == authentication.principal.empresa.id)")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.obras.![empresaCliente.id].contains(#id))")
     public ResponseEntity<List<Obra>> getByEmpresa(@PathVariable Long id) {
         List<Obra> obras = obraService.listarPorEmpresa(id);
         if (obras.isEmpty()) {
