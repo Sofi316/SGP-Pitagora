@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pitagora.backend.SGP_Pitagora.model.Obra;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
@@ -60,21 +62,28 @@ public class ObraController {
         return ResponseEntity.ok(obras);
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Obra obra) {
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<?> create(
+            @RequestPart("obra") Obra obra,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        
         if (obra.getEmpresaCliente() == null || obra.getEmpresaCliente().getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Debe asociar una empresa válida.");
         }
-        Obra nuevaObra = obraService.save(obra);
+        Obra nuevaObra = obraService.save(obra, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaObra);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Obra obra) {
+    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
+    public ResponseEntity<?> update(
+            @PathVariable Long id, 
+            @RequestPart("obra") Obra obra,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        
         if (obra.getEmpresaCliente() == null || obra.getEmpresaCliente().getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La obra debe mantener una empresa válida.");
         }
-        return ResponseEntity.ok(obraService.update(id, obra));
+        return ResponseEntity.ok(obraService.update(id, obra, file));
     }
 
     @DeleteMapping("/{id}")
