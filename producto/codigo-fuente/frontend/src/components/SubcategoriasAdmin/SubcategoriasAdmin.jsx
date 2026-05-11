@@ -49,8 +49,20 @@ const SubcategoriasAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!nuevaSubcategoria.trim() || !categoriaSeleccionada) {
+    
+    const nombreLimpio = nuevaSubcategoria.trim();
+    
+    if (!nombreLimpio || !categoriaSeleccionada) {
       setModalError('Por favor ingrese el nombre y seleccione una categoría.');
+      return;
+    }
+
+    const existe = subcategorias.some(sub => 
+      sub.nombre.toLowerCase() === nombreLimpio.toLowerCase() && 
+      sub.categoria?.id === parseInt(categoriaSeleccionada)
+    );
+    if (existe) {
+      setModalError('Ya existe esta subcategoría dentro de la categoría seleccionada');
       return;
     }
 
@@ -58,7 +70,7 @@ const SubcategoriasAdmin = () => {
       const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:8080/api/subcategorias', 
         { 
-          nombre: nuevaSubcategoria,
+          nombre: nombreLimpio,
           categoria: { id: parseInt(categoriaSeleccionada) },
           activo: true
         },
@@ -88,8 +100,22 @@ const SubcategoriasAdmin = () => {
   const handleEditar = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!subcategoriaAEditar.nombre.trim() || !subcategoriaAEditar.categoriaIdForm) {
+    
+    const nombreLimpio = subcategoriaAEditar.nombre.trim();
+    
+    if (!nombreLimpio || !subcategoriaAEditar.categoriaIdForm) {
       setModalError('Por favor ingrese el nombre y seleccione una categoría.');
+      return;
+    }
+
+    const existe = subcategorias.some(sub => 
+      sub.nombre.toLowerCase() === nombreLimpio.toLowerCase() && 
+      sub.categoria?.id === parseInt(subcategoriaAEditar.categoriaIdForm) &&
+      sub.id !== subcategoriaAEditar.id
+    );
+
+    if (existe) {
+      setModalError('Ya existe esta subcategoría dentro de la categoría seleccionada');
       return;
     }
 
@@ -97,7 +123,7 @@ const SubcategoriasAdmin = () => {
       const token = localStorage.getItem('token');
       const response = await axios.put(`http://localhost:8080/api/subcategorias/${subcategoriaAEditar.id}`, 
         { 
-          nombre: subcategoriaAEditar.nombre,
+          nombre: nombreLimpio,
           categoria: { id: parseInt(subcategoriaAEditar.categoriaIdForm) }
         },
         { headers: { Authorization: `Bearer ${token}` } }

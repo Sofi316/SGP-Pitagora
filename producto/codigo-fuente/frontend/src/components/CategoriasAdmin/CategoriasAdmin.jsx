@@ -41,8 +41,18 @@ const CategoriasAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!nuevaCategoria.trim()) {
+    
+    const nombreLimpio = nuevaCategoria.trim();
+    
+    if (!nombreLimpio) {
       setModalError('El nombre de la categoría es obligatorio.');
+      return;
+    }
+
+    const existe = categorias.some(cat => cat.nombre.toLowerCase() === nombreLimpio.toLowerCase());
+    
+    if (existe) {
+      setModalError('Ya existe categoria con ese nombre');
       return;
     }
 
@@ -50,7 +60,7 @@ const CategoriasAdmin = () => {
       const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:8080/api/categorias', 
         { 
-          nombre: nuevaCategoria,
+          nombre: nombreLimpio,
           activo: true 
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -60,7 +70,7 @@ const CategoriasAdmin = () => {
       setShowCreateModal(false);
       setNuevaCategoria('');
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al crear la categoría. Verifica que el nombre no exista ya.');
+      setModalError(err.response?.data?.message || 'Error al crear la categoría.');
     }
   };
 
@@ -73,15 +83,27 @@ const CategoriasAdmin = () => {
   const handleEditar = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!categoriaAEditar.nombre.trim()) {
+    
+    const nombreLimpio = categoriaAEditar.nombre.trim();
+
+    if (!nombreLimpio) {
       setModalError('El nombre de la categoría es obligatorio.');
+      return;
+    }
+
+    const existe = categorias.some(cat => 
+      cat.nombre.toLowerCase() === nombreLimpio.toLowerCase() && cat.id !== categoriaAEditar.id
+    );
+
+    if (existe) {
+      setModalError('Ya existe categoria con ese nombre');
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(`http://localhost:8080/api/categorias/${categoriaAEditar.id}`, 
-        { nombre: categoriaAEditar.nombre },
+        { nombre: nombreLimpio },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

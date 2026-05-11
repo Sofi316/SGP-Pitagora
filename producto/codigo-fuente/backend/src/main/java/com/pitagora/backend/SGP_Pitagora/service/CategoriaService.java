@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,21 @@ public class CategoriaService {
     }
 
     public Categoria save(Categoria categoria){
+        String nombreLimpio = categoria.getNombre().trim();
+        Optional<Categoria> existente = categoriaRepository.findByNombreIgnoreCase(nombreLimpio);
+
+        if (existente.isPresent()) {
+            Categoria catBD = existente.get();
+            if (catBD.getActivo()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe categoria con ese nombre");
+            } else {
+                catBD.setActivo(true);
+                return categoriaRepository.save(catBD);
+            }
+        }
+
+        categoria.setNombre(nombreLimpio);
+        categoria.setActivo(true);
         return categoriaRepository.save(categoria);
     }
     
@@ -44,7 +60,14 @@ public class CategoriaService {
         Categoria categoriaAEditar = categoriaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoría no encontrada"));
 
-        categoriaAEditar.setNombre(categoriaModificada.getNombre());
+        String nuevoNombre = categoriaModificada.getNombre().trim();
+
+        Optional<Categoria> existente = categoriaRepository.findByNombreIgnoreCase(nuevoNombre);
+        if (existente.isPresent() && !existente.get().getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe categoria con ese nombre");
+        }
+
+        categoriaAEditar.setNombre(nuevoNombre);
 
         return categoriaRepository.save(categoriaAEditar);
     }

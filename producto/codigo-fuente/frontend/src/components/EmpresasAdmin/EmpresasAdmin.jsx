@@ -74,6 +74,12 @@ const EmpresasAdmin = () => {
       return;
     }
 
+    const existe = empresas.some(emp => emp.rut.toUpperCase() === formCrear.rut.toUpperCase());
+    if (existe) {
+      setModalError('Ya existe una empresa registrada con ese RUT');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:8080/api/empresas-clientes', 
@@ -110,6 +116,16 @@ const EmpresasAdmin = () => {
 
     if (!validarRutChileno(empresaAEditar.rut)) {
       setModalError('El RUT ingresado no es válido.');
+      return;
+    }
+
+    const existe = empresas.some(emp => 
+      emp.rut.toUpperCase() === empresaAEditar.rut.toUpperCase() && 
+      emp.id !== empresaAEditar.id
+    );
+
+    if (existe) {
+      setModalError('El RUT ingresado ya pertenece a otra empresa');
       return;
     }
 

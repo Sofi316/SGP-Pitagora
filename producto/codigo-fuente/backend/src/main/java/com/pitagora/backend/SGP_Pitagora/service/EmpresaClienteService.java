@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,23 @@ public class EmpresaClienteService {
     }
 
     public EmpresaCliente save(EmpresaCliente empresa) {
+        String rutLimpio = empresa.getRut().trim().toUpperCase();
+        Optional<EmpresaCliente> existente = empresaClienteRepository.findByRut(rutLimpio);
+
+        if (existente.isPresent()) {
+            EmpresaCliente empBD = existente.get();
+            if (empBD.getActivo()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe una empresa registrada con ese RUT");
+            } else {
+                empBD.setActivo(true);
+                empBD.setRazonSocial(empresa.getRazonSocial().trim());
+                return empresaClienteRepository.save(empBD);
+            }
+        }
+
+        empresa.setRut(rutLimpio);
+        empresa.setRazonSocial(empresa.getRazonSocial().trim());
+        empresa.setActivo(true);
         return empresaClienteRepository.save(empresa);
     }
 
@@ -39,8 +57,15 @@ public class EmpresaClienteService {
         EmpresaCliente empresaAntigua = empresaClienteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
         
-        empresaAntigua.setRut(empresaModificada.getRut());
-        empresaAntigua.setRazonSocial(empresaModificada.getRazonSocial());
+        String nuevoRut = empresaModificada.getRut().trim().toUpperCase();
+
+        Optional<EmpresaCliente> existente = empresaClienteRepository.findByRut(nuevoRut);
+        if (existente.isPresent() && !existente.get().getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El RUT ingresado ya pertenece a otra empresa");
+        }
+
+        empresaAntigua.setRut(nuevoRut);
+        empresaAntigua.setRazonSocial(empresaModificada.getRazonSocial().trim());
 
         return empresaClienteRepository.save(empresaAntigua);
     }
