@@ -124,6 +124,26 @@
   border: 1px solid white;
 }
 
+/* NUEVA CLASE PARA EL MODAL */
+.btnSecondaryModal {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  color: #333333;
+  border: 1px solid #ced4da;
+  transition: background-color 0.2s;
+}
+
+.btnSecondaryModal:hover {
+  background-color: #e2e6ea;
+}
+
 .listBox {
   background-color: #aec4d6;
   padding: 20px;

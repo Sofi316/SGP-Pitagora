@@ -32,7 +32,7 @@ const LoginPanel = () => {
 
     try {
       const response = await api.post('/auth/login', {
-        correo,
+        correo: correo.trim(), // Limpia espacios en blanco accidentales
         contrasena
       });
 
@@ -53,13 +53,15 @@ const LoginPanel = () => {
     } catch (error) {
       if (error.response) {
         const status = error.response.status;
-        const mensajeBackend = error.response.data;
+        const data = error.response.data;
+        // Convierte el mensaje para validación exacta
+        const mensajeBackend = typeof data === 'string' ? data : JSON.stringify(data);
 
-        if (status === 403 || (mensajeBackend && typeof mensajeBackend === 'string' && mensajeBackend.includes("desactivada"))) {
+        if (status === 403 || mensajeBackend.includes("CUENTA_INACTIVA")) {
           setError('Su cuenta se encuentra desactivada. Contacte al administrador.');
-        } else if (status === 401) {
+        } else if (status === 401 || mensajeBackend.includes("CREDENCIALES_INVALIDAS")) {
           setError('La contraseña ingresada es incorrecta.');
-        } else if (status === 404) {
+        } else if (status === 404 || mensajeBackend.includes("USUARIO_NO_ENCONTRADO")) {
           setError('El correo ingresado no existe en nuestros registros.');
         } else {
           setError('Error de autenticación. Intente más tarde.');

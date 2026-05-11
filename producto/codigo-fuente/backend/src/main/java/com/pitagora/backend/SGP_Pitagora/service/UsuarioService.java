@@ -60,40 +60,52 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.filtrarUsuariosOptimizados(empresaId, obraId, busqueda);
     }
 
-   @Transactional
+    @Transactional
     public Usuario save(Usuario usuario) {
-        return usuarioRepository.findByRut(usuario.getRut())
-            .map(existente -> {
-                if (existente.getActivo()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El RUT ya está registrado y activo.");
-                }
-                // Si existe pero está inactivo, lo reactivamos (Punto 11.b)
-                actualizarCamposBase(existente, usuario);
-                existente.setActivo(true);
-                existente.setRecibe_notificaciones(true); // Punto 6 del CU04 (inverso)
-                return usuarioRepository.save(existente);
-            })
-            .orElseGet(() -> {
-                // Si no existe, validamos el correo y creamos nuevo
-                if (usuarioRepository.existsByCorreo(usuario.getCorreo())) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo ya está registrado.");
-                }
-                usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
-                usuario.setActivo(true);
-                return usuarioRepository.save(usuario);
-            });
+        Optional<Usuario> existenteOpt = usuarioRepository.findByRut(usuario.getRut());
+        
+        if (existenteOpt.isPresent()) {
+            Usuario existente = existenteOpt.get();
+            if (existente.getActivo()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El RUT ya está registrado y activo.");
+            } else {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "El RUT existe pero está inactivo.");
+            }
+        }
+
+        if (usuarioRepository.existsByCorreo(usuario.getCorreo())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo ya está registrado.");
+        }
+
+        usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+        usuario.setActivo(true);
+        return usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public Usuario reactivarUsuario(String rut, Usuario nuevosDatos) {
+        Usuario existente = usuarioRepository.findByRut(rut)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado para reactivar."));
+
+        actualizarCamposBase(existente, nuevosDatos);
+        existente.setActivo(true);
+        existente.setRecibe_notificaciones(nuevosDatos.getRecibe_notificaciones());
+
+        if (nuevosDatos.getContrasena() != null && !nuevosDatos.getContrasena().isBlank()) {
+            existente.setContrasena(passwordEncoder.encode(nuevosDatos.getContrasena()));
+        }
+
+        return usuarioRepository.save(existente);
     }
 
     public Usuario update(Long id, Usuario usuarioModificado) {
         return usuarioRepository.findById(id)
             .map(usuarioAEditar -> {
-                // Validación extra: Si el correo cambió, verificar que el nuevo no exista
                 if (!usuarioAEditar.getCorreo().equals(usuarioModificado.getCorreo()) &&
                     usuarioRepository.existsByCorreo(usuarioModificado.getCorreo())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nuevo correo ya está en uso por otro usuario.");
                 }
 
-                // Validación extra: Si el RUT cambió, verificar duplicidad
                 if (!usuarioAEditar.getRut().equals(usuarioModificado.getRut()) &&
                     usuarioRepository.existsByRut(usuarioModificado.getRut())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nuevo RUT ya está registrado.");
@@ -125,7 +137,6 @@ public class UsuarioService implements UserDetailsService {
     }
     
     public void delete(Long id) {
-        
         Long authUserId = obtenerIdUsuarioAutenticado(); 
 
         if (id.equals(authUserId)) {
@@ -194,6 +205,7 @@ public class UsuarioService implements UserDetailsService {
             })
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token inválido o expirado"));
     }
+
     private Long obtenerIdUsuarioAutenticado() {
         Object principal = org.springframework.security.core.context.SecurityContextHolder
                             .getContext().getAuthentication().getPrincipal();

@@ -54,13 +54,18 @@ public class UsuarioController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Usuario crear(@Valid @RequestBody Usuario usuario) { // Agregado @Valid
+    public Usuario crear(@Valid @RequestBody Usuario usuario) { 
         return usuarioService.save(usuario);
     }
 
     @PutMapping("/{id}")
-    public Usuario actualizar(@PathVariable Long id, @Valid @RequestBody Usuario usuario) { // Agregado @Valid
+    public Usuario actualizar(@PathVariable Long id, @Valid @RequestBody Usuario usuario) { 
         return usuarioService.update(id, usuario);
+    }
+
+    @PutMapping("/reactivar/{rut}")
+    public Usuario reactivar(@PathVariable String rut, @Valid @RequestBody Usuario usuario) {
+        return usuarioService.reactivarUsuario(rut, usuario);
     }
 
     @DeleteMapping("/{id}")
