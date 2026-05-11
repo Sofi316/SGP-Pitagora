@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
 import InputGroup from '../InputGroup/InputGroup';
 import styles from './LoginPanel.module.css';
-import { Link } from 'react-router-dom';
+
 const LoginPanel = () => {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,8 +22,16 @@ const LoginPanel = () => {
 
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        alert("¡Login exitoso! Token guardado.");
-        // Aquí luego agregaremos: navigate('/dashboard');
+        
+        const rolUsuario = response.data.nombreRol || response.data.rol;
+
+        if (rolUsuario === 'ADMIN') {
+          navigate('/admin');
+        } else if (rolUsuario === 'CLIENTE') {
+          navigate('/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -41,7 +51,6 @@ const LoginPanel = () => {
 
         <form className={styles.loginForm} onSubmit={handleLogin}>
           
-          {/* NUEVO CONTENEDOR PARA RODEAR CORREO Y CONTRASEÑA */}
           <div className={styles.inputsContainer}>
             <InputGroup
               label="Correo"
@@ -58,6 +67,8 @@ const LoginPanel = () => {
               name="contrasena"
             />
           </div>
+
+          {error && <p className={styles.errorMessage} style={{color: 'red', textAlign: 'center'}}>{error}</p>}
 
           <Link to="/recuperar" className={styles.forgotPasswordLink}>
           Recuperar contraseña
