@@ -165,7 +165,7 @@ const EmpresasAdmin = () => {
       setShowDeleteModal(false);
       setEmpresaAEliminar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas.');
+      setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas con solicitudes pendientes.');
     }
   };
 

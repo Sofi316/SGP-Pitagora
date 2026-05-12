@@ -12,17 +12,19 @@ import com.pitagora.backend.SGP_Pitagora.model.EmpresaCliente;
 import com.pitagora.backend.SGP_Pitagora.model.Obra;
 import com.pitagora.backend.SGP_Pitagora.repository.EmpresaClienteRepository;
 import com.pitagora.backend.SGP_Pitagora.repository.ObraRepository;
+import com.pitagora.backend.SGP_Pitagora.repository.SolicitudRepository;
 
 @Service
 public class EmpresaClienteService {
 
     private final EmpresaClienteRepository empresaClienteRepository;
-
     private final ObraRepository obraRepository;
+    private final SolicitudRepository solicitudRepository; 
 
-    public EmpresaClienteService(EmpresaClienteRepository empresaClienteRepository, ObraRepository obraRepository) {
+    public EmpresaClienteService(EmpresaClienteRepository empresaClienteRepository, ObraRepository obraRepository, SolicitudRepository solicitudRepository) {
         this.empresaClienteRepository = empresaClienteRepository;
         this.obraRepository = obraRepository;
+        this.solicitudRepository = solicitudRepository;
     }
 
     public List<EmpresaCliente> findAll() {
@@ -81,6 +83,11 @@ public class EmpresaClienteService {
         EmpresaCliente empresa = empresaClienteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
         
+        if (solicitudRepository.existsSolicitudesBloqueantesEnEmpresa(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "No se puede eliminar la empresa. Existen obras con solicitudes sin resolución.");
+        }
+
         empresa.setActivo(false);
         empresaClienteRepository.save(empresa);
 

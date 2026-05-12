@@ -12,6 +12,16 @@ import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 @Repository
 public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
     
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Solicitud s " +
+           "WHERE s.obra.id = :obraId " +
+           "AND UPPER(s.estadoSolicitud.nombre) IN ('PENDIENTE', 'EN PROCESO', 'TERMINADO')")
+    boolean existsSolicitudesBloqueantesEnObra(@Param("obraId") Long obraId);
+
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Solicitud s " +
+           "WHERE s.obra.empresaCliente.id = :empresaId " +
+           "AND UPPER(s.estadoSolicitud.nombre) IN ('PENDIENTE', 'EN PROCESO', 'TERMINADO')")
+    boolean existsSolicitudesBloqueantesEnEmpresa(@Param("empresaId") Long empresaId);
+
     @Query("SELECT s FROM Solicitud s " +
            "JOIN FETCH s.estadoSolicitud " +
            "JOIN FETCH s.subCategoria sub " +
