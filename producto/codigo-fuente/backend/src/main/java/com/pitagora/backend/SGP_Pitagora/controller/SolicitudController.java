@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
@@ -71,9 +73,15 @@ public class SolicitudController {
         return ResponseEntity.ok(solicitudService.obtenerPorObra(id));
     }
 
-    @PostMapping
-    public ResponseEntity<Solicitud> crear(@RequestBody Solicitud solicitud) {
-        Solicitud nuevaSolicitud = solicitudService.guardar(solicitud);
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<Solicitud> crear(
+            @RequestPart("solicitud") Solicitud solicitud,
+            @RequestPart(value = "archivos", required = false) List<MultipartFile> archivos,
+            @AuthenticationPrincipal Usuario principal) { 
+        
+        solicitud.setUsuario(principal); 
+
+        Solicitud nuevaSolicitud = solicitudService.guardarConEvidencias(solicitud, archivos);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaSolicitud);
     }
 
@@ -107,5 +115,16 @@ public class SolicitudController {
         
         Solicitud solicitudCalificada = solicitudService.registrarCalificacion(id, estrellas);
         return ResponseEntity.ok(solicitudCalificada);
+    }
+
+    @PostMapping(value = "/{id}/evidencia-reparacion", consumes = { "multipart/form-data" })
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')") 
+    public ResponseEntity<String> subirEvidenciaReparacion(
+            @PathVariable Long id,
+            @RequestPart("archivos") List<MultipartFile> archivos) {
+        
+        solicitudService.agregarEvidenciaReparacion(id, archivos);
+        
+        return ResponseEntity.ok("Evidencia de reparación guardada exitosamente.");
     }
 }
