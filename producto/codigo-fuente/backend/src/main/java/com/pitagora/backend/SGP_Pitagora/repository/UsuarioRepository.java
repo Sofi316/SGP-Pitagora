@@ -19,6 +19,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByTokenRecuperacion(String tokenRecuperacion);
 
+    @Query("SELECT u.correo FROM Usuario u JOIN u.obras o WHERE o.id = :obraId AND u.activo = true AND u.recibe_notificaciones = true")
+    List<String> findCorreosByObraId(@Param("obraId") Long obraId);
+
     @Query("SELECT DISTINCT u FROM Usuario u " +
            "JOIN FETCH u.rol r " +
            "LEFT JOIN FETCH u.obras ob " + 

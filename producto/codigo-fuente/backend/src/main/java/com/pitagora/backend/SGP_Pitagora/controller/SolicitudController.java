@@ -116,6 +116,13 @@ public class SolicitudController {
         Solicitud solicitudCalificada = solicitudService.registrarCalificacion(id, estrellas);
         return ResponseEntity.ok(solicitudCalificada);
     }
+    
+    @PatchMapping("/{id}/estado/{idEstado}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Solicitud> cambiarEstado(@PathVariable Long id, @PathVariable Long idEstado) {
+        Solicitud solicitudActualizada = solicitudService.cambiarEstado(id, idEstado);
+        return ResponseEntity.ok(solicitudActualizada);
+    }
 
     @PostMapping(value = "/{id}/evidencia-reparacion", consumes = { "multipart/form-data" })
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')") 

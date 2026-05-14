@@ -191,20 +191,30 @@ const SolicitudesObras = () => {
       });
       
       const nuevaSolicitud = response.data;
-      setSolicitudesPorObra(prev => ({
-        ...prev,
-        [obraSeleccionadaModal.id]: [...(prev[obraSeleccionadaModal.id] || []), nuevaSolicitud]
-      }));
 
-      setMensajeExito('¡Solicitud registrada con éxito!');
-      setTimeout(() => setShowCreateModal(false), 1500);
+      setSolicitudesPorObra(prev => {
+        const solicitudesExistentes = prev[obraSeleccionadaModal.id];
+        if (!solicitudesExistentes) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [obraSeleccionadaModal.id]: [nuevaSolicitud, ...solicitudesExistentes]
+        };
+      });
 
-    } catch (error) {
-      setModalError(error.response?.data?.message || "Error al registrar la solicitud");
+      setMensajeExito('Solicitud creada con éxito.');
+      setTimeout(() => {
+        setShowCreateModal(false);
+      }, 1500);
+
+    } catch (err) {
+      setModalError('Error al crear la solicitud. Intente nuevamente.');
+      console.error(err);
     } finally {
       setModalLoading(false);
     }
-  };
+  }; 
 
   const getColorPorEstado = (nombreEstado) => {
     if (!nombreEstado) return '#ff9800'; 
