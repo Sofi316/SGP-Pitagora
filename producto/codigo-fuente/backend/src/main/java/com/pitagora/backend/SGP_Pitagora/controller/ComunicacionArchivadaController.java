@@ -78,6 +78,7 @@ public class ComunicacionArchivadaController {
         }
         return ResponseEntity.ok(comunicacionArchivadaService.update(id, comunicacion));
     }
+
     @PostMapping("/solicitud/{id}/enviar")
     public ResponseEntity<ComunicacionArchivada> enviarRespuesta(@PathVariable Long id, @RequestBody MensajeSalienteDto dto) {
         ComunicacionArchivada comunicacionGuardada = comunicacionArchivadaService.enviarRespuestaCliente(id, dto);

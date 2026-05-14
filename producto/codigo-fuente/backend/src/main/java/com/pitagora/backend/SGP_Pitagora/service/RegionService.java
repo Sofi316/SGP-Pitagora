@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pitagora.backend.SGP_Pitagora.model.Region;
-
 import com.pitagora.backend.SGP_Pitagora.repository.RegionRepository;
 @Service
 public class RegionService {

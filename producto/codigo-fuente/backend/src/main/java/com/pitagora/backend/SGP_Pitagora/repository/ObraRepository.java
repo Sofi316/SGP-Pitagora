@@ -12,7 +12,7 @@ import com.pitagora.backend.SGP_Pitagora.model.Obra;
 @Repository
 public interface ObraRepository extends JpaRepository<Obra, Long>{
 
-     @Query("SELECT o FROM Obra o " +
+    @Query("SELECT o FROM Obra o " +
            "JOIN FETCH o.empresaCliente " +
            "JOIN FETCH o.comuna c " +
            "JOIN FETCH c.region " +

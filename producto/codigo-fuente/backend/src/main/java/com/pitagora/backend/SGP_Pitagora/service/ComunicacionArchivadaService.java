@@ -54,8 +54,6 @@ public class ComunicacionArchivadaService {
         return comunicacionArchivadaRepository.save(nuevaCom);
     }
 
-
-
     public List<ComunicacionArchivada> findAll() {
         return comunicacionArchivadaRepository.findAll();
     }
@@ -83,6 +81,7 @@ public class ComunicacionArchivadaService {
 
         return comunicacionArchivadaRepository.save(comunicacionAntigua);
     }
+
     public List<ComunicacionArchivada> filtrarComunicaciones(
         Long id, LocalDate fechaInicio, LocalDate fechaFin, String keyword) {
         

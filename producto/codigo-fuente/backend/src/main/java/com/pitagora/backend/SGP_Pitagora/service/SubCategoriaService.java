@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,23 @@ public class SubCategoriaService {
 }
 
     public SubCategoria save(SubCategoria subCategoria){
+        String nombreLimpio = subCategoria.getNombre().trim();
+        Long idCategoriaPadre = subCategoria.getCategoria().getId();
+        
+        Optional<SubCategoria> existente = subCategoriaRepository.findByNombreIgnoreCaseAndCategoriaId(nombreLimpio, idCategoriaPadre);
+
+        if (existente.isPresent()) {
+            SubCategoria subcatBD = existente.get();
+            if (subcatBD.getActivo()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe esta subcategoría dentro de la categoría seleccionada");
+            } else {
+                subcatBD.setActivo(true);
+                return subCategoriaRepository.save(subcatBD);
+            }
+        }
+
+        subCategoria.setNombre(nombreLimpio);
+        subCategoria.setActivo(true);
         return subCategoriaRepository.save(subCategoria);
     }
 
@@ -43,7 +61,15 @@ public class SubCategoriaService {
         SubCategoria subCategoriaAEditar = subCategoriaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subcategoría no encontrada"));
 
-        subCategoriaAEditar.setNombre(subCategoriaModificada.getNombre());
+        String nuevoNombre = subCategoriaModificada.getNombre().trim();
+        Long nuevaCategoriaPadre = subCategoriaModificada.getCategoria().getId();
+
+        Optional<SubCategoria> existente = subCategoriaRepository.findByNombreIgnoreCaseAndCategoriaId(nuevoNombre, nuevaCategoriaPadre);
+        if (existente.isPresent() && !existente.get().getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe esta subcategoría dentro de la categoría seleccionada");
+        }
+
+        subCategoriaAEditar.setNombre(nuevoNombre);
         subCategoriaAEditar.setCategoria(subCategoriaModificada.getCategoria());
 
         return subCategoriaRepository.save(subCategoriaAEditar);

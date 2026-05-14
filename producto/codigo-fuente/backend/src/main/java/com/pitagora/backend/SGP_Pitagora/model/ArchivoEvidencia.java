@@ -27,7 +27,7 @@ public class ArchivoEvidencia {
     @Column(name="ruta_archivo", columnDefinition= "TEXT", nullable=false)
     private String rutaArchivo;
 
-    @ManyToOne  
+    @ManyToOne
     @JoinColumn(name="id_tipo_evidencia", nullable=false)
     private TipoEvidencia tipoEvidencia;
 

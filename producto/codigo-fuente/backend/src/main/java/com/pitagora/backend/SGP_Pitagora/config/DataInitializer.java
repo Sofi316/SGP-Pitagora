@@ -1,13 +1,14 @@
 package com.pitagora.backend.SGP_Pitagora.config;
 
-import com.pitagora.backend.SGP_Pitagora.model.Rol;
-import com.pitagora.backend.SGP_Pitagora.model.Usuario;
-import com.pitagora.backend.SGP_Pitagora.repository.UsuarioRepository;
-import com.pitagora.backend.SGP_Pitagora.repository.RolRepository; 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.pitagora.backend.SGP_Pitagora.model.Rol;
+import com.pitagora.backend.SGP_Pitagora.model.Usuario;
+import com.pitagora.backend.SGP_Pitagora.repository.RolRepository;
+import com.pitagora.backend.SGP_Pitagora.repository.UsuarioRepository;
 
 @Configuration
 public class DataInitializer {
@@ -36,7 +37,7 @@ public class DataInitializer {
                 Usuario admin = new Usuario();
                 admin.setNombre("Admin");
                 admin.setApellido("Sistema");
-                admin.setRut("11842737-8");
+                admin.setRut("1-9");
                 admin.setCorreo("admin@pitagora.cl");
                 admin.setContrasena(passwordEncoder.encode("1234"));
                 admin.setRol(adminRol);
@@ -51,7 +52,7 @@ public class DataInitializer {
                 Usuario cliente = new Usuario();
                 cliente.setNombre("Juan");
                 cliente.setApellido("Prueba");
-                cliente.setRut("10477449-0");
+                cliente.setRut("33333");
                 cliente.setCorreo("cliente@test.cl");
                 cliente.setContrasena(passwordEncoder.encode("1234"));
                 cliente.setRol(clienteRol);

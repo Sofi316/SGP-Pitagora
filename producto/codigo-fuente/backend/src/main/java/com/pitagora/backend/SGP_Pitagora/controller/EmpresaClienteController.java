@@ -26,13 +26,14 @@ public class EmpresaClienteController {
     public EmpresaClienteController(EmpresaClienteService empresaClienteService) {
         this.empresaClienteService = empresaClienteService;
     }
+    
     @GetMapping
     public ResponseEntity<List<EmpresaCliente>> getAll() {
         return ResponseEntity.ok(empresaClienteService.findAllActivas());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.empresa != null and #id == authentication.principal.empresa.id)")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.obras.![empresaCliente.id].contains(#id))")
     public ResponseEntity<EmpresaCliente> getById(@PathVariable Long id) {
         return ResponseEntity.ok(empresaClienteService.findById(id));
     }

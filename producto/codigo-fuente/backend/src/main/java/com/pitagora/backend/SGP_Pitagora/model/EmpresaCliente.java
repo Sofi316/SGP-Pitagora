@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class EmpresaCliente {
     private Long id;
 
     @Column(name="rut_empresa", nullable=false, unique=true)
+    @Pattern(regexp = "^[0-9]+-[0-9kK]{1}$", message = "El RUT debe contener solo números, un guion y el dígito verificador.")
     private String rut;
 
     @Column(name="razon_social", nullable=false)
