@@ -14,6 +14,7 @@ import SolicitudesAdmin from './components/SolicitudesAdmin/SolicitudesAdmin';
 import SolicitudesObras from './components/SolicitudesAdmin/SolicitudesObra';
 import ArchivadosAdmin from './components/ArchivadosAdmin/ArchivadosAdmin';
 import DetalleSolicitud from './components/SolicitudesAdmin/DetalleSolicitud';
+import DetalleObra from './components/ObrasAdmin/DetalleObra';
 import './index.css';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
           <Route path="gestion/subcategorias" element={<SubcategoriasAdmin />} />
           <Route path="gestion/empresas" element={<EmpresasAdmin />} />
           <Route path="gestion/obras" element={<ObrasAdmin/>}/>
+          <Route path="gestion/obras/:id" element={<DetalleObra />} />
           <Route path="archivados" element={<ArchivadosAdmin/>}/>
 
       

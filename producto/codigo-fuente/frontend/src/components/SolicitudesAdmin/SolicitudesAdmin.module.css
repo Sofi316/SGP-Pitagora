@@ -184,7 +184,7 @@
 }
 
 .archivarBtn {
-  background-color: #f44336; /* Rojo */
+  background-color: #f44336; 
   color: #ffffff;
   border: none;
   padding: 8px 18px;
@@ -229,14 +229,14 @@
   text-decoration: none;
   color: #ffffff;
   font-size: 14px;
-  background-color: #aec4d6; 
+  background-color: #7792a8; 
   border-radius: 6px; 
   transition: background-color 0.2s, transform 0.2s; 
   cursor: pointer;
 }
 
 .solicitudRowLink:hover {
-  background-color: #7b91a3; 
+  background-color: #587186; 
   transform: translateX(4px);  
 }
 
@@ -251,8 +251,24 @@
   padding-right: 15px;
 }
 
+
 .colEstado {
   width: 25%;
   min-width: 100px;
   font-weight: 500;
+  
 }
+.estadoBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;       
+  padding: 20px 14px;        
+  height: 24px;             
+  border: none; 
+  border-radius: 50px; 
+  cursor: pointer; 
+  font-weight: bold;
+  font-size: 15px;   
+}
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
 
 const ObrasAdmin = () => {
@@ -23,6 +23,8 @@ const ObrasAdmin = () => {
   const [obraAEliminar, setObraAEliminar] = useState(null);
 
   const [modalError, setModalError] = useState('');
+  
+  const navigate = useNavigate();
 
   useEffect(() => {
     cargarDatos();
@@ -222,6 +224,9 @@ const ObrasAdmin = () => {
   const confirmBtnStyle = { ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' };
   const deleteBtnStyle = { ...btnStyle, backgroundColor: '#d9534f', color: '#fff' };
 
+  // Estilo para el nuevo botón "Ver Detalle" (utiliza un tono neutro o azul diferente para distinguirlo)
+  const detailBtnStyle = { ...btnStyle, backgroundColor: '#6c757d', color: '#fff' };
+
   const comunasFiltradasCrear = comunas.filter(c => c.region && c.region.id === parseInt(formCrear.regionId));
   const comunasFiltradasEditar = obraAEditar ? comunas.filter(c => c.region && c.region.id === parseInt(obraAEditar.regionIdForm)) : [];
 
@@ -250,18 +255,15 @@ const ObrasAdmin = () => {
             <div key={ob.id} className={styles.itemRow}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className={styles.itemName}>
-                  {ob.nombre} 
-                  {ob.rutaActaEntrega && (
-                    <a href={ob.rutaActaEntrega} target="_blank" rel="noreferrer" style={{ marginLeft: '10px', fontSize: '12px', color: '#1c07db', textDecoration: 'none' }}>
-                       Ver Acta
-                    </a>
-                  )}
+                   {ob.nombre}
                 </span>
-                <span style={{ fontSize: '12px', color: '#e0e0e0' }}>
+                <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '4px' }}>
                   Empresa: {ob.empresaCliente ? ob.empresaCliente.razonSocial : 'Sin empresa'} | Comuna: {ob.comuna ? ob.comuna.nombre : 'Sin comuna'}
                 </span>
               </div>
-              <div className={styles.actions}>
+              <div className={styles.actions} style={{ display: 'flex', gap: '8px' }}>
+                {/* Nuevo Botón Ver Detalle */}
+                <button className={styles.editBtn} style={{ backgroundColor: '#304557' }} onClick={() => navigate(`/admin/gestion/obras/${ob.id}`)}>Ver Detalle</button>
                 <button className={styles.editBtn} onClick={() => abrirModalEditar(ob)}>Editar</button>
                 <button className={styles.deleteBtn} onClick={() => abrirModalEliminar(ob)}>Eliminar</button>
               </div>

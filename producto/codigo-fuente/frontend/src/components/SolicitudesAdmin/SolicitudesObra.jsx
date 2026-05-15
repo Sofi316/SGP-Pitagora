@@ -4,6 +4,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from './SolicitudesAdmin.module.css';
 import imageCompression from 'browser-image-compression';
 
+
+
 const SolicitudesObras = () => {
   const { id } = useParams(); 
   const navigate = useNavigate();
@@ -219,10 +221,10 @@ const SolicitudesObras = () => {
   const getColorPorEstado = (nombreEstado) => {
     if (!nombreEstado) return '#ff9800'; 
     const est = nombreEstado.toLowerCase();
-    if (est.includes('pendiente')) return '#e79417'; 
-    if (est.includes('proceso')) return '#ffeb3b';   
-    if (est.includes('terminado')) return '#45a8f8'; 
-    if (est.includes('no aplica')) return '#5c5b5b'; 
+    if (est.includes('pendiente')) return '#ffa600'; 
+    if (est.includes('proceso')) return '#e6e22e';   
+    if (est.includes('terminado')) return '#143c5e'; 
+    if (est.includes('no aplica')) return '#494848'; 
     if (est.includes('aprobado')) return '#4caf50';  
     if (est.includes('rechazado')) return '#f44336'; 
     return '#ffffff';
@@ -273,10 +275,10 @@ const SolicitudesObras = () => {
                       onClick={(e) => { e.stopPropagation(); abrirModalCrear(obra); }}
                       style={{ padding: '6px 12px', fontSize: '13px', margin: 0 }}
                     >
-                      + Nueva Solicitud
+                     Nueva Solicitud
                     </button>
                     <span className={styles.indicator} style={{ minWidth: '20px', textAlign: 'center' }}>
-                      {isObraExpanded ? '▲' : '▼'} 
+                      {isObraExpanded ? '▼' : '▲'} 
                     </span>
                   </div>
                 </div>
@@ -299,8 +301,10 @@ const SolicitudesObras = () => {
                           <Link key={`sol-${solicitud.id}`} to={`/admin/solicitudes/${solicitud.id}`} className={styles.solicitudRowLink}>
                             <span className={styles.colId}>{solicitud.id}</span>
                             <span className={styles.colObs}>{solicitud.descripcion || 'Sin observación'}</span>
-                            <span className={styles.colEstado} style={{ color: getColorPorEstado(solicitud.estadoSolicitud?.nombre), fontWeight: 'bold' }}>
-                              {solicitud.estadoSolicitud?.nombre || 'Pendiente'}
+                            <span className={styles.colEstado}>
+                              <span className={styles.colEstado} style={{ color: getColorPorEstado(solicitud.estadoSolicitud?.nombre), fontWeight: 'bold' }}>
+                                {solicitud.estadoSolicitud?.nombre || 'Pendiente'}
+                              </span>
                             </span>
                           </Link>
                         ))}
