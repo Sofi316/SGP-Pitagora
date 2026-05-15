@@ -3,6 +3,28 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
 
+const validarRutChileno = (rutCompleto) => {
+  if (!/^[0-9]+-[0-9kK]{1}$/.test(rutCompleto)) return false;
+  const tmp = rutCompleto.split('-');
+  let digv = tmp[1].toUpperCase();
+  const rut = tmp[0];
+  let M = 0, S = 1;
+  let T = parseInt(rut, 10);
+  for (; T; T = Math.floor(T / 10)) {
+    S = (S + T % 10 * (9 - M++ % 6)) % 11;
+  }
+  const dvEsperado = S ? S - 1 : 'K';
+  return dvEsperado.toString() === digv;
+};
+
+const formatRut = (rut) => {
+  let value = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+  if (value.length > 1) {
+    value = value.slice(0, -1) + '-' + value.slice(-1);
+  }
+  return value;
+};
+
 const EmpresasAdmin = () => {
   const [empresas, setEmpresas] = useState([]);
   const [error, setError] = useState('');
@@ -41,8 +63,20 @@ const EmpresasAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     setModalError('');
+    
     if (!formCrear.rut.trim() || !formCrear.razonSocial.trim()) {
       setModalError('Todos los campos son obligatorios.');
+      return;
+    }
+
+    if (!validarRutChileno(formCrear.rut)) {
+      setModalError('El RUT ingresado no es válido.');
+      return;
+    }
+
+    const existe = empresas.some(emp => emp.rut.toUpperCase() === formCrear.rut.toUpperCase());
+    if (existe) {
+      setModalError('Ya existe una empresa registrada con ese RUT');
       return;
     }
 
@@ -74,8 +108,24 @@ const EmpresasAdmin = () => {
   const handleEditar = async (e) => {
     e.preventDefault();
     setModalError('');
+    
     if (!empresaAEditar.rut.trim() || !empresaAEditar.razonSocial.trim()) {
       setModalError('Todos los campos son obligatorios.');
+      return;
+    }
+
+    if (!validarRutChileno(empresaAEditar.rut)) {
+      setModalError('El RUT ingresado no es válido.');
+      return;
+    }
+
+    const existe = empresas.some(emp => 
+      emp.rut.toUpperCase() === empresaAEditar.rut.toUpperCase() && 
+      emp.id !== empresaAEditar.id
+    );
+
+    if (existe) {
+      setModalError('El RUT ingresado ya pertenece a otra empresa');
       return;
     }
 
@@ -115,7 +165,7 @@ const EmpresasAdmin = () => {
       setShowDeleteModal(false);
       setEmpresaAEliminar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas.');
+      setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas con solicitudes pendientes.');
     }
   };
 
@@ -171,10 +221,23 @@ const EmpresasAdmin = () => {
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>RUT:</label>
-              <input type="text" value={formCrear.rut} onChange={(e) => setFormCrear({...formCrear, rut: e.target.value})} style={inputStyle} autoFocus />
+              <input 
+                type="text" 
+                value={formCrear.rut} 
+                onChange={(e) => setFormCrear({...formCrear, rut: formatRut(e.target.value)})} 
+                style={inputStyle} 
+                autoFocus 
+                maxLength="10"
+                placeholder="Ej: 12345678-9"
+              />
               
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Razón Social:</label>
-              <input type="text" value={formCrear.razonSocial} onChange={(e) => setFormCrear({...formCrear, razonSocial: e.target.value})} style={inputStyle} />
+              <input 
+                type="text" 
+                value={formCrear.razonSocial} 
+                onChange={(e) => setFormCrear({...formCrear, razonSocial: e.target.value})} 
+                style={inputStyle} 
+              />
               
               <div style={buttonGroupStyle}>
                 <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({rut:'', razonSocial:''}); setModalError('');}}>Cancelar</button>
@@ -192,10 +255,22 @@ const EmpresasAdmin = () => {
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>RUT:</label>
-              <input type="text" value={empresaAEditar.rut} onChange={(e) => setEmpresaAEditar({...empresaAEditar, rut: e.target.value})} style={inputStyle} />
+              <input 
+                type="text" 
+                value={empresaAEditar.rut} 
+                onChange={(e) => setEmpresaAEditar({...empresaAEditar, rut: formatRut(e.target.value)})} 
+                style={inputStyle} 
+                maxLength="10"
+              />
               
               <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Razón Social:</label>
-              <input type="text" value={empresaAEditar.razonSocial} onChange={(e) => setEmpresaAEditar({...empresaAEditar, razonSocial: e.target.value})} style={inputStyle} autoFocus />
+              <input 
+                type="text" 
+                value={empresaAEditar.razonSocial} 
+                onChange={(e) => setEmpresaAEditar({...empresaAEditar, razonSocial: e.target.value})} 
+                style={inputStyle} 
+                autoFocus 
+              />
               
               <div style={buttonGroupStyle}>
                 <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setEmpresaAEditar(null); setModalError('');}}>Cancelar</button>
@@ -209,13 +284,20 @@ const EmpresasAdmin = () => {
       {showDeleteModal && empresaAEliminar && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h3>Confirmar Eliminación</h3>
+            <h3 style={{ color: '#d9534f' }}>Confirmar Eliminación</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
-            <p>¿Estás seguro de que deseas eliminar la empresa <strong>"{empresaAEliminar.razonSocial}"</strong>?</p>
-            <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
-            <div style={buttonGroupStyle}>
+            
+            <p style={{ marginTop: '15px' }}>
+              ¿Estás seguro de que deseas eliminar la empresa <strong>"{empresaAEliminar.razonSocial}"</strong>?
+            </p>
+            
+            <div style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '10px', borderRadius: '4px', border: '1px solid #ffeeba', marginTop: '15px', fontSize: '13px' }}>
+              <strong>Advertencia:</strong> Esto eliminará automáticamente todas las obras asociadas a esta empresa. ¿Seguro que quiere continuar?
+            </div>
+            
+            <div style={{...buttonGroupStyle, marginTop: '25px'}}>
               <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setEmpresaAEliminar(null); setModalError('');}}>Cancelar</button>
-              <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
+              <button style={deleteBtnStyle} onClick={handleEliminar}>Sí, Eliminar Todo</button>
             </div>
           </div>
         </div>
