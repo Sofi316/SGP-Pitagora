@@ -12,8 +12,10 @@ import ObrasAdmin from './components/ObrasAdmin/ObrasAdmin';
 import EmpresasAdmin from './components/EmpresasAdmin/EmpresasAdmin';
 import SolicitudesAdmin from './components/SolicitudesAdmin/SolicitudesAdmin';
 import SolicitudesObras from './components/SolicitudesAdmin/SolicitudesObra';
+import ResetPassword from './components/ResetPassword/ResetPassword';
 import ArchivadosAdmin from './components/ArchivadosAdmin/ArchivadosAdmin';
 import DetalleSolicitud from './components/SolicitudesAdmin/DetalleSolicitud';
+import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin';
 import './index.css';
 
 function App() {
@@ -33,6 +35,13 @@ function App() {
             <RecoverPassword />
           </div>
         } />
+        
+        <Route path="/reset-password" element={
+          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
+            <Header showLogout={false} />
+            <ResetPassword />
+          </div>
+        } />
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<InicioAdmin />} />
@@ -45,6 +54,7 @@ function App() {
           <Route path="gestion/subcategorias" element={<SubcategoriasAdmin />} />
           <Route path="gestion/empresas" element={<EmpresasAdmin />} />
           <Route path="gestion/obras" element={<ObrasAdmin/>}/>
+          <Route path="gestion/usuarios" element={<UsuariosAdmin/>}/>
           <Route path="archivados" element={<ArchivadosAdmin/>}/>
 
       
