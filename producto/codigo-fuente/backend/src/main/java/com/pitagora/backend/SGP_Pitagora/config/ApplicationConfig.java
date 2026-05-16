@@ -24,14 +24,14 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> repository.findByCorreo(username)
+        return username -> repository.findByCorreoIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
-        
+        authProvider.setHideUserNotFoundExceptions(false);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }

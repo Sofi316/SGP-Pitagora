@@ -87,6 +87,12 @@ public class UsuarioService implements UserDetailsService {
         Usuario existente = usuarioRepository.findByRut(rut)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado para reactivar."));
 
+        // Verificar que el nuevo correo no exista en otro usuario
+        if (!existente.getCorreo().equals(nuevosDatos.getCorreo()) &&
+            usuarioRepository.findByCorreoIgnoringUserId(nuevosDatos.getCorreo(), existente.getId()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo ya está registrado en otro usuario.");
+        }
+
         actualizarCamposBase(existente, nuevosDatos);
         existente.setActivo(true);
         existente.setRecibe_notificaciones(nuevosDatos.getRecibe_notificaciones());
@@ -102,7 +108,7 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.findById(id)
             .map(usuarioAEditar -> {
                 if (!usuarioAEditar.getCorreo().equals(usuarioModificado.getCorreo()) &&
-                    usuarioRepository.existsByCorreo(usuarioModificado.getCorreo())) {
+                    usuarioRepository.findByCorreoIgnoringUserId(usuarioModificado.getCorreo(), id).isPresent()) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nuevo correo ya está en uso por otro usuario.");
                 }
 

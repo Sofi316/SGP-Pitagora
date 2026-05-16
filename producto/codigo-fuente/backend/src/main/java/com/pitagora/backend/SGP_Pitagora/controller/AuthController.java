@@ -36,19 +36,26 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+        String correo = (request.correo() != null) ? request.correo().trim() : "";
+        String contrasena = (request.contrasena() != null) ? request.contrasena() : "";
+
+        if (correo.isBlank() || contrasena.isBlank()) {
+            return ResponseEntity.badRequest().body("POR_FAVOR_INGRESE_SUS_CREDENCIALES");
+        }
+
         try {
             // 1. Verificación manual para asegurar que no se oculte si el correo no existe
-            UserDetails userDetails = usuarioService.loadUserByUsername(request.correo());
+            UserDetails userDetails = usuarioService.loadUserByUsername(correo);
             Usuario usuarioExistente = (Usuario) userDetails;
 
             // 2. Verificación estricta de cuenta inactiva
-            if (usuarioExistente.getActivo() != null && !usuarioExistente.getActivo()) {
+            if (!Boolean.TRUE.equals(usuarioExistente.getActivo())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("CUENTA_INACTIVA");
             }
 
             // 3. Autenticar credenciales
             Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.correo(), request.contrasena())
+                new UsernamePasswordAuthenticationToken(correo, contrasena)
             );
 
             Usuario usuario = (Usuario) auth.getPrincipal();

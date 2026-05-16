@@ -128,6 +128,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return activo;
+        return Boolean.TRUE.equals(activo);
     }
 }

@@ -19,8 +19,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
        Optional<Usuario> findByRut(String rut);
 
        Optional<Usuario> findByCorreo(String correo);
+       Optional<Usuario> findByCorreoIgnoreCase(String correo);
 
        Optional<Usuario> findByTokenRecuperacion(String tokenRecuperacion);
+
+       @Query("SELECT u FROM Usuario u WHERE u.correo = :correo AND u.id != :usuarioId")
+       Optional<Usuario> findByCorreoIgnoringUserId(@Param("correo") String correo, @Param("usuarioId") Long usuarioId);
 
        @Query("SELECT DISTINCT u FROM Usuario u " +
               "JOIN FETCH u.rol r " +

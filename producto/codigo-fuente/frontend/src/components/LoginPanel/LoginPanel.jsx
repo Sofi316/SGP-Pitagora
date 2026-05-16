@@ -25,7 +25,7 @@ const LoginPanel = () => {
     setError('');
     setMensajeInfo('');
 
-    if (!correo || !contrasena) {
+    if (!correo.trim() || !contrasena) {
       setError('Por favor, ingrese sus credenciales.');
       return;
     }
@@ -54,15 +54,16 @@ const LoginPanel = () => {
       if (error.response) {
         const status = error.response.status;
         const data = error.response.data;
-        // Convierte el mensaje para validación exacta
         const mensajeBackend = typeof data === 'string' ? data : JSON.stringify(data);
 
-        if (status === 403 || mensajeBackend.includes("CUENTA_INACTIVA")) {
-          setError('Su cuenta se encuentra desactivada. Contacte al administrador.');
-        } else if (status === 401 || mensajeBackend.includes("CREDENCIALES_INVALIDAS")) {
-          setError('La contraseña ingresada es incorrecta.');
-        } else if (status === 404 || mensajeBackend.includes("USUARIO_NO_ENCONTRADO")) {
+        if (status === 400 || mensajeBackend.includes('POR_FAVOR_INGRESE_SUS_CREDENCIALES')) {
+          setError('Por favor, ingrese sus credenciales.');
+        } else if (status === 403 || mensajeBackend.includes('CUENTA_INACTIVA')) {
+          setError('Cuenta inactiva, contacte al administrador.');
+        } else if (status === 404 || mensajeBackend.includes('USUARIO_NO_ENCONTRADO')) {
           setError('El correo ingresado no existe en nuestros registros.');
+        } else if (status === 401 || mensajeBackend.includes('CREDENCIALES_INVALIDAS')) {
+          setError('La contraseña ingresada es incorrecta.');
         } else {
           setError('Error de autenticación. Intente más tarde.');
         }

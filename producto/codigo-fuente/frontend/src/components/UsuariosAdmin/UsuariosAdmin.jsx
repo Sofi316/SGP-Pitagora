@@ -17,7 +17,6 @@ const UsuariosAdmin = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showReactivateModal, setShowReactivateModal] = useState(false);
   
   const [formErrors, setFormErrors] = useState({});
   const [backendError, setBackendError] = useState('');
@@ -138,27 +137,30 @@ const UsuariosAdmin = () => {
       setShowCreateModal(false);
       setFormCrear(estadoInicialForm);
       setFormErrors({});
+      setBackendError('');
       aplicarFiltros();
     } catch (err) {
-      const msg = err.response?.data?.message?.toLowerCase() || '';
-      if (msg.includes('inactivo') || msg.includes('desactivado')) {
-        setShowCreateModal(false);
-        setShowReactivateModal(true);
+      const status = err.response?.status;
+      const data = err.response?.data;
+      const msg = (typeof data === 'string' ? data : data?.message || '')?.toLowerCase() || '';
+      
+      // Si el RUT existe pero está inactivo (409), reactivar automáticamente
+      if (status === 409 && msg.includes('inactivo')) {
+        try {
+          const payload = { ...formCrear, activo: true, rol: { id: parseInt(formCrear.rolId) }, obras: formCrear.obrasIds.map(id => ({ id: parseInt(id) })) };
+          await api.put(`/usuarios/reactivar/${formCrear.rut}`, payload);
+          setShowCreateModal(false);
+          setFormCrear(estadoInicialForm);
+          setFormErrors({});
+          setBackendError('');
+          aplicarFiltros();
+        } catch (reactivateErr) {
+          setBackendError(reactivateErr.response?.data?.message || 'Error al reactivar cuenta.');
+        }
       } else {
+        // Mostrar error para otros casos (RUT duplicado activo, correo duplicado, etc)
         setBackendError(err.response?.data?.message || 'Error al guardar. Verifique RUT o Correo duplicado.');
       }
-    }
-  };
-
-  const handleReactivar = async () => {
-    try {
-      const payload = { ...formCrear, activo: true, rol: { id: parseInt(formCrear.rolId) }, obras: formCrear.obrasIds.map(id => ({ id: parseInt(id) })) };
-      await api.put(`/usuarios/reactivar/${formCrear.rut}`, payload);
-      setShowReactivateModal(false);
-      setFormCrear(estadoInicialForm);
-      aplicarFiltros();
-    } catch (err) {
-      setBackendError(err.response?.data?.message || 'Error al reactivar cuenta.');
     }
   };
 
@@ -267,7 +269,20 @@ const UsuariosAdmin = () => {
           </div>
           <div className={styles.btnGroup}>
             <button type="submit" className={styles.btnPrimary}>Filtrar</button>
-            <button type="button" onClick={() => { setFiltroEmpresaId(''); setFiltroObraId(''); setKeyword(''); aplicarFiltros(); }} className={styles.btnSecondary}>Limpiar</button>
+            <button type="button" onClick={async () => { 
+              setFiltroEmpresaId(''); 
+              setFiltroObraId(''); 
+              setKeyword(''); 
+              setLoading(true);
+              try {
+                const response = await api.get('/usuarios/filtrar');
+                setUsuarios(response.data);
+              } catch (err) {
+                if (err.response?.status !== 401) console.error(err);
+              } finally {
+                setLoading(false);
+              }
+            }} className={styles.btnSecondary}>Limpiar</button>
           </div>
         </form>
       </div>
@@ -367,21 +382,6 @@ const UsuariosAdmin = () => {
                 <button type="submit" style={sBtnSubmit}>Guardar</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {showReactivateModal && (
-        <div style={sOverlay}>
-          <div style={{...sContent, width: '400px', textAlign: 'center'}}>
-            <h3 style={{margin: '0 0 15px 0', color: '#0d3b66'}}>Usuario Inactivo Detectado</h3>
-            <p>El RUT <strong>{formCrear.rut}</strong> existe en la base de datos pero se encuentra desactivado.</p>
-            <p style={{fontSize: '14px', marginBottom: '20px'}}>¿Desea reactivar esta cuenta con los nuevos datos proporcionados?</p>
-            {backendError && <p style={sError}>{backendError}</p>}
-            <div style={{display: 'flex', justifyContent: 'center', gap: '15px'}}>
-              <button onClick={() => setShowReactivateModal(false)} className={styles.btnSecondaryModal}>No, Cancelar</button>
-              <button onClick={handleReactivar} style={sBtnSubmit}>Sí, Reactivar</button>
-            </div>
           </div>
         </div>
       )}

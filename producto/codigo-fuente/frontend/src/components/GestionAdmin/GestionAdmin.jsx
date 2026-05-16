@@ -7,11 +7,12 @@ const GestionAdmin = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Gestión</h1>
       <div className={styles.menuBox}>
+        <Link to="/admin/gestion/empresas" className={styles.menuItem}>Clientes</Link>
+        <Link to="/admin/gestion/obras" className={styles.menuItem}>Obras</Link>
         <Link to="/admin/gestion/usuarios" className={styles.menuItem}>Usuarios</Link>
         <Link to="/admin/gestion/categorias" className={styles.menuItem}>Categorías</Link>
         <Link to="/admin/gestion/subcategorias" className={styles.menuItem}>Subcategorías</Link>
-        <Link to="/admin/gestion/empresas" className={styles.menuItem}>Clientes</Link>
-        <Link to="/admin/gestion/obras" className={styles.menuItem}>Obras</Link>
+        
       </div>
     </div>
   );
