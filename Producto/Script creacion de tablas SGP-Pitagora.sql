@@ -79,7 +79,7 @@ CREATE TABLE obra (
     nombre_obra VARCHAR(50) NOT NULL,
     direccion_obra VARCHAR(100) NOT NULL,
     fecha_inicio_postventa DATE NOT NULL,
-    fecha_cierre_postventa DATE NOT NULL,
+    fecha_cierre_postventa DATE,
     ruta_acta_entrega TEXT,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     id_empresa_cliente INTEGER NOT NULL,
