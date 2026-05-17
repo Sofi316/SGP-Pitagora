@@ -6,6 +6,20 @@ services:
       - ./backend:/app
     ports:
       - "8080:8080"
+    environment:
+      # Inyección de Base de Datos para Spring
+      - SPRING_DATASOURCE_URL=${DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      
+      # Inyección de Correo y Seguridad
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      
+      # Otras variables del sistema
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
 
   frontend:
     build: ./frontend
