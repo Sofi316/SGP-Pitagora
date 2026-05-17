@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,6 +24,9 @@ public class ComunicacionArchivadaService {
     private final SolicitudRepository solicitudRepository;
     private final JavaMailSender mailSender;
 
+    @Value("${spring.mail.username}")
+    private String mailFrom;
+
     public ComunicacionArchivadaService(ComunicacionArchivadaRepository comunicacionArchivadaRepository,
                                         SolicitudRepository solicitudRepository,
                                         JavaMailSender mailSender) {
@@ -38,6 +42,7 @@ public class ComunicacionArchivadaService {
         String asuntoConId = dto.getAsunto() + " [ID-" + id + "]";
 
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailFrom);
         message.setTo(dto.getDestinatario());
         message.setSubject(asuntoConId);
         message.setText(dto.getCuerpoMensaje());

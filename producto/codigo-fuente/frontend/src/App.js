@@ -14,6 +14,7 @@ import SolicitudesAdmin from './components/SolicitudesAdmin/SolicitudesAdmin';
 import SolicitudesObras from './components/SolicitudesAdmin/SolicitudesObra';
 import ResetPassword from './components/ResetPassword/ResetPassword';
 import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin';
+import DetalleUsuario from './components/UsuariosAdmin/DetalleUsuario';
 import ArchivadosAdmin from './components/ArchivadosAdmin/ArchivadosAdmin';
 import AutoLogout from './services/Autologout';
 import './index.css';
@@ -55,6 +56,7 @@ function App() {
           <Route path="gestion/obras" element={<ObrasAdmin/>}/>
           <Route path="gestion/usuarios" element={<UsuariosAdmin/>}/>
           <Route path="archivados" element={<ArchivadosAdmin/>}/>
+          <Route path="gestion/usuarios/:id" element={<DetalleUsuario />} />
 
         </Route>
 

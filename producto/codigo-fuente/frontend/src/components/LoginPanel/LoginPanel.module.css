@@ -2,12 +2,37 @@
 .loginPanelContainer {
   flex: 1;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+.loginWelcomeBanner {
+  background-color: #0d3b66;
+  color: #f4f7fb;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 8px;
+  padding: 18px 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.loginWelcomeTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.loginWelcomeText {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #dfe7f0;
 }
 
 .loginPanelBox {
@@ -48,6 +73,13 @@
   margin: 0;
   font-size: 22px;
   font-weight: 500;
+}
+
+.loginSubtitle {
+  color: #eef3f8;
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .loginForm {

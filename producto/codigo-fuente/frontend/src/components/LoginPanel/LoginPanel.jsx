@@ -32,7 +32,7 @@ const LoginPanel = () => {
 
     try {
       const response = await api.post('/auth/login', {
-        correo: correo.trim(), // Limpia espacios en blanco accidentales
+        correo: correo.trim(),
         contrasena
       });
 
@@ -41,6 +41,9 @@ const LoginPanel = () => {
         
         const rolUsuario = response.data.nombreRol || response.data.rol;
         localStorage.setItem('rol', rolUsuario);
+        
+  
+        localStorage.setItem('userEmail', correo.trim());
 
         if (rolUsuario === 'ADMIN') {
           navigate('/admin');
