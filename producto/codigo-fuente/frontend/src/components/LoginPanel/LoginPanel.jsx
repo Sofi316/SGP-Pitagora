@@ -37,18 +37,27 @@ const LoginPanel = () => {
       });
 
       if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
+        const token = response.data.token;
+        localStorage.setItem('token', token);
         
         const rolUsuario = response.data.nombreRol || response.data.rol;
         localStorage.setItem('rol', rolUsuario);
-        
-  
         localStorage.setItem('userEmail', correo.trim());
+
+        // Decode JWT to extract userId
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.userId) {
+            localStorage.setItem('userId', payload.userId);
+          }
+        } catch (e) {
+          console.error('Error decoding token:', e);
+        }
 
         if (rolUsuario === 'ADMIN') {
           navigate('/admin');
         } else if (rolUsuario === 'CLIENTE') {
-          navigate('/dashboard');
+          navigate('/cliente');
         } else {
           navigate('/inicio');
         }
@@ -78,9 +87,22 @@ const LoginPanel = () => {
 
   return (
     <div className={styles.loginPanelContainer}>
+      <div className={styles.loginWelcomeBanner}>
+        <h2 className={styles.loginWelcomeTitle}>Bienvenido al Sistema de Postventa</h2>
+        <p className={styles.loginWelcomeSubtitle}>Constructora Pitagora</p>
+        <p className={styles.loginWelcomeText}>
+          Para subir una nueva solicitud debe ingresar con sus credenciales provistas en su correo electrónico.
+        </p>
+      </div>
+      
       <div className={styles.loginPanelBox}>
         <div className={styles.titleContainer}>
-          <h2 className={styles.loginTitle}>Inicio de Sesión</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" style={{ flexShrink: 0 }}>
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+            </svg>
+            <h3 className={styles.loginTitle} style={{ margin: 0 }}>Inicio de Sesión</h3>
+          </div>
         </div>
 
         <form className={styles.loginForm} onSubmit={handleLogin}>
@@ -106,6 +128,12 @@ const LoginPanel = () => {
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
               name="correo"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a3a62" strokeWidth="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              }
             />
             <InputGroup
               label="Contraseña"
@@ -113,6 +141,12 @@ const LoginPanel = () => {
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
               name="contrasena"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a3a62" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              }
             />
           </div>
 

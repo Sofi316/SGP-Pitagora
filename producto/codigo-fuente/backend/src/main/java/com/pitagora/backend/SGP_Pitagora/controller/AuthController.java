@@ -61,7 +61,12 @@ public class AuthController {
             Usuario usuario = (Usuario) auth.getPrincipal();
             String nombreRol = (usuario.getRol() != null) ? usuario.getRol().getNombre() : "SIN_ROL";
             
-            String token = jwtService.generateToken(usuario);
+            // Include user ID in token claims
+            java.util.Map<String, Object> claims = new java.util.HashMap<>();
+            claims.put("userId", usuario.getId());
+            claims.put("rol", nombreRol);
+            
+            String token = jwtService.generateToken(claims, usuario);
             return ResponseEntity.ok(new AuthResponse(token, nombreRol));
             
         } catch (UsernameNotFoundException e) {

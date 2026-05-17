@@ -4,6 +4,7 @@ import Header from './components/Header/Header';
 import LoginPanel from './components/LoginPanel/LoginPanel';
 import RecoverPassword from './components/RecoverPassword/RecoverPassword';
 import AdminLayout from './components/AdminLayout/AdminLayout';
+import ClientLayout from './components/ClientLayout/ClientLayout';
 import InicioAdmin from './components/InicioAdmin/InicioAdmin';
 import GestionAdmin from './components/GestionAdmin/GestionAdmin';
 import CategoriasAdmin from './components/CategoriasAdmin/CategoriasAdmin';
@@ -16,6 +17,8 @@ import ResetPassword from './components/ResetPassword/ResetPassword';
 import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin';
 import DetalleUsuario from './components/UsuariosAdmin/DetalleUsuario';
 import ArchivadosAdmin from './components/ArchivadosAdmin/ArchivadosAdmin';
+import ClientSolicitudes from './components/ClientSolicitudes/ClientSolicitudes';
+import ClientProfile from './components/ClientProfile/ClientProfile';
 import AutoLogout from './services/Autologout';
 import './index.css';
 
@@ -25,7 +28,7 @@ function App() {
       <AutoLogout>
        <Routes>
         <Route path="/" element={
-          <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
+          <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#7e9ab2' }}>
             <Header showLogout={false}/>
             <LoginPanel />
           </div>
@@ -57,7 +60,11 @@ function App() {
           <Route path="gestion/usuarios" element={<UsuariosAdmin/>}/>
           <Route path="archivados" element={<ArchivadosAdmin/>}/>
           <Route path="gestion/usuarios/:id" element={<DetalleUsuario />} />
+        </Route>
 
+        <Route path="/cliente" element={<ClientLayout />}>
+          <Route index element={<ClientSolicitudes />} />
+          <Route path="perfil" element={<ClientProfile />} />
         </Route>
 
         </Routes>

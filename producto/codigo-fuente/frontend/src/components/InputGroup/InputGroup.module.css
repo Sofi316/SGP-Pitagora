@@ -5,20 +5,26 @@
 }
 
 .inputLabel {
-  color: #ffffff;
+  color: #2c3e50;
   font-size: 16px;
   margin-bottom: 10px;
   text-align: left;
+  font-weight: 600;
 }
 
 .inputField {
-  background-color: #aec4d6;
+  background-color: #d9dcdf;
   border: none;
   border-radius: 5px;
   padding: 15px;
   color: #333333;
   font-size: 16px;
   box-sizing: border-box;
+  width: 100%;
+}
+
+.inputFieldWithIcon {
+  padding-left: 45px;
 }
 
 .inputField::placeholder {

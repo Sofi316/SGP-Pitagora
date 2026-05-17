@@ -48,7 +48,7 @@ const ResetPassword = () => {
                 nuevaPassword: password
             });
             
-            setMensaje('Contraseña actualizada con éxito en la base de datos. Redirigiendo...');
+            setMensaje('Contraseña actualizada con éxito. Redirigiendo...');
             
             setTimeout(() => {
                 navigate('/');

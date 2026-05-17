@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import styles from './DetalleUsuario.module.css';
 import { FaUser, FaIdCard, FaHardHat } from "react-icons/fa";
@@ -55,7 +55,7 @@ const DetalleUsuario = () => {
     <div className={styles.container}>
       <div className={styles.headerRow}>
         <div className={styles.titleContainer}>
-          <button className={styles.backButton} onClick={() => navigate(-1)}>&#8592;</button>
+          <Link to="/admin/gestion/usuarios" className={styles.backButton}>←</Link>
           <h1 className={styles.title}>Detalle de Usuario</h1>
         </div>
       </div>
