@@ -81,7 +81,7 @@ const SubcategoriasAdmin = () => {
       const catAsociada = categorias.find(c => c.id === parseInt(categoriaSeleccionada));
       if (catAsociada) nuevaSubcat.categoria = catAsociada;
 
-      setSubcategorias([...subcategorias, nuevaSubcat]);
+      setSubcategorias([nuevaSubcat, ...subcategorias]);
       setShowCreateModal(false);
       setNuevaSubcategoria('');
       setCategoriaSeleccionada('');

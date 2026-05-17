@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import styles from './DetalleObra.module.css';
-import { FaInfoCircle,FaCalendarAlt } from "react-icons/fa";
+import { FaInfoCircle, FaCalendarAlt, FaUsers, FaEnvelope, FaMobileAlt } from "react-icons/fa";
 import { HiOutlineDocumentSearch } from "react-icons/hi";
-
-
 
 const DetalleObra = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [obra, setObra] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,11 +37,14 @@ const DetalleObra = () => {
   if (error) return <div className={styles.container}><p className={styles.errorText}>{error}</p></div>;
   if (!obra) return null;
 
+  const gridUsuariosStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px', marginTop: '15px' };
+  const cardUsuarioStyle = { padding: '15px', backgroundColor: '#f8f9fa', borderLeft: '4px solid #0d3b66', borderRadius: '6px', fontSize: '14px', color: '#333' };
+
   return (
     <div className={styles.container}>
       <div className={styles.headerRow}>
         <div className={styles.titleContainer}>
-          <button className={styles.backButton} onClick={() => navigate(-1)}>&#8592;</button>
+          <Link to="/admin/gestion/obras" className={styles.backButton} title="Volver a Obras">&#8592;</Link>
           <h1 className={styles.title}>Detalle de Obra</h1>
         </div>
       </div>
@@ -58,7 +58,7 @@ const DetalleObra = () => {
                 </span>
             </div>
             
-             <Link to={`/admin/obras/${obra.id}/solicitudes`} className={styles.btnSolicitudes}>
+             <Link to={`/admin/solicitudes/empresa/${obra.empresaCliente?.id}`} className={styles.btnSolicitudes}>
                 Ver Solicitudes
              </Link>
         </div>
@@ -66,8 +66,7 @@ const DetalleObra = () => {
         <div className={styles.detailsGrid}>
           
           <div className={styles.sectionCard}>
-            <h3 className={styles.sectionTitleIcons}><FaInfoCircle />
-            Información General</h3>
+            <h3 className={styles.sectionTitleIcons}><FaInfoCircle /> Información General</h3>
             <p className={styles.detailText}><strong>Empresa Cliente:</strong> {obra.empresaCliente?.razonSocial || 'N/A'}</p>
             <p className={styles.detailText}><strong>Dirección:</strong> {obra.direccion}</p>
             <p className={styles.detailText}><strong>Comuna:</strong> {obra.comuna?.nombre || 'N/A'}</p>
@@ -75,15 +74,10 @@ const DetalleObra = () => {
           </div>
 
           <div className={styles.sectionCard}>
-            <h3 className={styles.sectionTitleIcons}><FaCalendarAlt />
-            Fechas y Documentos</h3>
+            <h3 className={styles.sectionTitleIcons}><FaCalendarAlt /> Fechas y Documentos</h3>
             <div className={styles.detailRow}>
                 <p><strong>Inicio Postventa:</strong></p>
                 <span>{formatearFechaCorta(obra.fechaInicioPostventa)}</span>
-            </div>
-            <div className={styles.detailRow}>
-                <p><strong>Cierre Postventa:</strong></p>
-                <span>{formatearFechaCorta(obra.fechaCierrePostventa)}</span>
             </div>
             
             <div className={styles.actaContainer}>
@@ -96,6 +90,29 @@ const DetalleObra = () => {
                   <span className={styles.noActa}>Sin acta adjunta</span>
                 )}
             </div>
+          </div>
+
+          <div className={styles.sectionCard} style={{ gridColumn: '1 / -1' }}>
+            <h3 className={styles.sectionTitleIcons}><FaUsers /> Representantes Asociados</h3>
+            
+            {obra.usuarios && obra.usuarios.length > 0 ? (
+                <div style={gridUsuariosStyle}>
+                    {obra.usuarios.map(user => (
+                        <div key={user.id} style={cardUsuarioStyle}>
+                            <p style={{ margin: '0 0 5px 0', fontSize: '16px' }}><strong>{user.nombre} {user.apellido}</strong></p>
+                            <p style={{ margin: '0 0 5px 0', color: '#666' }}>{user.cargo || 'Sin cargo definido'}</p>
+                            <p style={{ margin: '0 0 4px 0', display: 'flex', alignItems: 'center' }}>
+                                <FaEnvelope style={{ color: '#0d3b66', marginRight: '8px' }} /> {user.correo}
+                            </p>
+                            <p style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
+                                <FaMobileAlt style={{ color: '#0d3b66', marginRight: '8px', fontSize: '16px' }} /> {user.celular || 'Sin celular'}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <p style={{ color: '#666', fontStyle: 'italic', marginTop: '10px' }}>No hay representantes asignados a esta obra.</p>
+            )}
           </div>
 
         </div>

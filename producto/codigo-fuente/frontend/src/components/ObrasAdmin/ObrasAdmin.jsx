@@ -16,7 +16,7 @@ const ObrasAdmin = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [formCrear, setFormCrear] = useState({
-    nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null
+    nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null
   });
   
   const [obraAEditar, setObraAEditar] = useState(null);
@@ -68,16 +68,8 @@ const ObrasAdmin = () => {
     e.preventDefault();
     setModalError('');
     
-    if (!formCrear.nombre.trim() || !formCrear.direccion.trim() || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa || !formCrear.fechaCierrePostventa) {
+    if (!formCrear.nombre.trim() || !formCrear.direccion.trim() || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa) {
       setModalError('Por favor complete todos los campos obligatorios.');
-      return;
-    }
-
-    const fechaInicio = new Date(formCrear.fechaInicioPostventa);
-    const fechaCierre = new Date(formCrear.fechaCierrePostventa);
-    
-    if (fechaCierre <= fechaInicio) {
-      setModalError('La fecha de cierre debe ser posterior a la fecha de inicio.');
       return;
     }
 
@@ -89,7 +81,6 @@ const ObrasAdmin = () => {
         nombre: formCrear.nombre,
         direccion: formCrear.direccion,
         fechaInicioPostventa: formCrear.fechaInicioPostventa,
-        fechaCierrePostventa: formCrear.fechaCierrePostventa,
         empresaCliente: { id: parseInt(formCrear.empresaId) },
         comuna: { id: parseInt(formCrear.comunaId) },
         activo: true
@@ -115,9 +106,9 @@ const ObrasAdmin = () => {
       if (empresaAsociada) nuevaObra.empresaCliente = empresaAsociada;
       if (comunaAsociada) nuevaObra.comuna = comunaAsociada;
 
-      setObras([...obras, nuevaObra]);
+      setObras([nuevaObra, ...obras]);
       setShowCreateModal(false);
-      setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null });
+      setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null });
     } catch (err) {
       setModalError(err.response?.data?.message || 'Error al guardar: Verifica los datos ingresados.');
     }
@@ -139,16 +130,8 @@ const ObrasAdmin = () => {
     e.preventDefault();
     setModalError('');
     
-    if (!obraAEditar.nombre.trim() || !obraAEditar.direccion.trim() || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa || !obraAEditar.fechaCierrePostventa) {
+    if (!obraAEditar.nombre.trim() || !obraAEditar.direccion.trim() || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa) {
       setModalError('Por favor complete todos los campos obligatorios.');
-      return;
-    }
-
-    const fechaInicio = new Date(obraAEditar.fechaInicioPostventa);
-    const fechaCierre = new Date(obraAEditar.fechaCierrePostventa);
-    
-    if (fechaCierre <= fechaInicio) {
-      setModalError('La fecha de cierre debe ser posterior a la fecha de inicio.');
       return;
     }
 
@@ -160,7 +143,6 @@ const ObrasAdmin = () => {
         nombre: obraAEditar.nombre,
         direccion: obraAEditar.direccion,
         fechaInicioPostventa: obraAEditar.fechaInicioPostventa,
-        fechaCierrePostventa: obraAEditar.fechaCierrePostventa,
         empresaCliente: { id: parseInt(obraAEditar.empresaIdForm) },
         comuna: { id: parseInt(obraAEditar.comunaIdForm) }
       };
@@ -224,9 +206,6 @@ const ObrasAdmin = () => {
   const confirmBtnStyle = { ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' };
   const deleteBtnStyle = { ...btnStyle, backgroundColor: '#d9534f', color: '#fff' };
 
-  // Estilo para el nuevo botón "Ver Detalle" (utiliza un tono neutro o azul diferente para distinguirlo)
-  const detailBtnStyle = { ...btnStyle, backgroundColor: '#6c757d', color: '#fff' };
-
   const comunasFiltradasCrear = comunas.filter(c => c.region && c.region.id === parseInt(formCrear.regionId));
   const comunasFiltradasEditar = obraAEditar ? comunas.filter(c => c.region && c.region.id === parseInt(obraAEditar.regionIdForm)) : [];
 
@@ -262,7 +241,6 @@ const ObrasAdmin = () => {
                 </span>
               </div>
               <div className={styles.actions} style={{ display: 'flex', gap: '8px' }}>
-                {/* Nuevo Botón Ver Detalle */}
                 <button className={styles.editBtn} style={{ backgroundColor: '#304557' }} onClick={() => navigate(`/admin/gestion/obras/${ob.id}`)}>Ver Detalle</button>
                 <button className={styles.editBtn} onClick={() => abrirModalEditar(ob)}>Editar</button>
                 <button className={styles.deleteBtn} onClick={() => abrirModalEliminar(ob)}>Eliminar</button>
@@ -278,24 +256,16 @@ const ObrasAdmin = () => {
             <h3>Crear Nueva Obra</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={formCrear.nombre} onChange={(e) => setFormCrear({...formCrear, nombre: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={formCrear.direccion} onChange={(e) => setFormCrear({...formCrear, direccion: e.target.value})} style={inputStyle} />
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa:</label>
-                  <input type="date" value={formCrear.fechaInicioPostventa} onChange={(e) => setFormCrear({...formCrear, fechaInicioPostventa: e.target.value})} style={inputStyle} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cierre Postventa:</label>
-                  <input type="date" value={formCrear.fechaCierrePostventa} onChange={(e) => setFormCrear({...formCrear, fechaCierrePostventa: e.target.value})} style={inputStyle} />
-                </div>
-              </div>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa: <span style={{ color: 'red' }}>*</span></label>
+              <input type="date" value={formCrear.fechaInicioPostventa} onChange={(e) => setFormCrear({...formCrear, fechaInicioPostventa: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente: <span style={{ color: 'red' }}>*</span></label>
               <select value={formCrear.empresaId} onChange={(e) => setFormCrear({...formCrear, empresaId: e.target.value})} style={inputStyle}>
                 <option value="">-- Seleccione una empresa --</option>
                 {empresas.map(emp => (
@@ -305,7 +275,7 @@ const ObrasAdmin = () => {
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={formCrear.regionId} 
                     onChange={(e) => setFormCrear({...formCrear, regionId: e.target.value, comunaId: ''})} 
@@ -318,7 +288,7 @@ const ObrasAdmin = () => {
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={formCrear.comunaId} 
                     onChange={(e) => setFormCrear({...formCrear, comunaId: e.target.value})} 
@@ -337,7 +307,7 @@ const ObrasAdmin = () => {
               <input type="file" accept="application/pdf" onChange={(e) => setFormCrear({...formCrear, actaFile: e.target.files[0]})} style={inputStyle} />
 
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null}); setModalError('');}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null}); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Guardar</button>
               </div>
             </form>
@@ -351,24 +321,16 @@ const ObrasAdmin = () => {
             <h3>Editar Obra</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={obraAEditar.nombre} onChange={(e) => setObraAEditar({...obraAEditar, nombre: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={obraAEditar.direccion} onChange={(e) => setObraAEditar({...obraAEditar, direccion: e.target.value})} style={inputStyle} />
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa:</label>
-                  <input type="date" value={obraAEditar.fechaInicioPostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaInicioPostventa: e.target.value})} style={inputStyle} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cierre Postventa:</label>
-                  <input type="date" value={obraAEditar.fechaCierrePostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaCierrePostventa: e.target.value})} style={inputStyle} />
-                </div>
-              </div>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa: <span style={{ color: 'red' }}>*</span></label>
+              <input type="date" value={obraAEditar.fechaInicioPostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaInicioPostventa: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente: <span style={{ color: 'red' }}>*</span></label>
               <select value={obraAEditar.empresaIdForm} onChange={(e) => setObraAEditar({...obraAEditar, empresaIdForm: e.target.value})} style={inputStyle}>
                 <option value="">-- Seleccione una empresa --</option>
                 {empresas.map(emp => (
@@ -378,7 +340,7 @@ const ObrasAdmin = () => {
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={obraAEditar.regionIdForm} 
                     onChange={(e) => setObraAEditar({...obraAEditar, regionIdForm: e.target.value, comunaIdForm: ''})} 
@@ -391,7 +353,7 @@ const ObrasAdmin = () => {
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={obraAEditar.comunaIdForm} 
                     onChange={(e) => setObraAEditar({...obraAEditar, comunaIdForm: e.target.value})} 

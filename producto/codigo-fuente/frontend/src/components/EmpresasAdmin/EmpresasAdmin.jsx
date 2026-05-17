@@ -52,7 +52,8 @@ const EmpresasAdmin = () => {
       const response = await axios.get('http://localhost:8080/api/empresas-clientes', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEmpresas(response.data);
+      const empresasOrdenadas = response.data.sort((a, b) => b.id - a.id);
+      setEmpresas(empresasOrdenadas);
     } catch (err) {
       setError('Ocurrió un error al cargar las empresas clientes.');
     } finally {
@@ -91,7 +92,8 @@ const EmpresasAdmin = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setEmpresas([...empresas, response.data]);
+      const nuevasEmpresas = [response.data, ...empresas].sort((a, b) => b.id - a.id);
+      setEmpresas(nuevasEmpresas);
       setShowCreateModal(false);
       setFormCrear({ rut: '', razonSocial: '' });
     } catch (err) {
@@ -139,7 +141,8 @@ const EmpresasAdmin = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setEmpresas(empresas.map(emp => emp.id === empresaAEditar.id ? response.data : emp));
+      const actualizadas = empresas.map(emp => emp.id === empresaAEditar.id ? response.data : emp).sort((a, b) => b.id - a.id);
+      setEmpresas(actualizadas);
       setShowEditModal(false);
       setEmpresaAEditar(null);
     } catch (err) {
@@ -161,7 +164,8 @@ const EmpresasAdmin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setEmpresas(empresas.filter(emp => emp.id !== empresaAEliminar.id));
+      const restantes = empresas.filter(emp => emp.id !== empresaAEliminar.id).sort((a, b) => b.id - a.id);
+      setEmpresas(restantes);
       setShowDeleteModal(false);
       setEmpresaAEliminar(null);
     } catch (err) {

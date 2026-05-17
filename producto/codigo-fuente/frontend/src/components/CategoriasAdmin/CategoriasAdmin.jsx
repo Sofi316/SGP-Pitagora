@@ -66,7 +66,7 @@ const CategoriasAdmin = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setCategorias([...categorias, response.data]);
+      setCategorias([response.data, ...categorias]);
       setShowCreateModal(false);
       setNuevaCategoria('');
     } catch (err) {
