@@ -68,7 +68,7 @@ const UsuariosAdmin = () => {
     return value.slice(0, 12); 
   };
 
-  const validarFormulario = (datos) => {
+ const validarFormulario = (datos) => {
     const errores = {};
     if (!datos.rut) errores.rut = 'El RUT es obligatorio.';
     else if (!validarRutChileno(datos.rut)) errores.rut = 'Formato de RUT inválido.';
@@ -91,7 +91,6 @@ const UsuariosAdmin = () => {
 
     return errores;
   };
-
   useEffect(() => {
     cargarDatosIniciales();
   }, []);
@@ -301,8 +300,19 @@ const UsuariosAdmin = () => {
             {backendError && <p style={sError}>{backendError}</p>}
             
             <form onSubmit={handleCrear} noValidate>
+             <p style={{ 
+              color: '#888', 
+              fontSize: '12px', 
+              fontStyle: 'italic', 
+              marginBottom: '15px', 
+              width: '100%', 
+              lineHeight: '1.4' 
+            }}>
+              Si desea reactivar una cuenta inactiva, complete el RUT y los campos que requiera actualizar (puede dejar la contraseña vacía).
+            </p>
               <div style={sGrid}>
                 <div style={sGroup}>
+                  
                   <label style={sLabel}>RUT</label>
                   <input type="text" placeholder="12345678-K" style={sInput(formErrors.rut)} value={formCrear.rut} onChange={(e) => setFormCrear({...formCrear, rut: formatRut(e.target.value)})} />
                   {formErrors.rut && <span style={sError}>{formErrors.rut}</span>}

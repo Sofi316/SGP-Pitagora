@@ -369,7 +369,11 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public void solicitarRecuperacion(String correo) {
-        usuarioRepository.findByCorreo(correo).ifPresent(usuario -> {
+        usuarioRepository.findByCorreo(correo).ifPresentOrElse(usuario -> {
+            if (!Boolean.TRUE.equals(usuario.getActivo())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Su cuenta está desactivada. Por favor, contacte con un administrador para reactivarla.");
+            }
+
             String token = UUID.randomUUID().toString();
             usuario.setTokenRecuperacion(token);
             usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(15));
@@ -382,6 +386,8 @@ public class UsuarioService implements UserDetailsService {
                     System.err.println(e.getMessage());
                 }
             }).start();
+        }, () -> {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El correo electrónico no existe en el sistema.");
         });
     }
 
