@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import styles from './UsuariosAdmin.module.css';
+import ModalEditarUsuario from './ModalEditarUsuario';
+import ModalEliminarUsuario from './ModalEliminarUsuario';
+import ModalReactivarUsuario from './ModalReactivarUsuario';
 
 const UsuariosAdmin = () => {
-  const navigate = useNavigate();
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
   const [todasLasObras, setTodasLasObras] = useState([]);
@@ -18,9 +20,16 @@ const UsuariosAdmin = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showReactivateModal, setShowReactivateModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  
+  const [reactivateMessage, setReactivateMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   
   const [formErrors, setFormErrors] = useState({});
   const [backendError, setBackendError] = useState('');
+
+  const navigate = useNavigate();
 
   const estadoInicialForm = {
     rut: '', nombre: '', apellido: '', correo: '', contrasena: '', 
@@ -59,7 +68,7 @@ const UsuariosAdmin = () => {
     return value.slice(0, 12); 
   };
 
-  const validarFormulario = (datos, esEdicion = false) => {
+  const validarFormulario = (datos) => {
     const errores = {};
     if (!datos.rut) errores.rut = 'El RUT es obligatorio.';
     else if (!validarRutChileno(datos.rut)) errores.rut = 'Formato de RUT inválido.';
@@ -69,13 +78,12 @@ const UsuariosAdmin = () => {
     
     if (!datos.correo) errores.correo = 'El correo es obligatorio.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo)) errores.correo = 'Correo inválido.';
-    
-    if (!esEdicion && (!datos.contrasena || datos.contrasena.length < 4)) {
+
+    if (datos.contrasena && datos.contrasena.length < 4) {
       errores.contrasena = 'La contraseña debe tener al menos 4 caracteres.';
     }
 
-    if (!esEdicion && !datos.rolId) errores.rolId = 'Debe seleccionar un rol.';
-    if (esEdicion && !datos.rolIdForm) errores.rolId = 'Debe seleccionar un rol.';
+    if (!datos.rolId) errores.rolId = 'Debe seleccionar un rol.';
 
     if (datos.celular && !/^\+569[0-9]{8}$/.test(datos.celular)) {
       errores.celular = 'Formato inválido: +569XXXXXXXX';
@@ -116,7 +124,9 @@ const UsuariosAdmin = () => {
       if (filtroObraId) params.append('obraId', filtroObraId);
       if (keyword) params.append('keyword', keyword);
       const response = await api.get(`/usuarios/filtrar?${params.toString()}`);
-      setUsuarios(response.data);
+      
+      const usuariosOrdenados = response.data.sort((a, b) => b.id - a.id);
+      setUsuarios(usuariosOrdenados);
     } catch (err) {
       if (err.response?.status !== 401) console.error(err);
     } finally {
@@ -133,7 +143,18 @@ const UsuariosAdmin = () => {
     }
 
     try {
-      const payload = { ...formCrear, rol: { id: parseInt(formCrear.rolId) }, obras: formCrear.obrasIds.map(id => ({ id: parseInt(id) })) };
+      const payload = {
+        rut: formCrear.rut,
+        nombre: formCrear.nombre,
+        apellido: formCrear.apellido,
+        correo: formCrear.correo,
+        contrasena: formCrear.contrasena,
+        celular: formCrear.celular,
+        cargo: formCrear.cargo,
+        recibe_notificaciones: formCrear.recibe_notificaciones,
+        rol: { id: parseInt(formCrear.rolId) },
+        obras: formCrear.obrasIds.map(id => ({ id: parseInt(id) }))
+      };
       await api.post('/usuarios', payload);
       setShowCreateModal(false);
       setFormCrear(estadoInicialForm);
@@ -143,81 +164,40 @@ const UsuariosAdmin = () => {
     } catch (err) {
       const status = err.response?.status;
       const data = err.response?.data;
-      const msg = (typeof data === 'string' ? data : data?.message || '')?.toLowerCase() || '';
+      const msg = (typeof data === 'string' ? data : data?.message || '') || '';
       
-      // Si el RUT existe pero está inactivo (409), reactivar automáticamente
-      if (status === 409 && msg.includes('inactivo')) {
-        try {
-          const payload = { ...formCrear, activo: true, rol: { id: parseInt(formCrear.rolId) }, obras: formCrear.obrasIds.map(id => ({ id: parseInt(id) })) };
-          await api.put(`/usuarios/reactivar/${formCrear.rut}`, payload);
-          setShowCreateModal(false);
-          setFormCrear(estadoInicialForm);
-          setFormErrors({});
-          setBackendError('');
-          aplicarFiltros();
-        } catch (reactivateErr) {
-          setBackendError(reactivateErr.response?.data?.message || 'Error al reactivar cuenta.');
+      if (status === 409) {
+        if (msg.toLowerCase().includes('inactivo') || msg.toLowerCase().includes('reactivación')) {
+          let mensajeConfirmacion = '';
+          if (msg.toLowerCase().includes('rut')) {
+            mensajeConfirmacion = `Se encontró un usuario inactivo con el RUT ${formCrear.rut}. ¿Desea reactivar esta cuenta con los nuevos datos?`;
+          } else if (msg.toLowerCase().includes('correo')) {
+            mensajeConfirmacion = `Se encontró un usuario inactivo con el correo ${formCrear.correo}. ¿Desea reactivar esta cuenta con los nuevos datos?`;
+          } else {
+            mensajeConfirmacion = `Se encontró un usuario inactivo. ¿Desea reactivar esta cuenta con los nuevos datos?`;
+          }
+          
+          setReactivateMessage(mensajeConfirmacion);
+          setShowReactivateModal(true);
+        } else {
+          if (msg.toLowerCase().includes('rut')) {
+            setBackendError('Ya existe un usuario activo con este RUT. No se puede crear un duplicado.');
+          } else if (msg.toLowerCase().includes('correo')) {
+            setBackendError('Ya existe un usuario activo con este correo electrónico. No se puede crear un duplicado.');
+          } else {
+            setBackendError(msg || 'Ya existe un usuario con estos datos.');
+          }
         }
       } else {
-        // Mostrar error para otros casos (RUT duplicado activo, correo duplicado, etc)
-        setBackendError(err.response?.data?.message || 'Error al guardar. Verifique RUT o Correo duplicado.');
+        setBackendError(err.response?.data?.message || 'Error al guardar el usuario.');
       }
     }
   };
 
-  const handleEditar = async (e) => {
-    e.preventDefault();
-    const errores = validarFormulario(usuarioAEditar, true);
-    if (Object.keys(errores).length > 0) {
-      setFormErrors(errores);
-      return;
-    }
-
-    try {
-      const payload = { 
-        ...usuarioAEditar, 
-        rol: { id: parseInt(usuarioAEditar.rolIdForm) },
-        obras: usuarioAEditar.obrasIdsForm.map(id => ({ id: parseInt(id) }))
-      };
-      if (usuarioAEditar.nuevaContrasena) payload.contrasena = usuarioAEditar.nuevaContrasena;
-      else delete payload.contrasena;
-
-      await api.put(`/usuarios/${usuarioAEditar.id}`, payload);
-      setShowEditModal(false);
-      setFormErrors({});
-      aplicarFiltros();
-    } catch (err) {
-      setBackendError(err.response?.data?.message || 'Conflicto de Correo: El email ya pertenece a otra cuenta.');
-    }
-  };
-
-  const handleEliminar = async () => {
-    const currentUserEmail = localStorage.getItem('userEmail') || ''; 
-    if (usuarioAEliminar && usuarioAEliminar.correo === currentUserEmail) {
-      setBackendError('Excepción de Auto-eliminación: No puedes desactivar tu propia cuenta.');
-      return;
-    }
-
-    try {
-      await api.delete(`/usuarios/${usuarioAEliminar.id}`);
-      setShowDeleteModal(false);
-      setUsuarioAEliminar(null);
-      aplicarFiltros();
-    } catch (err) {
-      setBackendError(err.response?.data?.message || 'Error al desactivar usuario.');
-    }
-  };
-
-  const toggleObraSelection = (id, isEdit = false) => {
-    if (isEdit) {
-      const current = usuarioAEditar.obrasIdsForm || [];
-      const nuevo = current.includes(id) ? current.filter(oid => oid !== id) : [...current, id];
-      setUsuarioAEditar({ ...usuarioAEditar, obrasIdsForm: nuevo });
-    } else {
-      const current = formCrear.obrasIds;
-      const nuevo = current.includes(id) ? current.filter(oid => oid !== id) : [...current, id];
-      setFormCrear({ ...formCrear, obrasIds: nuevo });
-    }
+  const toggleObraSelectionCrear = (id) => {
+    const current = formCrear.obrasIds;
+    const nuevo = current.includes(id) ? current.filter(oid => oid !== id) : [...current, id];
+    setFormCrear({ ...formCrear, obrasIds: nuevo });
   };
 
   const handleEmpresaFilterChange = (e) => {
@@ -277,7 +257,8 @@ const UsuariosAdmin = () => {
               setLoading(true);
               try {
                 const response = await api.get('/usuarios/filtrar');
-                setUsuarios(response.data);
+                const usuariosOrdenados = response.data.sort((a, b) => b.id - a.id);
+                setUsuarios(usuariosOrdenados);
               } catch (err) {
                 if (err.response?.status !== 401) console.error(err);
               } finally {
@@ -298,12 +279,15 @@ const UsuariosAdmin = () => {
                 <p className={styles.itemSubtext}>RUT: {u.rut} | Rol: {u.rol?.nombre}</p>
               </div>
               <div className={styles.actions}>
-                <button className={styles.detailBtn} onClick={() => navigate(`/admin/gestion/usuarios/${u.id}`)}>Detalle</button>
-                <button className={styles.editBtn} onClick={() => {
-                  setUsuarioAEditar({...u, rolIdForm: u.rol?.id, obrasIdsForm: u.obras.map(o => o.id), nuevaContrasena: ''});
-                  setShowEditModal(true); setFormErrors({}); setBackendError('');
+                <button className={styles.editBtn} style={{ backgroundColor: '#304557' }} onClick={() => navigate(`/admin/gestion/usuarios/${u.id}`)}>Ver Detalle</button>
+                <button className={styles.editBtn} onClick={() => { 
+                  setUsuarioAEditar(u); 
+                  setShowEditModal(true); 
                 }}>Editar</button>
-                <button className={styles.deleteBtn} onClick={() => { setUsuarioAEliminar(u); setShowDeleteModal(true); setBackendError(''); }}>Eliminar</button>
+                <button className={styles.deleteBtn} onClick={() => { 
+                  setUsuarioAEliminar(u); 
+                  setShowDeleteModal(true); 
+                }}>Eliminar</button>
               </div>
             </div>
           ))
@@ -349,7 +333,7 @@ const UsuariosAdmin = () => {
                 </div>
                 <div style={sGroup}>
                   <label style={sLabel}>Contraseña Inicial</label>
-                  <input type="password" placeholder="********" style={sInput(formErrors.contrasena)} value={formCrear.contrasena} onChange={(e) => setFormCrear({...formCrear, contrasena: e.target.value})} />
+                  <input type="password" placeholder="Opcional si es reactivación" style={sInput(formErrors.contrasena)} value={formCrear.contrasena} onChange={(e) => setFormCrear({...formCrear, contrasena: e.target.value})} />
                   {formErrors.contrasena && <span style={sError}>{formErrors.contrasena}</span>}
                 </div>
                 <div style={sGroup}>
@@ -372,7 +356,7 @@ const UsuariosAdmin = () => {
                 <div style={{maxHeight: '100px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', borderRadius: '2px', background: '#f9f9f9'}}>
                   {todasLasObras.map(o => (
                     <div key={o.id} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '2px 0'}}>
-                      <input type="checkbox" checked={formCrear.obrasIds.includes(o.id)} onChange={() => toggleObraSelection(o.id)} />
+                      <input type="checkbox" checked={formCrear.obrasIds.includes(o.id)} onChange={() => toggleObraSelectionCrear(o.id)} />
                       <span style={{fontSize: '13px'}}>{o.nombre}</span>
                     </div>
                   ))}
@@ -388,96 +372,55 @@ const UsuariosAdmin = () => {
         </div>
       )}
 
-      {showEditModal && usuarioAEditar && (
-        <div style={sOverlay}>
-          <div style={sContent}>
-            <h3 style={{margin: '0 0 20px 0', borderBottom: '1px solid #eee', paddingBottom: '10px'}}>Editar Usuario</h3>
-            {backendError && <p style={sError}>{backendError}</p>}
-            
-            <form onSubmit={handleEditar} noValidate>
-              <div style={sGrid}>
-                <div style={sGroup}>
-                  <label style={sLabel}>RUT</label>
-                  <input type="text" style={sInput(formErrors.rut)} value={usuarioAEditar.rut} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, rut: formatRut(e.target.value)})} />
-                  {formErrors.rut && <span style={sError}>{formErrors.rut}</span>}
-                </div>
-                <div style={sGroup}>
-                  <label style={sLabel}>Cargo</label>
-                  <input type="text" style={sInput()} value={usuarioAEditar.cargo || ''} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, cargo: e.target.value})} />
-                </div>
-                <div style={sGroup}>
-                  <label style={sLabel}>Nombre</label>
-                  <input type="text" style={sInput(formErrors.nombre)} value={usuarioAEditar.nombre} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, nombre: e.target.value})} />
-                  {formErrors.nombre && <span style={sError}>{formErrors.nombre}</span>}
-                </div>
-                <div style={sGroup}>
-                  <label style={sLabel}>Apellido</label>
-                  <input type="text" style={sInput(formErrors.apellido)} value={usuarioAEditar.apellido} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, apellido: e.target.value})} />
-                  {formErrors.apellido && <span style={sError}>{formErrors.apellido}</span>}
-                </div>
-                <div style={sGroup}>
-                  <label style={sLabel}>Correo Electrónico</label>
-                  <input type="email" style={sInput(formErrors.correo)} value={usuarioAEditar.correo} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, correo: e.target.value})} />
-                  {formErrors.correo && <span style={sError}>{formErrors.correo}</span>}
-                </div>
-                <div style={sGroup}>
-                  <label style={sLabel}>Celular</label>
-                  <input type="text" style={sInput(formErrors.celular)} value={usuarioAEditar.celular || ''} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, celular: formatCelular(e.target.value)})} />
-                  {formErrors.celular && <span style={sError}>{formErrors.celular}</span>}
-                </div>
-                <div style={sGroup}>
-                  <label style={sLabel}>Nueva Contraseña (Opcional)</label>
-                  <input type="password" placeholder="Dejar en blanco para mantener" style={sInput(formErrors.contrasena)} value={usuarioAEditar.nuevaContrasena || ''} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, nuevaContrasena: e.target.value})} />
-                  {formErrors.contrasena && <span style={sError}>{formErrors.contrasena}</span>}
-                </div>
-                <div style={sGroup}>
-                  <label style={sLabel}>Rol del Sistema</label>
-                  <select style={sInput(formErrors.rolId)} value={usuarioAEditar.rolIdForm || ''} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, rolIdForm: e.target.value})}>
-                    <option value="">-- Seleccione --</option>
-                    {roles.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-                  </select>
-                  {formErrors.rolId && <span style={sError}>{formErrors.rolId}</span>}
-                </div>
-              </div>
+      <ModalEditarUsuario 
+        isOpen={showEditModal} 
+        onClose={() => setShowEditModal(false)} 
+        usuarioOriginal={usuarioAEditar}
+        roles={roles}
+        todasLasObras={todasLasObras}
+        onSuccess={aplicarFiltros}
+      />
 
-              <div style={{margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px'}}>
-                <input type="checkbox" checked={usuarioAEditar.recibe_notificaciones} onChange={(e) => setUsuarioAEditar({...usuarioAEditar, recibe_notificaciones: e.target.checked})} />
-                <label style={{fontSize: '14px'}}>Recibir Notificaciones</label>
-              </div>
-              
-              <div>
-                <label style={sLabel}>Obras Asignadas</label>
-                <div style={{maxHeight: '100px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px', borderRadius: '2px', background: '#f9f9f9'}}>
-                  {todasLasObras.map(o => (
-                    <div key={o.id} style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '2px 0'}}>
-                      <input type="checkbox" checked={(usuarioAEditar.obrasIdsForm || []).includes(o.id)} onChange={() => toggleObraSelection(o.id, true)} />
-                      <span style={{fontSize: '13px'}}>{o.nombre}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      <ModalEliminarUsuario 
+        isOpen={showDeleteModal} 
+        onClose={() => setShowDeleteModal(false)} 
+        usuario={usuarioAEliminar}
+        onSuccess={aplicarFiltros}
+      />
 
-              <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
-                <button type="button" onClick={() => setShowEditModal(false)} className={styles.btnSecondaryModal}>Cancelar</button>
-                <button type="submit" style={sBtnSubmit}>Actualizar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ModalReactivarUsuario
+        isOpen={showReactivateModal}
+        onClose={() => {
+          setShowReactivateModal(false);
+          setReactivateMessage('');
+          setBackendError('');
+        }}
+        mensaje={reactivateMessage}
+        formData={formCrear}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          setShowReactivateModal(false);
+          setFormCrear(estadoInicialForm);
+          setFormErrors({});
+          setBackendError('');
+          setReactivateMessage('');
+          aplicarFiltros();
+          setSuccessMessage('Usuario reactivado exitosamente. Se ha enviado un correo con las credenciales actualizadas al usuario.');
+          setShowSuccessModal(true);
+        }}
+      />
 
-      {showDeleteModal && usuarioAEliminar && (
+      {showSuccessModal && (
         <div style={sOverlay}>
           <div style={{...sContent, width: '400px', textAlign: 'center'}}>
-            <h3 style={{margin: '0 0 15px 0', color: '#d9534f'}}>Confirmar Eliminación</h3>
-            <p>¿Estás seguro que deseas desactivar al usuario <strong>{usuarioAEliminar.nombre} {usuarioAEliminar.apellido}</strong>?</p>
-            <p style={{fontSize: '12px', color: '#777', marginBottom: '15px'}}>Se mantendrá en el histórico, pero no podrá acceder ni recibir correos.</p>
-            {backendError && <p style={sError}>{backendError}</p>}
-            
-            <div style={{display: 'flex', justifyContent: 'center', gap: '15px'}}>
-              <button onClick={() => { setShowDeleteModal(false); setBackendError(''); }} className={styles.btnSecondaryModal}>Cancelar</button>
-              <button onClick={handleEliminar} className={styles.deleteBtn}>Eliminar</button>
-            </div>
+            <h3 style={{margin: '0 0 15px 0', color: '#28a745'}}>¡Éxito!</h3>
+            <p style={{marginBottom: '20px'}}>{successMessage}</p>
+            <button 
+              onClick={() => setShowSuccessModal(false)} 
+              style={{...sBtnSubmit, backgroundColor: '#28a745', margin: '0 auto', display: 'block'}}
+            >
+              Aceptar
+            </button>
           </div>
         </div>
       )}

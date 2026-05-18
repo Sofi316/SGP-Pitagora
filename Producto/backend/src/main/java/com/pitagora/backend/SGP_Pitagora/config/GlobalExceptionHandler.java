@@ -41,5 +41,3 @@ public class GlobalExceptionHandler {
                 .body("Error de integridad de datos: " + ex.getMostSpecificCause().getMessage());
     }
 }
-
-
