@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: pitagora_backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8080:8080"
+    environment:
+      # Inyección de Base de Datos para Spring
+      - SPRING_DATASOURCE_URL=${DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      
+      # Inyección de Correo y Seguridad
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      
+      # Otras variables del sistema
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      
+      # Inyecciones para el inicializador de base de datos
+      - ADMIN_INIT_EMAIL=${ADMIN_INIT_EMAIL}
+      - ADMIN_INIT_PASSWORD=${ADMIN_INIT_PASSWORD}
+      - ADMIN_INIT_RUT=${ADMIN_INIT_RUT}
+
+  frontend:
+    build: ./frontend
+    container_name: pitagora_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    depends_on:
+      - backend
