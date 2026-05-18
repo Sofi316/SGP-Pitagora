@@ -180,7 +180,8 @@
   gap: 10px;
 }
 
-.editBtn, .deleteBtn {
+
+.editBtn, .deleteBtn,.detailBtn {
   border: none;
   padding: 8px 15px;
   border-radius: 4px;
@@ -188,6 +189,9 @@
   font-size: 14px;
   color: #ffffff;
   transition: opacity 0.2s;
+}
+.detailBtn {
+  background-color: #2f4963;
 }
 
 .editBtn {

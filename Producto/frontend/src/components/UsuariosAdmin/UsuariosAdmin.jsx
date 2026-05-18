@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import styles from './UsuariosAdmin.module.css';
 
 const UsuariosAdmin = () => {
+  const navigate = useNavigate();
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
   const [todasLasObras, setTodasLasObras] = useState([]);
@@ -297,8 +298,9 @@ const UsuariosAdmin = () => {
                 <p className={styles.itemSubtext}>RUT: {u.rut} | Rol: {u.rol?.nombre}</p>
               </div>
               <div className={styles.actions}>
-                <button className={styles.editBtn} onClick={() => { 
-                  setUsuarioAEditar({...u, rolIdForm: u.rol?.id, obrasIdsForm: u.obras.map(o => o.id), nuevaContrasena: ''}); 
+                <button className={styles.detailBtn} onClick={() => navigate(`/admin/gestion/usuarios/${u.id}`)}>Detalle</button>
+                <button className={styles.editBtn} onClick={() => {
+                  setUsuarioAEditar({...u, rolIdForm: u.rol?.id, obrasIdsForm: u.obras.map(o => o.id), nuevaContrasena: ''});
                   setShowEditModal(true); setFormErrors({}); setBackendError('');
                 }}>Editar</button>
                 <button className={styles.deleteBtn} onClick={() => { setUsuarioAEliminar(u); setShowDeleteModal(true); setBackendError(''); }}>Eliminar</button>
