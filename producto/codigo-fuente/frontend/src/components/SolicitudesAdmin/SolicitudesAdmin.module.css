@@ -272,3 +272,48 @@
   font-size: 15px;   
 }
 
+.menuBox {
+  background-color: #aec4d6;
+  padding: 30px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filtersForm {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.formGroup {
+  flex: 1;
+}
+
+.selectLabel {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.menuItem {
+  background-color: #7e9ab2;
+  color: #ffffff;
+  padding: 15px 20px;
+  font-size: 16px;
+  border-radius: 2px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+}
+
+.menuItem option {
+  background-color: #ffffff;
+  color: #333333;
+}

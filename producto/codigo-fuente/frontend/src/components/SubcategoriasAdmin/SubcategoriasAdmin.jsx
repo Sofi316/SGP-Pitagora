@@ -20,6 +20,8 @@ const SubcategoriasAdmin = () => {
   const [subcategoriaAEliminar, setSubcategoriaAEliminar] = useState(null);
 
   const [modalError, setModalError] = useState('');
+  
+  const [filtroCategoriaId, setFiltroCategoriaId] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -163,6 +165,10 @@ const SubcategoriasAdmin = () => {
     }
   };
 
+  const subcategoriasFiltradas = filtroCategoriaId
+    ? subcategorias.filter(sub => sub.categoria?.id === parseInt(filtroCategoriaId))
+    : subcategorias;
+
   const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
   const modalContentStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '400px', maxWidth: '90%', color: '#333' };
   const inputStyle = { width: '100%', padding: '10px', margin: '10px 0', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' };
@@ -185,15 +191,31 @@ const SubcategoriasAdmin = () => {
         </button>
       </div>
 
+      <div className={styles.menuBox}>
+        <div>
+          <label className={styles.selectLabel}>Filtrar por Categoría:</label>
+          <select 
+            className={styles.menuItem}
+            value={filtroCategoriaId} 
+            onChange={(e) => setFiltroCategoriaId(e.target.value)}
+          >
+            <option value="">-- Todas las categorías --</option>
+            {categorias.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {error && <p style={{ color: '#ffcccc', marginBottom: '15px' }}>{error}</p>}
 
       <div className={styles.listBox}>
         {loading ? (
           <p style={{ color: 'white', textAlign: 'center' }}>Cargando subcategorías...</p>
-        ) : subcategorias.length === 0 && !error ? (
-          <p style={{ color: 'white' }}>No hay subcategorías registradas.</p>
+        ) : subcategoriasFiltradas.length === 0 && !error ? (
+          <p style={{ color: 'white' }}>No hay subcategorías registradas para esta selección.</p>
         ) : (
-          subcategorias.map((subcat) => (
+          subcategoriasFiltradas.map((subcat) => (
             <div key={subcat.id} className={styles.itemRow}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className={styles.itemName}>{subcat.nombre}</span>
