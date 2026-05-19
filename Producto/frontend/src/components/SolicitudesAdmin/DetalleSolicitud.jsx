@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import styles from './SolicitudesAdmin.module.css';
 import { FaCamera,FaWrench } from "react-icons/fa";
 
@@ -33,13 +33,13 @@ const DetalleSolicitud = () => {
 
   const cargarDetalle = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const resSol = await axios.get(`http://localhost:8080/api/solicitudes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const resSol = await api.get(`/solicitudes/${id}`);
       setSolicitud(resSol.data);
     } catch (err) {
-      setError('Error al cargar la solicitud');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al cargar la solicitud';
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -49,16 +49,16 @@ const DetalleSolicitud = () => {
     setError('');
     setSuccess('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.patch(`http://localhost:8080/api/solicitudes/${id}/estado/${nuevoEstadoId}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.patch(`/solicitudes/${id}/estado/${nuevoEstadoId}`);
       setSolicitud(res.data);
       setSuccess('Estado actualizado y notificaciones enviadas.');
       
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al cambiar estado.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al cambiar estado.';
+        setError(msg);
+      }
     }
   };
 
@@ -82,9 +82,7 @@ const DetalleSolicitud = () => {
       const formData = new FormData();
       archivosReparacion.forEach(f => formData.append('archivos', f));
 
-      await axios.post(`http://localhost:8080/api/solicitudes/${id}/evidencia-reparacion`, formData, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post(`/solicitudes/${id}/evidencia-reparacion`, formData);
 
       setSuccess('Evidencias de reparación guardadas exitosamente.');
       setArchivosReparacion([]);
@@ -92,7 +90,10 @@ const DetalleSolicitud = () => {
       cargarDetalle(); 
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Error al subir evidencias.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al subir evidencias.';
+        setError(msg);
+      }
     } finally {
       setIsUploading(false);
     }

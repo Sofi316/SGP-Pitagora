@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import styles from './DetalleObra.module.css';
 import { FaInfoCircle, FaCalendarAlt, FaUsers, FaEnvelope, FaMobileAlt } from "react-icons/fa";
 import { HiOutlineDocumentSearch } from "react-icons/hi";
@@ -14,13 +14,13 @@ const DetalleObra = () => {
   useEffect(() => {
     const cargarObra = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:8080/api/obras/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/obras/${id}`);
         setObra(res.data);
       } catch (err) {
-        setError(err.response?.data?.message || 'Error al cargar los detalles de la obra.');
+        if (err.response?.status !== 401) {
+          const msg = err.response?.data?.message || 'Error al cargar los detalles de la obra.';
+          setError(msg);
+        }
       } finally {
         setLoading(false);
       }

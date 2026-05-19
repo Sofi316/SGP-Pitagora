@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import styles from './SolicitudesAdmin.module.css';
 
@@ -18,13 +18,13 @@ const SolicitudesAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const resEmpresas = await axios.get('http://localhost:8080/api/empresas-clientes', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const resEmpresas = await api.get('/empresas-clientes');
       setEmpresas(resEmpresas.data);
     } catch (err) {
-      setError('Ocurrió un error al cargar las empresas.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Ocurrió un error al cargar las empresas.';
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

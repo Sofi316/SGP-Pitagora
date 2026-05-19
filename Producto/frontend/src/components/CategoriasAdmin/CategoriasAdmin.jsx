@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { Link } from 'react-router-dom'; 
 import styles from './ListadoAdmin.module.css';
 
@@ -26,13 +26,12 @@ const CategoriasAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/categorias', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/categorias');
       setCategorias(response.data);
     } catch (err) {
-      setError('Ocurrió un error al cargar las categorías.');
+      if(err.response?.status !== 401){
+        setError('Ocurrió un error al cargar las categorías.');
+      }
     } finally {
       setLoading(false); 
     }
@@ -57,20 +56,21 @@ const CategoriasAdmin = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8080/api/categorias', 
+      
+      const response = await api.post('/categorias', 
         { 
           nombre: nombreLimpio,
           activo: true 
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
       setCategorias([response.data, ...categorias]);
       setShowCreateModal(false);
       setNuevaCategoria('');
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al crear la categoría.');
+      if(err.response?.status !== 401){
+        setModalError(err.response?.data?.message || 'Error al crear la categoría.');
+      }
     }
   };
 
@@ -101,17 +101,17 @@ const CategoriasAdmin = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`http://localhost:8080/api/categorias/${categoriaAEditar.id}`, 
-        { nombre: nombreLimpio },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.put(`/categorias/${categoriaAEditar.id}`, 
+        { nombre: nombreLimpio }
       );
 
       setCategorias(categorias.map(cat => cat.id === categoriaAEditar.id ? response.data : cat));
       setShowEditModal(false);
       setCategoriaAEditar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al actualizar la categoría.');
+      if(err.response?.status !== 401){
+        setModalError(err.response?.data?.message || 'Error al actualizar la categoría.');
+      }
     }
   };
 
@@ -124,16 +124,15 @@ const CategoriasAdmin = () => {
   const handleEliminar = async () => {
     setModalError('');
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/categorias/${categoriaAEliminar.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/categorias/${categoriaAEliminar.id}`);
 
       setCategorias(categorias.filter(cat => cat.id !== categoriaAEliminar.id));
       setShowDeleteModal(false);
       setCategoriaAEliminar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al eliminar. Es posible que tenga subcategorías asociadas.');
+      if(err.response?.status !== 401){
+        setModalError(err.response?.data?.message || 'Error al eliminar. Es posible que tenga subcategorías asociadas.');
+      }
     }
   };
 

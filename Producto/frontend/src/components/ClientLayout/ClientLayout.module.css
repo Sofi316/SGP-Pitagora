@@ -13,7 +13,7 @@
 }
 
 .contentWrapper {
-  background-color: #8fa3b5; 
+  background-color: #8fa3b5;
   flex: 1;
   padding: 30px;
   overflow-y: auto;
@@ -27,3 +27,5 @@
     padding: 15px;
   }
 }
+
+

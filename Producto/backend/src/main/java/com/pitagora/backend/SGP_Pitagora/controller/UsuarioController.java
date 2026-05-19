@@ -1,7 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.controller;
 
 import java.util.List;
-
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -53,13 +53,19 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public Usuario crear(@RequestBody Usuario usuario) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public Usuario crear(@Valid @RequestBody Usuario usuario) { 
         return usuarioService.save(usuario);
     }
 
     @PutMapping("/{id}")
-    public Usuario actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public Usuario actualizar(@PathVariable Long id, @Valid @RequestBody Usuario usuario) { 
         return usuarioService.update(id, usuario);
+    }
+
+    @PutMapping("/reactivar/{rut}")
+    public Usuario reactivar(@PathVariable String rut, @Valid @RequestBody Usuario usuario) {
+        return usuarioService.reactivarUsuario(rut, usuario);
     }
 
     @DeleteMapping("/{id}")

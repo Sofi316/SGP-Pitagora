@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import styles from './ArchivadosAdmin.module.css';
 
@@ -21,13 +21,12 @@ const ArchivadosAdmin = () => {
 
   const cargarObras = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/obras', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+  
+      const response = await api.get('/obras');
       setObras(response.data);
     } catch (err) {
-      setError('Error al cargar las obras.');
+      if (err.response?.status !== 401) {setError('Error al cargar las obras.');}
+      
     }
   };
 
@@ -41,14 +40,13 @@ const ArchivadosAdmin = () => {
     if (!obraId) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:8080/api/solicitudes`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      
+      const response = await api.get(`/solicitudes`);
       const filtradas = response.data.filter(s => s.obra?.id === parseInt(obraId));
       setSolicitudesFiltradas(filtradas);
     } catch (err) {
-      setError('Error al cargar las solicitudes de esta obra.');
+      if (err.response?.status !== 401) {setError('Error al cargar las solicitudes de esta obra.');}
+      
     }
   };
 
@@ -68,19 +66,18 @@ const ArchivadosAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
+     
       const params = new URLSearchParams();
       params.append('id', idSolicitud);
       if (inicio) params.append('fechaInicio', inicio);
       if (fin) params.append('fechaFin', fin);
       if (keyword) params.append('keyword', keyword);
 
-      const response = await axios.get(`http://localhost:8080/api/comunicaciones/filtrar?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/comunicaciones/filtrar?${params.toString()}`);
       setComunicaciones(response.data);
     } catch (err) {
-      setError('Error al cargar el historial de comunicaciones.');
+      if (err.response?.status !== 401) {setError('Error al cargar el historial de comunicaciones.');}
+      
     } finally {
       setLoading(false);
     }

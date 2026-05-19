@@ -1,0 +1,207 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.backButton {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.createBtn {
+  background-color: #0d3b66;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.createBtn:hover {
+  background-color: #082a4a;
+}
+
+.menuBox {
+  margin-bottom: 20px;
+}
+
+.filtersForm {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 180px;
+}
+
+.formGroupLarge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.selectLabel {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.menuItem {
+  background-color: #7e9ab2;
+  border: none;
+  border-radius: 2px;
+  padding: 12px 15px;
+  color: #ffffff;
+  font-size: 14px;
+  width: 100%;
+  height: 45px;
+  box-sizing: border-box;
+}
+
+.menuItem::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.btnGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.btnPrimary {
+  height: 45px;
+  padding: 0 20px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #7e9ab2;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btnSecondary {
+  height: 45px;
+  padding: 0 20px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: white;
+  border: 1px solid white;
+}
+
+/* NUEVA CLASE PARA EL MODAL */
+.btnSecondaryModal {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  color: #333333;
+  border: 1px solid #ced4da;
+  transition: background-color 0.2s;
+}
+
+.btnSecondaryModal:hover {
+  background-color: #e2e6ea;
+}
+
+.listBox {
+  background-color: #aec4d6;
+  padding: 20px;
+  border-radius: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.itemRow {
+  background-color: #7e9ab2;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 2px;
+}
+
+.itemName {
+  color: #ffffff;
+  font-size: 16px;
+  margin: 0;
+}
+
+.itemSubtext {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 5px 0 0 0;
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+
+.editBtn, .deleteBtn,.detailBtn {
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #ffffff;
+  transition: opacity 0.2s;
+}
+.detailBtn {
+  background-color: #2f4963;
+}
+
+.editBtn {
+  background-color: #5d7b99;
+}
+
+.deleteBtn {
+  background-color: #d9534f;
+}
+
+.editBtn:hover, .deleteBtn:hover {
+  opacity: 0.8;
+}
