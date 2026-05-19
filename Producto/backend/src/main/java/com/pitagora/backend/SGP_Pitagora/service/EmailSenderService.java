@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pitagora.backend.SGP_Pitagora.model.ComunicacionArchivada;
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
@@ -13,6 +15,8 @@ import com.pitagora.backend.SGP_Pitagora.repository.ComunicacionArchivadaReposit
 
 @Service
 public class EmailSenderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailSenderService.class);
 
     private final JavaMailSender mailSender;
     private final ComunicacionArchivadaRepository comunicacionRepository;
@@ -46,7 +50,7 @@ public class EmailSenderService {
             comunicacionRepository.save(comunicacion);
             
         } catch (Exception e) {
-            System.err.println("Error enviando correo a " + destinatario + ": " + e.getMessage());
+            logger.error("Error enviando correo a {}: {}", destinatario, e.getMessage(), e);
         }
     }
 }

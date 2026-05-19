@@ -8,9 +8,13 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class SupabaseStorageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SupabaseStorageService.class);
 
     @Value("${supabase.url}")
     private String supabaseUrl;
@@ -46,7 +50,8 @@ public class SupabaseStorageService {
             return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + filename;
             
         } catch (Exception e) {
-            throw new RuntimeException("Error al subir archivo a Supabase: " + e.getMessage());
+            logger.error("Error subiendo archivo a Supabase: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al subir archivo a Supabase: " + e.getMessage(), e);
         }
     }
 }
