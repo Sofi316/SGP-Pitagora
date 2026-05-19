@@ -24,6 +24,7 @@ public class DataInitializer {
     private String adminRut;
 
     @Bean
+    @SuppressWarnings("unused")
     CommandLineRunner initDatabase(UsuarioRepository usuarioRepository, 
                                    RolRepository rolRepository, 
                                    PasswordEncoder passwordEncoder) {
