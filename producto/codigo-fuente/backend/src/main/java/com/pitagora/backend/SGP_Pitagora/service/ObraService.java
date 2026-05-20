@@ -11,7 +11,6 @@ import com.pitagora.backend.SGP_Pitagora.model.Obra;
 import com.pitagora.backend.SGP_Pitagora.repository.ObraRepository;
 import com.pitagora.backend.SGP_Pitagora.repository.SolicitudRepository;
 
-
 @Service
 public class ObraService {
 
@@ -34,7 +33,7 @@ public class ObraService {
     }
 
     public Obra findById(Long id) {
-        return obraRepository.findById(id)
+        return obraRepository.findByIdWithUsuarios(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Obra no encontrada"));
     }
 
@@ -53,7 +52,6 @@ public class ObraService {
         obraAntigua.setNombre(obraModificada.getNombre());
         obraAntigua.setDireccion(obraModificada.getDireccion());
         obraAntigua.setFechaInicioPostventa(obraModificada.getFechaInicioPostventa());
-        obraAntigua.setFechaCierrePostventa(obraModificada.getFechaCierrePostventa());
         obraAntigua.setEmpresaCliente(obraModificada.getEmpresaCliente());
         obraAntigua.setComuna(obraModificada.getComuna());
 

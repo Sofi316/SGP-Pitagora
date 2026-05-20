@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import styles from './SolicitudesAdmin.module.css';
+import { FaCamera,FaWrench } from "react-icons/fa";
 
 const DetalleSolicitud = () => {
   const { id } = useParams();
@@ -32,13 +33,13 @@ const DetalleSolicitud = () => {
 
   const cargarDetalle = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const resSol = await axios.get(`http://localhost:8080/api/solicitudes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const resSol = await api.get(`/solicitudes/${id}`);
       setSolicitud(resSol.data);
     } catch (err) {
-      setError('Error al cargar la solicitud');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al cargar la solicitud';
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -48,16 +49,16 @@ const DetalleSolicitud = () => {
     setError('');
     setSuccess('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.patch(`http://localhost:8080/api/solicitudes/${id}/estado/${nuevoEstadoId}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.patch(`/solicitudes/${id}/estado/${nuevoEstadoId}`);
       setSolicitud(res.data);
       setSuccess('Estado actualizado y notificaciones enviadas.');
       
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al cambiar estado.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al cambiar estado.';
+        setError(msg);
+      }
     }
   };
 
@@ -81,9 +82,7 @@ const DetalleSolicitud = () => {
       const formData = new FormData();
       archivosReparacion.forEach(f => formData.append('archivos', f));
 
-      await axios.post(`http://localhost:8080/api/solicitudes/${id}/evidencia-reparacion`, formData, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post(`/solicitudes/${id}/evidencia-reparacion`, formData);
 
       setSuccess('Evidencias de reparación guardadas exitosamente.');
       setArchivosReparacion([]);
@@ -91,7 +90,10 @@ const DetalleSolicitud = () => {
       cargarDetalle(); 
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Error al subir evidencias.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al subir evidencias.';
+        setError(msg);
+      }
     } finally {
       setIsUploading(false);
     }
@@ -163,15 +165,27 @@ const DetalleSolicitud = () => {
             </div>
           </div>
           
-          <div style={{ display: 'flex', gap: '10px' }}>
+         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             {estadoActual === 'Pendiente' && (
               <>
-                <button onClick={() => handleCambioEstado(ESTADOS.EN_PROCESO)} style={{ padding: '8px 15px', backgroundColor: '#ffc107', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Marcar En Proceso</button>
-                <button onClick={() => handleCambioEstado(ESTADOS.NO_APLICA)} style={{ padding: '8px 15px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Marcar No Aplica</button>
+                <button 
+                  onClick={() => handleCambioEstado(ESTADOS.EN_PROCESO)} 
+                  className={styles.estadoBtn}
+                  style={{backgroundColor: '#ffc107',color: '#333'}}
+                >
+                  Marcar En Proceso
+                </button>
+                <button 
+                  onClick={() => handleCambioEstado(ESTADOS.NO_APLICA)} 
+                  className={styles.estadoBtn}
+                  style={{backgroundColor: '#6c757d',color: 'white'}}
+                >
+                  Marcar No Aplica
+                </button>
               </>
             )}
             {estadoActual === 'En Proceso' && (
-               <button onClick={() => handleCambioEstado(ESTADOS.TERMINADO)} style={{ padding: '8px 15px', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Marcar Terminado</button>
+               <button onClick={() => handleCambioEstado(ESTADOS.TERMINADO)} className={styles.estadoBtn} style={{ backgroundColor: '#17a2b8', color: 'white' }}>Marcar Terminado</button>
             )}
           </div>
         </div>
@@ -189,7 +203,15 @@ const DetalleSolicitud = () => {
         </div>
 
         <div style={{ borderTop: '2px solid #eee', paddingTop: '20px' }}>
-          <h3 style={{ fontSize: '16px', color: '#0d3b66', marginBottom: '15px' }}>📸 Evidencia Inicial (Hallazgo)</h3>
+          <h3 style={{ 
+            display: 'flex',            
+            alignItems: 'center',      
+            gap: '8px',                 
+            fontSize: '16px', 
+            color: '#0d3b66', 
+            marginBottom: '15px'
+           }}>
+            <FaCamera/> Evidencia Inicial (Hallazgo)</h3>
           
           {evidenciasEstado.length === 0 ? (
              <p style={{ fontSize: '13px', color: '#777', fontStyle: 'italic' }}>No se adjuntaron archivos al crear la solicitud.</p>
@@ -201,7 +223,14 @@ const DetalleSolicitud = () => {
         </div>
 
         <div style={{ borderTop: '2px solid #eee', paddingTop: '20px', marginTop: '20px' }}>
-          <h3 style={{ fontSize: '16px', color: '#28a745', marginBottom: '15px' }}>🔧 Evidencia de Reparación</h3>
+          <h3 style={{ 
+            display: 'flex',          
+            alignItems: 'center',    
+            gap: '8px',              
+            fontSize: '16px', 
+            color: '#28a745',         
+            marginBottom: '15px'
+           }}> <FaWrench /> Evidencia de Reparación</h3>
           
           {evidenciasReparacion.length > 0 && (
             <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '15px' }}>

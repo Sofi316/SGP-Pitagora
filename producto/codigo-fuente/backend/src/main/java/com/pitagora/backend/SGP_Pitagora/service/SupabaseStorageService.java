@@ -1,5 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class SupabaseStorageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SupabaseStorageService.class);
 
     @Value("${supabase.url}")
     private String supabaseUrl;
@@ -46,7 +50,8 @@ public class SupabaseStorageService {
             return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + filename;
             
         } catch (Exception e) {
-            throw new RuntimeException("Error al subir archivo a Supabase: " + e.getMessage());
+            logger.error("Error subiendo archivo a Supabase: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al subir archivo a Supabase: " + e.getMessage(), e);
         }
     }
 }

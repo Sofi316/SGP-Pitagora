@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.service.UsuarioService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
@@ -53,13 +55,19 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public Usuario crear(@RequestBody Usuario usuario) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public Usuario crear(@Valid @RequestBody Usuario usuario) { 
         return usuarioService.save(usuario);
     }
 
     @PutMapping("/{id}")
-    public Usuario actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public Usuario actualizar(@PathVariable Long id, @Valid @RequestBody Usuario usuario) { 
         return usuarioService.update(id, usuario);
+    }
+
+    @PutMapping("/reactivar/{rut}")
+    public Usuario reactivar(@PathVariable String rut, @Valid @RequestBody Usuario usuario) {
+        return usuarioService.reactivarUsuario(rut, usuario);
     }
 
     @DeleteMapping("/{id}")

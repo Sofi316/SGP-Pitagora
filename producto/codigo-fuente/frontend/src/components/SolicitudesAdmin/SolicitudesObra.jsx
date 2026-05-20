@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from './SolicitudesAdmin.module.css';
 import imageCompression from 'browser-image-compression';
+
+
 
 const SolicitudesObras = () => {
   const { id } = useParams(); 
@@ -40,18 +42,18 @@ const SolicitudesObras = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      
       const [resEmpresa, resObras] = await Promise.all([
-        axios.get(`http://localhost:8080/api/empresas-clientes/${id}`, config),
-        axios.get(`http://localhost:8080/api/obras/empresa/${id}`, config).catch(() => ({ data: [] }))
+        api.get(`/empresas-clientes/${id}`),
+        api.get(`/obras/empresa/${id}`).catch(() => ({ data: [] }))
       ]);
       
       setEmpresa(resEmpresa.data);
       setObras(resObras.data);
     } catch (err) {
-      setError('Ocurrió un error al cargar los datos de la empresa.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Ocurrió un error al cargar los datos de la empresa.';
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -59,8 +61,7 @@ const SolicitudesObras = () => {
 
   const cargarCategorias = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:8080/api/categorias', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get('/categorias');
       setListaCategorias(res.data);
     } catch (error) {
       console.error(error);
@@ -73,11 +74,8 @@ const SolicitudesObras = () => {
       return;
     }
     const obtenerSubcategorias = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:8080/api/subcategorias/categoria/${categoriaSeleccionada}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        try {
+        const res = await api.get(`/subcategorias/categoria/${categoriaSeleccionada}`);
         setSubcategoriasDisponibles(res.data || []);
       } catch (error) {
         setSubcategoriasDisponibles([]);
@@ -97,10 +95,7 @@ const SolicitudesObras = () => {
     if (!solicitudesPorObra[obraId]) {
       setLoadingObraId(obraId); 
       try {
-        const token = localStorage.getItem('token');
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const resSolicitudes = await axios.get(`http://localhost:8080/api/solicitudes/obra/${obraId}`, config);
-        
+        const resSolicitudes = await api.get(`/solicitudes/obra/${obraId}`);
         setSolicitudesPorObra(prev => ({ ...prev, [obraId]: resSolicitudes.data }));
       } catch (err) {
         console.error(err);
@@ -156,7 +151,7 @@ const SolicitudesObras = () => {
     setModalLoading(true);
     
     try {
-      const token = localStorage.getItem('token');
+      
       const formData = new FormData();
       
       const solicitudData = {
@@ -186,9 +181,7 @@ const SolicitudesObras = () => {
         }
       }
 
-      const response = await axios.post('http://localhost:8080/api/solicitudes', formData, {
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await api.post('/solicitudes', formData);
       
       const nuevaSolicitud = response.data;
 
@@ -209,7 +202,10 @@ const SolicitudesObras = () => {
       }, 1500);
 
     } catch (err) {
-      setModalError('Error al crear la solicitud. Intente nuevamente.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al crear la solicitud. Intente nuevamente.';
+        setModalError(msg);
+      }
       console.error(err);
     } finally {
       setModalLoading(false);
@@ -219,10 +215,10 @@ const SolicitudesObras = () => {
   const getColorPorEstado = (nombreEstado) => {
     if (!nombreEstado) return '#ff9800'; 
     const est = nombreEstado.toLowerCase();
-    if (est.includes('pendiente')) return '#e79417'; 
-    if (est.includes('proceso')) return '#ffeb3b';   
-    if (est.includes('terminado')) return '#45a8f8'; 
-    if (est.includes('no aplica')) return '#5c5b5b'; 
+    if (est.includes('pendiente')) return '#ffa600'; 
+    if (est.includes('proceso')) return '#e6e22e';   
+    if (est.includes('terminado')) return '#143c5e'; 
+    if (est.includes('no aplica')) return '#494848'; 
     if (est.includes('aprobado')) return '#4caf50';  
     if (est.includes('rechazado')) return '#f44336'; 
     return '#ffffff';
@@ -273,10 +269,10 @@ const SolicitudesObras = () => {
                       onClick={(e) => { e.stopPropagation(); abrirModalCrear(obra); }}
                       style={{ padding: '6px 12px', fontSize: '13px', margin: 0 }}
                     >
-                      + Nueva Solicitud
+                     Nueva Solicitud
                     </button>
                     <span className={styles.indicator} style={{ minWidth: '20px', textAlign: 'center' }}>
-                      {isObraExpanded ? '▲' : '▼'} 
+                      {isObraExpanded ? '▼' : '▲'} 
                     </span>
                   </div>
                 </div>
@@ -299,8 +295,10 @@ const SolicitudesObras = () => {
                           <Link key={`sol-${solicitud.id}`} to={`/admin/solicitudes/${solicitud.id}`} className={styles.solicitudRowLink}>
                             <span className={styles.colId}>{solicitud.id}</span>
                             <span className={styles.colObs}>{solicitud.descripcion || 'Sin observación'}</span>
-                            <span className={styles.colEstado} style={{ color: getColorPorEstado(solicitud.estadoSolicitud?.nombre), fontWeight: 'bold' }}>
-                              {solicitud.estadoSolicitud?.nombre || 'Pendiente'}
+                            <span className={styles.colEstado}>
+                              <span className={styles.colEstado} style={{ color: getColorPorEstado(solicitud.estadoSolicitud?.nombre), fontWeight: 'bold' }}>
+                                {solicitud.estadoSolicitud?.nombre || 'Pendiente'}
+                              </span>
                             </span>
                           </Link>
                         ))}

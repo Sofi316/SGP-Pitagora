@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
 
@@ -48,13 +48,14 @@ const EmpresasAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/api/empresas-clientes', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setEmpresas(response.data);
+      
+      const response = await api.get('/empresas-clientes');
+      const empresasOrdenadas = response.data.sort((a, b) => b.id - a.id);
+      setEmpresas(empresasOrdenadas);
     } catch (err) {
-      setError('Ocurrió un error al cargar las empresas clientes.');
+      if (err.response?.status !== 401) {
+        setError('Ocurrió un error al cargar las empresas clientes.');}
+      
     } finally {
       setLoading(false);
     }
@@ -81,21 +82,23 @@ const EmpresasAdmin = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8080/api/empresas-clientes', 
+     
+      const response = await api.post('/empresas-clientes', 
         { 
           rut: formCrear.rut,
           razonSocial: formCrear.razonSocial,
           activo: true
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
-      setEmpresas([...empresas, response.data]);
+      const nuevasEmpresas = [response.data, ...empresas].sort((a, b) => b.id - a.id);
+      setEmpresas(nuevasEmpresas);
       setShowCreateModal(false);
       setFormCrear({ rut: '', razonSocial: '' });
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al guardar: Verifica que el RUT no esté duplicado.');
+      if (err.response?.status !== 401) {      
+        setModalError(err.response?.data?.message || 'Error al guardar: Verifica que el RUT no esté duplicado.');
+      }
     }
   };
 
@@ -130,20 +133,22 @@ const EmpresasAdmin = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`http://localhost:8080/api/empresas-clientes/${empresaAEditar.id}`, 
+      
+      const response = await api.put(`/empresas-clientes/${empresaAEditar.id}`, 
         { 
           rut: empresaAEditar.rut,
           razonSocial: empresaAEditar.razonSocial
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
-      setEmpresas(empresas.map(emp => emp.id === empresaAEditar.id ? response.data : emp));
+      const actualizadas = empresas.map(emp => emp.id === empresaAEditar.id ? response.data : emp).sort((a, b) => b.id - a.id);
+      setEmpresas(actualizadas);
       setShowEditModal(false);
       setEmpresaAEditar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al actualizar: Verifica que el RUT no pertenezca a otra empresa.');
+      if (err.response?.status !== 401) {      
+        setModalError(err.response?.data?.message || 'Error al actualizar: Verifica que el RUT no pertenezca a otra empresa.');
+      }
     }
   };
 
@@ -156,16 +161,17 @@ const EmpresasAdmin = () => {
   const handleEliminar = async () => {
     setModalError('');
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/empresas-clientes/${empresaAEliminar.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      
+      await api.delete(`/empresas-clientes/${empresaAEliminar.id}`);
 
-      setEmpresas(empresas.filter(emp => emp.id !== empresaAEliminar.id));
+      const restantes = empresas.filter(emp => emp.id !== empresaAEliminar.id).sort((a, b) => b.id - a.id);
+      setEmpresas(restantes);
       setShowDeleteModal(false);
       setEmpresaAEliminar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas con solicitudes pendientes.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas con solicitudes pendientes.');}
+      
     }
   };
 

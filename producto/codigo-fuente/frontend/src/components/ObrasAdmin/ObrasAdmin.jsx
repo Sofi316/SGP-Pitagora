@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import api from '../../services/api';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
 
 const ObrasAdmin = () => {
@@ -16,13 +16,15 @@ const ObrasAdmin = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [formCrear, setFormCrear] = useState({
-    nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null
+    nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null
   });
   
   const [obraAEditar, setObraAEditar] = useState(null);
   const [obraAEliminar, setObraAEliminar] = useState(null);
 
   const [modalError, setModalError] = useState('');
+  
+  const navigate = useNavigate();
 
   useEffect(() => {
     cargarDatos();
@@ -32,13 +34,11 @@ const ObrasAdmin = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
       
       const [resObras, resEmpresas, resComunas] = await Promise.all([
-        axios.get('http://localhost:8080/api/obras', config),
-        axios.get('http://localhost:8080/api/empresas-clientes', config),
-        axios.get('http://localhost:8080/api/comunas', config).catch(() => ({ data: [] })) 
+        api.get('/obras'),
+        api.get('/empresas-clientes'),
+        api.get('/comunas').catch(() => ({ data: [] })) 
       ]);
       
       setObras(resObras.data);
@@ -56,7 +56,9 @@ const ObrasAdmin = () => {
       setRegiones(Array.from(regionesMap.values()));
 
     } catch (err) {
-      setError('Ocurrió un error al cargar los datos.');
+      if (err.response?.status !== 401) {
+        setError('Ocurrió un error al cargar los datos.');
+      }
     } finally {
       setLoading(false);
     }
@@ -66,28 +68,19 @@ const ObrasAdmin = () => {
     e.preventDefault();
     setModalError('');
     
-    if (!formCrear.nombre.trim() || !formCrear.direccion.trim() || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa || !formCrear.fechaCierrePostventa) {
+    if (!formCrear.nombre.trim() || !formCrear.direccion.trim() || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa) {
       setModalError('Por favor complete todos los campos obligatorios.');
       return;
     }
 
-    const fechaInicio = new Date(formCrear.fechaInicioPostventa);
-    const fechaCierre = new Date(formCrear.fechaCierrePostventa);
-    
-    if (fechaCierre <= fechaInicio) {
-      setModalError('La fecha de cierre debe ser posterior a la fecha de inicio.');
-      return;
-    }
-
     try {
-      const token = localStorage.getItem('token');
+      
       
       const formData = new FormData();
       const obraData = {
         nombre: formCrear.nombre,
         direccion: formCrear.direccion,
         fechaInicioPostventa: formCrear.fechaInicioPostventa,
-        fechaCierrePostventa: formCrear.fechaCierrePostventa,
         empresaCliente: { id: parseInt(formCrear.empresaId) },
         comuna: { id: parseInt(formCrear.comunaId) },
         activo: true
@@ -99,12 +92,7 @@ const ObrasAdmin = () => {
         formData.append('file', formCrear.actaFile);
       }
 
-      const response = await axios.post('http://localhost:8080/api/obras', formData, { 
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        } 
-      });
+      const response = await api.post('/obras', formData);
       
       const nuevaObra = response.data;
       const empresaAsociada = empresas.find(emp => emp.id === parseInt(formCrear.empresaId));
@@ -113,11 +101,13 @@ const ObrasAdmin = () => {
       if (empresaAsociada) nuevaObra.empresaCliente = empresaAsociada;
       if (comunaAsociada) nuevaObra.comuna = comunaAsociada;
 
-      setObras([...obras, nuevaObra]);
+      setObras([nuevaObra, ...obras]);
       setShowCreateModal(false);
-      setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null });
+      setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null });
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al guardar: Verifica los datos ingresados.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'Error al guardar: Verifica los datos ingresados.');
+      }
     }
   };
 
@@ -137,28 +127,19 @@ const ObrasAdmin = () => {
     e.preventDefault();
     setModalError('');
     
-    if (!obraAEditar.nombre.trim() || !obraAEditar.direccion.trim() || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa || !obraAEditar.fechaCierrePostventa) {
+    if (!obraAEditar.nombre.trim() || !obraAEditar.direccion.trim() || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa) {
       setModalError('Por favor complete todos los campos obligatorios.');
       return;
     }
 
-    const fechaInicio = new Date(obraAEditar.fechaInicioPostventa);
-    const fechaCierre = new Date(obraAEditar.fechaCierrePostventa);
-    
-    if (fechaCierre <= fechaInicio) {
-      setModalError('La fecha de cierre debe ser posterior a la fecha de inicio.');
-      return;
-    }
-
     try {
-      const token = localStorage.getItem('token');
+      
       
       const formData = new FormData();
       const obraData = {
         nombre: obraAEditar.nombre,
         direccion: obraAEditar.direccion,
         fechaInicioPostventa: obraAEditar.fechaInicioPostventa,
-        fechaCierrePostventa: obraAEditar.fechaCierrePostventa,
         empresaCliente: { id: parseInt(obraAEditar.empresaIdForm) },
         comuna: { id: parseInt(obraAEditar.comunaIdForm) }
       };
@@ -169,12 +150,7 @@ const ObrasAdmin = () => {
         formData.append('file', obraAEditar.actaFile);
       }
 
-      const response = await axios.put(`http://localhost:8080/api/obras/${obraAEditar.id}`, formData, { 
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        } 
-      });
+      const response = await api.put(`/obras/${obraAEditar.id}`, formData);
 
       const obraActualizada = response.data;
       const empresaAsociada = empresas.find(emp => emp.id === parseInt(obraAEditar.empresaIdForm));
@@ -187,7 +163,9 @@ const ObrasAdmin = () => {
       setShowEditModal(false);
       setObraAEditar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'Error al actualizar la obra.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'Error al actualizar la obra.');
+      }
     }
   };
 
@@ -200,16 +178,15 @@ const ObrasAdmin = () => {
   const handleEliminar = async () => {
     setModalError('');
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/api/obras/${obraAEliminar.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      
+      await api.delete(`/obras/${obraAEliminar.id}`);
 
       setObras(obras.filter(ob => ob.id !== obraAEliminar.id));
       setShowDeleteModal(false);
       setObraAEliminar(null);
     } catch (err) {
-      setModalError(err.response?.data?.message || 'No se puede eliminar la obra. Es probable que tenga solicitudes asociadas pendientes.');
+      if (err.response?.status !== 401) {
+        setModalError(err.response?.data?.message || 'No se puede eliminar la obra. Es probable que tenga solicitudes asociadas pendientes.');}
     }
   };
 
@@ -250,18 +227,14 @@ const ObrasAdmin = () => {
             <div key={ob.id} className={styles.itemRow}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className={styles.itemName}>
-                  {ob.nombre} 
-                  {ob.rutaActaEntrega && (
-                    <a href={ob.rutaActaEntrega} target="_blank" rel="noreferrer" style={{ marginLeft: '10px', fontSize: '12px', color: '#1c07db', textDecoration: 'none' }}>
-                       Ver Acta
-                    </a>
-                  )}
+                   {ob.nombre}
                 </span>
-                <span style={{ fontSize: '12px', color: '#e0e0e0' }}>
+                <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '4px' }}>
                   Empresa: {ob.empresaCliente ? ob.empresaCliente.razonSocial : 'Sin empresa'} | Comuna: {ob.comuna ? ob.comuna.nombre : 'Sin comuna'}
                 </span>
               </div>
-              <div className={styles.actions}>
+              <div className={styles.actions} style={{ display: 'flex', gap: '8px' }}>
+                <button className={styles.editBtn} style={{ backgroundColor: '#304557' }} onClick={() => navigate(`/admin/gestion/obras/${ob.id}`)}>Ver Detalle</button>
                 <button className={styles.editBtn} onClick={() => abrirModalEditar(ob)}>Editar</button>
                 <button className={styles.deleteBtn} onClick={() => abrirModalEliminar(ob)}>Eliminar</button>
               </div>
@@ -276,24 +249,16 @@ const ObrasAdmin = () => {
             <h3>Crear Nueva Obra</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={formCrear.nombre} onChange={(e) => setFormCrear({...formCrear, nombre: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={formCrear.direccion} onChange={(e) => setFormCrear({...formCrear, direccion: e.target.value})} style={inputStyle} />
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa:</label>
-                  <input type="date" value={formCrear.fechaInicioPostventa} onChange={(e) => setFormCrear({...formCrear, fechaInicioPostventa: e.target.value})} style={inputStyle} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cierre Postventa:</label>
-                  <input type="date" value={formCrear.fechaCierrePostventa} onChange={(e) => setFormCrear({...formCrear, fechaCierrePostventa: e.target.value})} style={inputStyle} />
-                </div>
-              </div>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa: <span style={{ color: 'red' }}>*</span></label>
+              <input type="date" value={formCrear.fechaInicioPostventa} onChange={(e) => setFormCrear({...formCrear, fechaInicioPostventa: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente: <span style={{ color: 'red' }}>*</span></label>
               <select value={formCrear.empresaId} onChange={(e) => setFormCrear({...formCrear, empresaId: e.target.value})} style={inputStyle}>
                 <option value="">-- Seleccione una empresa --</option>
                 {empresas.map(emp => (
@@ -303,7 +268,7 @@ const ObrasAdmin = () => {
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={formCrear.regionId} 
                     onChange={(e) => setFormCrear({...formCrear, regionId: e.target.value, comunaId: ''})} 
@@ -316,7 +281,7 @@ const ObrasAdmin = () => {
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={formCrear.comunaId} 
                     onChange={(e) => setFormCrear({...formCrear, comunaId: e.target.value})} 
@@ -335,7 +300,7 @@ const ObrasAdmin = () => {
               <input type="file" accept="application/pdf" onChange={(e) => setFormCrear({...formCrear, actaFile: e.target.files[0]})} style={inputStyle} />
 
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null}); setModalError('');}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null}); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Guardar</button>
               </div>
             </form>
@@ -349,24 +314,16 @@ const ObrasAdmin = () => {
             <h3>Editar Obra</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={obraAEditar.nombre} onChange={(e) => setObraAEditar({...obraAEditar, nombre: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={obraAEditar.direccion} onChange={(e) => setObraAEditar({...obraAEditar, direccion: e.target.value})} style={inputStyle} />
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa:</label>
-                  <input type="date" value={obraAEditar.fechaInicioPostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaInicioPostventa: e.target.value})} style={inputStyle} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cierre Postventa:</label>
-                  <input type="date" value={obraAEditar.fechaCierrePostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaCierrePostventa: e.target.value})} style={inputStyle} />
-                </div>
-              </div>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa: <span style={{ color: 'red' }}>*</span></label>
+              <input type="date" value={obraAEditar.fechaInicioPostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaInicioPostventa: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente: <span style={{ color: 'red' }}>*</span></label>
               <select value={obraAEditar.empresaIdForm} onChange={(e) => setObraAEditar({...obraAEditar, empresaIdForm: e.target.value})} style={inputStyle}>
                 <option value="">-- Seleccione una empresa --</option>
                 {empresas.map(emp => (
@@ -376,7 +333,7 @@ const ObrasAdmin = () => {
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={obraAEditar.regionIdForm} 
                     onChange={(e) => setObraAEditar({...obraAEditar, regionIdForm: e.target.value, comunaIdForm: ''})} 
@@ -389,7 +346,7 @@ const ObrasAdmin = () => {
                   </select>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={obraAEditar.comunaIdForm} 
                     onChange={(e) => setObraAEditar({...obraAEditar, comunaIdForm: e.target.value})} 

@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,7 +40,7 @@ public class Obra {
     @Column(name = "fecha_inicio_postventa", nullable = false)
     private LocalDate fechaInicioPostventa;
 
-    @Column(name = "fecha_cierre_postventa", nullable = false)
+    @Column(name = "fecha_cierre_postventa")
     private LocalDate fechaCierrePostventa;
 
     @Column(name = "ruta_acta_entrega")
@@ -58,6 +58,6 @@ public class Obra {
     private Comuna comuna;
 
     @ManyToMany(mappedBy = "obras")
-    @JsonIgnore
+    @JsonIgnoreProperties({"obras", "contrasena", "tokenRecuperacion"})
     private List<Usuario> usuarios = new ArrayList<>();
 }

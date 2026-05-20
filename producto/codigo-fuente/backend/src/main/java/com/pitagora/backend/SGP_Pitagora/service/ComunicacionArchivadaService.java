@@ -47,7 +47,7 @@ public class ComunicacionArchivadaService {
         nuevaCom.setSolicitud(solicitud);
         nuevaCom.setAsunto(asuntoConId);
         nuevaCom.setCuerpoMensaje(dto.getCuerpoMensaje());
-        nuevaCom.setRemitente("isuminnn316@gmail.com"); 
+        nuevaCom.setRemitente("dudu@dudu.com"); 
         nuevaCom.setDestinatario(dto.getDestinatario());
         nuevaCom.setFechaEnvio(LocalDateTime.now());
 

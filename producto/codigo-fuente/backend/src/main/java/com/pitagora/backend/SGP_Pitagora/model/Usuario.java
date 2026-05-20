@@ -23,9 +23,12 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Entity
 @Table(name="usuario")
@@ -40,6 +43,7 @@ public class Usuario implements UserDetails {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @Pattern(regexp = "^[0-9]+-[0-9kK]{1}$", message = "El RUT debe contener solo números, un guion y el dígito verificador.")
     private String rut;
 
     @Column(nullable = false)
@@ -49,6 +53,7 @@ public class Usuario implements UserDetails {
     private String apellido;
 
     @Column(nullable = false, unique = true)
+    @Email(message = "Debe proporcionar un correo electrónico válido")
     private String correo;
 
     @Column(nullable = false, columnDefinition="TEXT")
@@ -122,6 +127,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return activo;
+        return Boolean.TRUE.equals(activo);
     }
 }
