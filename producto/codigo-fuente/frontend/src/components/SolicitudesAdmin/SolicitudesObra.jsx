@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from './SolicitudesAdmin.module.css';
-import imageCompression from 'browser-image-compression';
-
-
+import ModalCrearSolicitud from '../Shared/ModalCrearSolicitud';
 
 const SolicitudesObras = () => {
   const { id } = useParams(); 
@@ -18,24 +16,12 @@ const SolicitudesObras = () => {
   const [error, setError] = useState('');
   const [obrasExpandidas, setObrasExpandidas] = useState([]);
 
+  // Estados mínimos necesarios para controlar el Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [obraSeleccionadaModal, setObraSeleccionadaModal] = useState(null);
-  const [modalLoading, setModalLoading] = useState(false);
-  const [modalError, setModalError] = useState('');
-  const [mensajeExito, setMensajeExito] = useState('');
-
-  const [listaCategorias, setListaCategorias] = useState([]);
-  const [subcategoriasDisponibles, setSubcategoriasDisponibles] = useState([]);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
-  const [formSolicitud, setFormSolicitud] = useState({ descripcion: '', ubicacion: '', idSubcategoria: '' });
-  
-  const [evidencias, setEvidencias] = useState([]);
-  const [previewsEvidencias, setPreviewsEvidencias] = useState([]);
-  const inputArchivoRef = useRef(null);
 
   useEffect(() => {
     cargarDatosBasicos();
-    cargarCategorias();
   }, [id]);
 
   const cargarDatosBasicos = async () => {
@@ -58,31 +44,6 @@ const SolicitudesObras = () => {
       setLoading(false);
     }
   };
-
-  const cargarCategorias = async () => {
-    try {
-      const res = await api.get('/categorias');
-      setListaCategorias(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    if (!categoriaSeleccionada) {
-      setSubcategoriasDisponibles([]);
-      return;
-    }
-    const obtenerSubcategorias = async () => {
-        try {
-        const res = await api.get(`/subcategorias/categoria/${categoriaSeleccionada}`);
-        setSubcategoriasDisponibles(res.data || []);
-      } catch (error) {
-        setSubcategoriasDisponibles([]);
-      }
-    };
-    obtenerSubcategorias();
-  }, [categoriaSeleccionada]);
 
   const toggleObra = async (obraId) => {
     if (obrasExpandidas.includes(obraId)) {
@@ -107,110 +68,19 @@ const SolicitudesObras = () => {
 
   const abrirModalCrear = (obra) => {
     setObraSeleccionadaModal(obra);
-    setFormSolicitud({ descripcion: '', ubicacion: '', idSubcategoria: '' });
-    setCategoriaSeleccionada('');
-    setEvidencias([]);
-    setPreviewsEvidencias([]);
-    setModalError('');
-    setMensajeExito('');
     setShowCreateModal(true);
   };
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setEvidencias(prev => [...prev, ...files]);
-
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewsEvidencias(prev => [...prev, {
-          url: file.type.startsWith('image/') ? reader.result : null,
-          tipo: file.type,
-          nombre: file.name
-        }]);
+  // Callback que ejecutará el Modal para actualizar la lista local al guardar con éxito
+  const handleSolicitudCreada = (obraId, nuevaSolicitud) => {
+    setSolicitudesPorObra(prev => {
+      const solicitudesExistentes = prev[obraId] || [];
+      return {
+        ...prev,
+        [obraId]: [nuevaSolicitud, ...solicitudesExistentes]
       };
-      if (file.type.startsWith('image/')) { reader.readAsDataURL(file); } 
-      else { reader.onloadend(); }
     });
   };
-
-  const handleEliminarEvidencia = (index) => {
-    setEvidencias(prev => prev.filter((_, i) => i !== index));
-    setPreviewsEvidencias(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmitModal = async (e) => {
-    e.preventDefault();
-    setModalError('');
-
-    if (!categoriaSeleccionada || !formSolicitud.idSubcategoria || !formSolicitud.ubicacion.trim() || !formSolicitud.descripcion.trim()) {
-      setModalError('Todos los campos son obligatorios.');
-      return;
-    }
-
-    setModalLoading(true);
-    
-    try {
-      
-      const formData = new FormData();
-      
-      const solicitudData = {
-        descripcion: formSolicitud.descripcion.trim(),
-        ubicacionExacta: formSolicitud.ubicacion.trim(),
-        fechaHallazgo: new Date().toISOString().split('T')[0], 
-        activo: true,
-        obra: { id: obraSeleccionadaModal.id },
-        estadoSolicitud: { id: 1 }, 
-        subCategoria: { id: parseInt(formSolicitud.idSubcategoria) }
-      };
-
-      formData.append('solicitud', new Blob([JSON.stringify(solicitudData)], { type: 'application/json' }));
-
-      const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
-
-      for (const file of evidencias) {
-        if (file.type.startsWith('image/')) {
-          try {
-            const compressedFile = await imageCompression(file, options);
-            formData.append('archivos', compressedFile, file.name);
-          } catch (error) {
-             formData.append('archivos', file); 
-          }
-        } else {
-          formData.append('archivos', file);
-        }
-      }
-
-      const response = await api.post('/solicitudes', formData);
-      
-      const nuevaSolicitud = response.data;
-
-      setSolicitudesPorObra(prev => {
-        const solicitudesExistentes = prev[obraSeleccionadaModal.id];
-        if (!solicitudesExistentes) {
-          return prev;
-        }
-        return {
-          ...prev,
-          [obraSeleccionadaModal.id]: [nuevaSolicitud, ...solicitudesExistentes]
-        };
-      });
-
-      setMensajeExito('Solicitud creada con éxito.');
-      setTimeout(() => {
-        setShowCreateModal(false);
-      }, 1500);
-
-    } catch (err) {
-      if (err.response?.status !== 401) {
-        const msg = err.response?.data?.message || 'Error al crear la solicitud. Intente nuevamente.';
-        setModalError(msg);
-      }
-      console.error(err);
-    } finally {
-      setModalLoading(false);
-    }
-  }; 
 
   const getColorPorEstado = (nombreEstado) => {
     if (!nombreEstado) return '#ff9800'; 
@@ -223,11 +93,6 @@ const SolicitudesObras = () => {
     if (est.includes('rechazado')) return '#f44336'; 
     return '#ffffff';
   };
-
-  const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const modalContentStyle = { backgroundColor: '#fff', padding: '25px', borderRadius: '8px', width: '550px', maxWidth: '95%', maxHeight: '90vh', overflowY: 'auto', color: '#333' };
-  const inputStyle = { width: '100%', padding: '8px', margin: '8px 0 15px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box', outline: 'none' };
-  const btnStyle = { padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold' };
 
   return (
     <div className={styles.container}>
@@ -312,95 +177,13 @@ const SolicitudesObras = () => {
         )}
       </div>
 
-      {showCreateModal && obraSeleccionadaModal && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h3 style={{ marginBottom: '20px', color: '#0d3b66', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px' }}>
-              Nueva Solicitud - {obraSeleccionadaModal.nombre}
-            </h3>
-            
-            {mensajeExito && <p style={{ color: '#28a745', fontWeight: 'bold', marginBottom: '15px' }}>{mensajeExito}</p>}
-            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '0 0 15px 0', fontWeight: 'bold' }}>{modalError}</p>}
-            
-            <form onSubmit={handleSubmitModal}>
-              <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Categoría:</label>
-                  <select 
-                    value={categoriaSeleccionada} 
-                    onChange={(e) => setCategoriaSeleccionada(e.target.value)} 
-                    style={inputStyle}
-                  >
-                    <option value="">Seleccione...</option>
-                    {listaCategorias.map(cat => <option key={cat.id} value={cat.id}>{cat.nombre}</option>)}
-                  </select>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Subcategoría:</label>
-                  <select 
-                    value={formSolicitud.idSubcategoria} 
-                    onChange={(e) => setFormSolicitud({...formSolicitud, idSubcategoria: e.target.value})} 
-                    disabled={!categoriaSeleccionada} 
-                    style={inputStyle}
-                  >
-                    <option value="">{categoriaSeleccionada ? "Seleccione..." : "Elija categoría"}</option>
-                    {subcategoriasDisponibles.map(sub => <option key={sub.id} value={sub.id}>{sub.nombre}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Ubicación Exacta:</label>
-              <input 
-                type="text" 
-                value={formSolicitud.ubicacion} 
-                onChange={(e) => setFormSolicitud({...formSolicitud, ubicacion: e.target.value})} 
-                placeholder="Ej: Piso 3, Baño Oriente..." 
-                style={inputStyle} 
-              />
-
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Descripción del Hallazgo:</label>
-              <textarea 
-                value={formSolicitud.descripcion} 
-                onChange={(e) => setFormSolicitud({...formSolicitud, descripcion: e.target.value})} 
-                placeholder="Detalle el problema..." 
-                style={{ ...inputStyle, height: '80px', resize: 'vertical' }} 
-              />
-
-              <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px dashed #ccc', marginTop: '5px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold', margin: 0 }}>Evidencia Visual (Opcional):</label>
-                  <button type="button" onClick={() => inputArchivoRef.current.click()} style={{ ...btnStyle, backgroundColor: '#e9ecef', color: '#0d3b66', padding: '4px 10px', fontSize: '12px', border: '1px solid #ced4da' }}>
-                    + Adjuntar
-                  </button>
-                </div>
-                <input type="file" multiple hidden accept="image/*,.pdf" onChange={handleFileChange} ref={inputArchivoRef} />
-
-                {previewsEvidencias.length > 0 && (
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
-                    {previewsEvidencias.map((item, i) => (
-                      <div key={i} style={{ position: 'relative', width: '60px', height: '60px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
-                        {item.tipo === 'application/pdf' ? (
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', backgroundColor: '#fdfdfd', fontSize: '24px' }}>📄</div>
-                        ) : (
-                          <img src={item.url} alt="Evidencia" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        )}
-                        <button type="button" onClick={() => handleEliminarEvidencia(i)} style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(217, 83, 79, 0.9)', color: 'white', border: 'none', width: '20px', height: '20px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>X</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-                <button type="button" style={{ ...btnStyle, backgroundColor: '#ccc', color: '#333' }} onClick={() => setShowCreateModal(false)} disabled={modalLoading}>Cancelar</button>
-                <button type="submit" style={{ ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' }} disabled={modalLoading}>
-                  {modalLoading ? 'Guardando...' : 'Finalizar Registro'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Invocación limpia de nuestro nuevo componente modular */}
+      <ModalCrearSolicitud 
+        show={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+        obra={obraSeleccionadaModal}
+        onSolicitudCreada={handleSolicitudCreada}
+      />
     </div>
   );
 };
