@@ -16,7 +16,12 @@ const SolicitudesObras = () => {
   const [error, setError] = useState('');
   const [obrasExpandidas, setObrasExpandidas] = useState([]);
 
-  // Estados mínimos necesarios para controlar el Modal
+  // Estados de filtros indexados por obraId
+  const [buscarIdPorObra, setBuscarIdPorObra] = useState({});
+  const [ordenIdPorObra, setOrdenIdPorObra] = useState({});
+  const [filtroEstadoPorObra, setFiltroEstadoPorObra] = useState({});
+
+  // Estados para el Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [obraSeleccionadaModal, setObraSeleccionadaModal] = useState(null);
 
@@ -71,7 +76,6 @@ const SolicitudesObras = () => {
     setShowCreateModal(true);
   };
 
-  // Callback que ejecutará el Modal para actualizar la lista local al guardar con éxito
   const handleSolicitudCreada = (obraId, nuevaSolicitud) => {
     setSolicitudesPorObra(prev => {
       const solicitudesExistentes = prev[obraId] || [];
@@ -89,10 +93,86 @@ const SolicitudesObras = () => {
     if (est.includes('proceso')) return '#e6e22e';   
     if (est.includes('terminado')) return '#143c5e'; 
     if (est.includes('no aplica')) return '#494848'; 
-    if (est.includes('aprobado')) return '#4caf50';  
+    if (est.includes('aprobado') || est.includes('aceptado')) return '#4caf50';  
     if (est.includes('rechazado')) return '#f44336'; 
     return '#ffffff';
   };
+
+  // Función encargada de filtrar y ordenar por la jerarquía de Estados requerida
+  const obtenerSolicitudesFiltradasYOrdenadas = (obraId) => {
+    const solicitudesRaw = solicitudesPorObra[obraId];
+    if (!solicitudesRaw) return [];
+
+    let resultado = [...solicitudesRaw];
+
+    const bId = buscarIdPorObra[obraId] || '';
+    const fEstado = filtroEstadoPorObra[obraId] || '';
+    const oId = ordenIdPorObra[obraId] || 'desc';
+
+    // 1. Filtrar por Input de búsqueda ID si existe
+    if (bId.trim() !== '') {
+      resultado = resultado.filter(sol => sol.id.toString().includes(bId.trim()));
+    }
+
+    // 2. Filtrar por Selector de Estado si existe
+    if (fEstado !== '') {
+      resultado = resultado.filter(sol => {
+        const estadoNombre = sol.estadoSolicitud?.nombre || 'Pendiente';
+        return estadoNombre.toLowerCase() === fEstado.toLowerCase();
+      });
+    }
+
+    // Definición de jerarquía de estados (número menor se renderiza primero)
+    const prioridadEstados = {
+      'pendiente': 1,
+      'en proceso': 2,
+      'proceso': 2,
+      'terminado': 3,
+      'aprobado': 4,
+      'aceptado': 4,
+      'rechazado': 5,
+      'no aplica': 6
+    };
+
+    // 3. Ordenar la lista única mezclando la prioridad del Estado y el Orden del ID
+    resultado.sort((a, b) => {
+      const estadoA = (a.estadoSolicitud?.nombre || 'Pendiente').toLowerCase();
+      const estadoB = (b.estadoSolicitud?.nombre || 'Pendiente').toLowerCase();
+
+      const prioridadA = prioridadEstados[estadoA] || 99;
+      const prioridadB = prioridadEstados[estadoB] || 99;
+
+      // Si los estados tienen distinta prioridad, ordenamos según la secuencia solicitada
+      if (prioridadA !== prioridadB) {
+        return prioridadA - prioridadB;
+      }
+
+      // Si están en el mismo estado, aplicamos el criterio secundario de orden numérico de ID (asc o desc)
+      if (oId === 'asc') {
+        return a.id - b.id;
+      } else {
+        return b.id - a.id;
+      }
+    });
+
+    return resultado;
+  };
+
+  const handleFiltroChange = (obraId, tipo, valor) => {
+    if (tipo === 'buscarId') setBuscarIdPorObra(prev => ({ ...prev, [obraId]: valor }));
+    if (tipo === 'ordenId') setOrdenIdPorObra(prev => ({ ...prev, [obraId]: valor }));
+    if (tipo === 'filtroEstado') setFiltroEstadoPorObra(prev => ({ ...prev, [obraId]: valor }));
+  };
+
+  const limpiarFiltrosObra = (obraId) => {
+    setBuscarIdPorObra(prev => ({ ...prev, [obraId]: '' }));
+    setFiltroEstadoPorObra(prev => ({ ...prev, [obraId]: '' }));
+    setOrdenIdPorObra(prev => ({ ...prev, [obraId]: 'desc' }));
+  };
+
+  // Estilos visuales
+  const filterBarStyle = { display: 'flex', gap: '15px', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '10px 15px', borderRadius: '4px', marginBottom: '15px', flexWrap: 'wrap', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' };
+  const filterInputStyle = { padding: '5px 8px', borderRadius: '4px', border: '1px solid #ced4da', outline: 'none', backgroundColor: '#fff', color: '#333', fontSize: '13px' };
 
   return (
     <div className={styles.container}>
@@ -117,7 +197,14 @@ const SolicitudesObras = () => {
         ) : (
           obras.map((obra) => {
             const isObraExpanded = obrasExpandidas.includes(obra.id);
-            const solicitudesDeObra = solicitudesPorObra[obra.id] || [];
+            
+            // Obtener la lista única ya filtrada y ordenada por jerarquía de estados
+            const solicitudesProcesadas = obtenerSolicitudesFiltradasYOrdenadas(obra.id);
+
+            const currentBuscarId = buscarIdPorObra[obra.id] || '';
+            const currentOrdenId = ordenIdPorObra[obra.id] || 'desc';
+            const currentFiltroEstado = filtroEstadoPorObra[obra.id] || '';
+            const tieneFiltrosActivos = currentBuscarId || currentFiltroEstado || currentOrdenId !== 'desc';
 
             return (
               <div key={`obra-${obra.id}`} className={styles.accordionGroup}>
@@ -144,10 +231,69 @@ const SolicitudesObras = () => {
 
                 {isObraExpanded && (
                   <div className={styles.solicitudesWrapper}>
+                    
+                    {/* BARRA DE FILTROS */}
+                    {!loadingObraId && solicitudesPorObra[obra.id] && solicitudesPorObra[obra.id].length > 0 && (
+                      <div style={filterBarStyle}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <label style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold' }}>Buscar por ID:</label>
+                          <input 
+                            type="number" 
+                            placeholder="Ej: 7" 
+                            value={currentBuscarId}
+                            onChange={(e) => handleFiltroChange(obra.id, 'buscarId', e.target.value)}
+                            style={{ ...filterInputStyle, width: '80px' }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <label style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold' }}>Orden ID:</label>
+                          <select 
+                            value={currentOrdenId} 
+                            onChange={(e) => handleFiltroChange(obra.id, 'ordenId', e.target.value)}
+                            style={filterInputStyle}
+                          >
+                            <option value="desc">Recientes</option>
+                            <option value="asc">Antiguas</option>
+                          </select>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <label style={{ color: '#fff', fontSize: '11px', fontWeight: 'bold' }}>Filtrar Estado:</label>
+                          <select 
+                            value={currentFiltroEstado} 
+                            onChange={(e) => handleFiltroChange(obra.id, 'filtroEstado', e.target.value)}
+                            style={filterInputStyle}
+                          >
+                            <option value="">Todos</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="No Aplica">No Aplica</option>
+                            <option value="Terminado">Terminado</option>
+                            <option value="Aprobado">Aprobado / Aceptado</option>
+                            <option value="Rechazado">Rechazado</option>
+                          </select>
+                        </div>
+
+                        {tieneFiltrosActivos && (
+                          <button 
+                            onClick={() => limpiarFiltrosObra(obra.id)}
+                            style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', background: '#d9534f', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', marginTop: '14px' }}
+                          >
+                            Limpiar
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     {loadingObraId === obra.id ? (
                        <p className={styles.emptyText} style={{ textAlign: 'center' }}>Cargando solicitudes...</p>
-                    ) : solicitudesDeObra.length === 0 ? (
-                      <p className={styles.emptyText}>No hay solicitudes para esta obra.</p>
+                    ) : solicitudesProcesadas.length === 0 ? (
+                      <p className={styles.emptyText}>
+                        {tieneFiltrosActivos 
+                          ? "No se encontraron solicitudes con los filtros aplicados."
+                          : "No hay solicitudes para esta obra."}
+                      </p>
                     ) : (
                       <>
                         <div className={styles.solicitudesHeader}>
@@ -156,7 +302,8 @@ const SolicitudesObras = () => {
                           <span className={styles.colEstado}>Estado</span>
                         </div>
 
-                        {solicitudesDeObra.map((solicitud) => (
+                        {/* RENDERIZADO ÚNICO CONTINUO EN EL MISMO ABANICO */}
+                        {solicitudesProcesadas.map((solicitud) => (
                           <Link key={`sol-${solicitud.id}`} to={`/admin/solicitudes/${solicitud.id}`} className={styles.solicitudRowLink}>
                             <span className={styles.colId}>{solicitud.id}</span>
                             <span className={styles.colObs}>{solicitud.descripcion || 'Sin observación'}</span>
@@ -177,7 +324,6 @@ const SolicitudesObras = () => {
         )}
       </div>
 
-      {/* Invocación limpia de nuestro nuevo componente modular */}
       <ModalCrearSolicitud 
         show={showCreateModal} 
         onClose={() => setShowCreateModal(false)} 
