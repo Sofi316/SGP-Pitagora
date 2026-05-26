@@ -21,8 +21,9 @@ const SolicitudesAdmin = () => {
       const resEmpresas = await api.get('/empresas-clientes');
       setEmpresas(resEmpresas.data);
     } catch (err) {
-       if(err.response?.status !== 401){
-        setError('Ocurrió un error al cargar las empresas.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Ocurrió un error al cargar las empresas.';
+        setError(msg);
       }
     } finally {
       setLoading(false);
@@ -61,7 +62,7 @@ const SolicitudesAdmin = () => {
                 <span className={styles.itemName}>{empresa.razonSocial}</span>
                 <span style={{ fontSize: '12px', color: '#e0e0e0' }}>RUT: {empresa.rut}</span>
               </div>
-              <span className={styles.indicator}>Abrir ►</span>
+              
             </div>
           ))
         )}

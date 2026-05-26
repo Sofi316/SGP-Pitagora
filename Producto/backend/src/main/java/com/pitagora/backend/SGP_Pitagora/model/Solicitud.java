@@ -3,6 +3,8 @@ package com.pitagora.backend.SGP_Pitagora.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -65,6 +67,7 @@ public class Solicitud {
 
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
+    @JsonIgnoreProperties("obras")
     private Usuario usuario;
 
     @ManyToOne

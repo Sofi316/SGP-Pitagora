@@ -40,19 +40,36 @@ const CategoriasAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!nuevaCategoria.trim()) {
+    
+    const nombreLimpio = nuevaCategoria.trim();
+    
+    if (!nombreLimpio) {
       setModalError('El nombre de la categoría es obligatorio.');
       return;
     }
 
+    const existe = categorias.some(cat => cat.nombre.toLowerCase() === nombreLimpio.toLowerCase());
+    
+    if (existe) {
+      setModalError('Ya existe categoria con ese nombre');
+      return;
+    }
+
     try {
-      const response = await api.post('/categorias', { nombre: nuevaCategoria });
-      setCategorias([...categorias, response.data]);
+      
+      const response = await api.post('/categorias', 
+        { 
+          nombre: nombreLimpio,
+          activo: true 
+        }
+      );
+      
+      setCategorias([response.data, ...categorias]);
       setShowCreateModal(false);
       setNuevaCategoria('');
     } catch (err) {
       if(err.response?.status !== 401){
-        setModalError(err.response?.data?.message || 'Error al crear la categoría. Verifica que el nombre no exista ya.');
+        setModalError(err.response?.data?.message || 'Error al crear la categoría.');
       }
     }
   };
@@ -66,15 +83,27 @@ const CategoriasAdmin = () => {
   const handleEditar = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!categoriaAEditar.nombre.trim()) {
+    
+    const nombreLimpio = categoriaAEditar.nombre.trim();
+
+    if (!nombreLimpio) {
       setModalError('El nombre de la categoría es obligatorio.');
       return;
     }
 
+    const existe = categorias.some(cat => 
+      cat.nombre.toLowerCase() === nombreLimpio.toLowerCase() && cat.id !== categoriaAEditar.id
+    );
+
+    if (existe) {
+      setModalError('Ya existe categoria con ese nombre');
+      return;
+    }
+
     try {
-      const response = await api.put(`/categorias/${categoriaAEditar.id}`, { 
-        nombre: categoriaAEditar.nombre 
-      });
+      const response = await api.put(`/categorias/${categoriaAEditar.id}`, 
+        { nombre: nombreLimpio }
+      );
 
       setCategorias(categorias.map(cat => cat.id === categoriaAEditar.id ? response.data : cat));
       setShowEditModal(false);
@@ -96,6 +125,7 @@ const CategoriasAdmin = () => {
     setModalError('');
     try {
       await api.delete(`/categorias/${categoriaAEliminar.id}`);
+
       setCategorias(categorias.filter(cat => cat.id !== categoriaAEliminar.id));
       setShowDeleteModal(false);
       setCategoriaAEliminar(null);

@@ -21,12 +21,12 @@ const ArchivadosAdmin = () => {
 
   const cargarObras = async () => {
     try {
+  
       const response = await api.get('/obras');
       setObras(response.data);
     } catch (err) {
-      if (err.response?.status !== 401) {
-      setError('Error al cargar las obras.');
-      }
+      if (err.response?.status !== 401) {setError('Error al cargar las obras.');}
+      
     }
   };
 
@@ -40,13 +40,13 @@ const ArchivadosAdmin = () => {
     if (!obraId) return;
 
     try {
-      const response = await api.get('/solicitudes');
+      
+      const response = await api.get(`/solicitudes`);
       const filtradas = response.data.filter(s => s.obra?.id === parseInt(obraId));
       setSolicitudesFiltradas(filtradas);
     } catch (err) {
-      if (err.response?.status !== 401) {
-        setError('Error al cargar las solicitudes de esta obra.');
-      }
+      if (err.response?.status !== 401) {setError('Error al cargar las solicitudes de esta obra.');}
+      
     }
   };
 
@@ -66,7 +66,7 @@ const ArchivadosAdmin = () => {
     setLoading(true);
     setError('');
     try {
-
+     
       const params = new URLSearchParams();
       params.append('id', idSolicitud);
       if (inicio) params.append('fechaInicio', inicio);
@@ -76,9 +76,8 @@ const ArchivadosAdmin = () => {
       const response = await api.get(`/comunicaciones/filtrar?${params.toString()}`);
       setComunicaciones(response.data);
     } catch (err) {
-      if (err.response?.status !== 401) {
-        setError('Error al cargar el historial de comunicaciones.');
-      }
+      if (err.response?.status !== 401) {setError('Error al cargar el historial de comunicaciones.');}
+      
     } finally {
       setLoading(false);
     }
@@ -101,7 +100,13 @@ const ArchivadosAdmin = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleString('es-CL');
+    return date.toLocaleString('es-CL', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const getEmpresaNombre = (obra) => {

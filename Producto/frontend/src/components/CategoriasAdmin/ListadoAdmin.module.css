@@ -22,8 +22,8 @@
   background-color: #0d3b66;
   color: #ffffff;
   border: none;
-  padding: 8px 18px;
-  border-radius: 20px;
+  padding: 10px 20px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
@@ -31,6 +31,41 @@
 
 .createBtn:hover {
   background-color: #082a4a;
+}
+
+.menuBox {
+  background-color: #aec4d6;
+  padding: 30px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.selectLabel {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.menuItem {
+  background-color: #7e9ab2;
+  color: #ffffff;
+  padding: 15px 20px;
+  font-size: 16px;
+  border-radius: 2px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+}
+
+.menuItem option {
+  background-color: #ffffff;
+  color: #333333;
 }
 
 .listBox {

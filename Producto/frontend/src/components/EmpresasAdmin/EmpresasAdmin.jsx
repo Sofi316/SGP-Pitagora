@@ -3,7 +3,6 @@ import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
 
-
 const validarRutChileno = (rutCompleto) => {
   if (!/^[0-9]+-[0-9kK]{1}$/.test(rutCompleto)) return false;
   const tmp = rutCompleto.split('-');
@@ -40,6 +39,7 @@ const EmpresasAdmin = () => {
   const [empresaAEliminar, setEmpresaAEliminar] = useState(null);
 
   const [modalError, setModalError] = useState('');
+
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -48,12 +48,14 @@ const EmpresasAdmin = () => {
     setLoading(true);
     setError('');
     try {
+      
       const response = await api.get('/empresas-clientes');
-      setEmpresas(response.data);
+      const empresasOrdenadas = response.data.sort((a, b) => b.id - a.id);
+      setEmpresas(empresasOrdenadas);
     } catch (err) {
-      if(err.response?.status !== 401){
-        setError('Ocurrió un error al cargar las empresas clientes.');
-      }
+      if (err.response?.status !== 401) {
+        setError('Ocurrió un error al cargar las empresas clientes.');}
+      
     } finally {
       setLoading(false);
     }
@@ -62,6 +64,7 @@ const EmpresasAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     setModalError('');
+    
     if (!formCrear.rut.trim() || !formCrear.razonSocial.trim()) {
       setModalError('Todos los campos son obligatorios.');
       return;
@@ -72,7 +75,14 @@ const EmpresasAdmin = () => {
       return;
     }
 
+    const existe = empresas.some(emp => emp.rut.toUpperCase() === formCrear.rut.toUpperCase());
+    if (existe) {
+      setModalError('Ya existe una empresa registrada con ese RUT');
+      return;
+    }
+
     try {
+     
       const response = await api.post('/empresas-clientes', 
         { 
           rut: formCrear.rut,
@@ -81,13 +91,14 @@ const EmpresasAdmin = () => {
         }
       );
       
-      setEmpresas([...empresas, response.data]);
+      const nuevasEmpresas = [response.data, ...empresas].sort((a, b) => b.id - a.id);
+      setEmpresas(nuevasEmpresas);
       setShowCreateModal(false);
       setFormCrear({ rut: '', razonSocial: '' });
     } catch (err) {
-      if (err.response?.status !== 401) {
-            setModalError(err.response?.data?.message || 'Error al guardar: Verifica que el RUT no esté duplicado.');
-      }    
+      if (err.response?.status !== 401) {      
+        setModalError(err.response?.data?.message || 'Error al guardar: Verifica que el RUT no esté duplicado.');
+      }
     }
   };
 
@@ -100,15 +111,29 @@ const EmpresasAdmin = () => {
   const handleEditar = async (e) => {
     e.preventDefault();
     setModalError('');
+    
     if (!empresaAEditar.rut.trim() || !empresaAEditar.razonSocial.trim()) {
       setModalError('Todos los campos son obligatorios.');
       return;
     }
+
     if (!validarRutChileno(empresaAEditar.rut)) {
       setModalError('El RUT ingresado no es válido.');
       return;
     }
+
+    const existe = empresas.some(emp => 
+      emp.rut.toUpperCase() === empresaAEditar.rut.toUpperCase() && 
+      emp.id !== empresaAEditar.id
+    );
+
+    if (existe) {
+      setModalError('El RUT ingresado ya pertenece a otra empresa');
+      return;
+    }
+
     try {
+      
       const response = await api.put(`/empresas-clientes/${empresaAEditar.id}`, 
         { 
           rut: empresaAEditar.rut,
@@ -116,11 +141,12 @@ const EmpresasAdmin = () => {
         }
       );
 
-      setEmpresas(empresas.map(emp => emp.id === empresaAEditar.id ? response.data : emp));
+      const actualizadas = empresas.map(emp => emp.id === empresaAEditar.id ? response.data : emp).sort((a, b) => b.id - a.id);
+      setEmpresas(actualizadas);
       setShowEditModal(false);
       setEmpresaAEditar(null);
     } catch (err) {
-      if (err.response?.status !== 401) {
+      if (err.response?.status !== 401) {      
         setModalError(err.response?.data?.message || 'Error al actualizar: Verifica que el RUT no pertenezca a otra empresa.');
       }
     }
@@ -135,15 +161,17 @@ const EmpresasAdmin = () => {
   const handleEliminar = async () => {
     setModalError('');
     try {
+      
       await api.delete(`/empresas-clientes/${empresaAEliminar.id}`);
 
-      setEmpresas(empresas.filter(emp => emp.id !== empresaAEliminar.id));
+      const restantes = empresas.filter(emp => emp.id !== empresaAEliminar.id).sort((a, b) => b.id - a.id);
+      setEmpresas(restantes);
       setShowDeleteModal(false);
       setEmpresaAEliminar(null);
     } catch (err) {
       if (err.response?.status !== 401) {
-        setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas.');
-      }
+        setModalError(err.response?.data?.message || 'No se puede eliminar la empresa. Es probable que tenga obras asociadas con solicitudes pendientes.');}
+      
     }
   };
 
@@ -192,7 +220,7 @@ const EmpresasAdmin = () => {
         )}
       </div>
 
-     {showCreateModal && (
+      {showCreateModal && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <h3>Crear Nueva Empresa</h3>
@@ -262,13 +290,20 @@ const EmpresasAdmin = () => {
       {showDeleteModal && empresaAEliminar && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h3>Confirmar Eliminación</h3>
+            <h3 style={{ color: '#d9534f' }}>Confirmar Eliminación</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
-            <p>¿Estás seguro de que deseas eliminar la empresa <strong>"{empresaAEliminar.razonSocial}"</strong>?</p>
-            <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
-            <div style={buttonGroupStyle}>
+            
+            <p style={{ marginTop: '15px' }}>
+              ¿Estás seguro de que deseas eliminar la empresa <strong>"{empresaAEliminar.razonSocial}"</strong>?
+            </p>
+            
+            <div style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '10px', borderRadius: '4px', border: '1px solid #ffeeba', marginTop: '15px', fontSize: '13px' }}>
+              <strong>Advertencia:</strong> Esto eliminará automáticamente todas las obras asociadas a esta empresa. ¿Seguro que quiere continuar?
+            </div>
+            
+            <div style={{...buttonGroupStyle, marginTop: '25px'}}>
               <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setEmpresaAEliminar(null); setModalError('');}}>Cancelar</button>
-              <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
+              <button style={deleteBtnStyle} onClick={handleEliminar}>Sí, Eliminar Todo</button>
             </div>
           </div>
         </div>

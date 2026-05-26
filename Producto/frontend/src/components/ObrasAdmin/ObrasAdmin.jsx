@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
 
 const ObrasAdmin = () => {
   const [obras, setObras] = useState([]);
   const [empresas, setEmpresas] = useState([]);
   const [comunas, setComunas] = useState([]);
+  const [regiones, setRegiones] = useState([]); 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -15,13 +16,15 @@ const ObrasAdmin = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [formCrear, setFormCrear] = useState({
-    nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', comunaId: ''
+    nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null
   });
   
   const [obraAEditar, setObraAEditar] = useState(null);
   const [obraAEliminar, setObraAEliminar] = useState(null);
 
   const [modalError, setModalError] = useState('');
+  
+  const navigate = useNavigate();
 
   useEffect(() => {
     cargarDatos();
@@ -40,11 +43,22 @@ const ObrasAdmin = () => {
       
       setObras(resObras.data);
       setEmpresas(resEmpresas.data);
-      setComunas(resComunas.data);
+      
+      const dataComunas = resComunas.data;
+      setComunas(dataComunas);
+      
+      const regionesMap = new Map();
+      dataComunas.forEach(c => {
+        if (c.region && c.region.id) {
+          regionesMap.set(c.region.id, c.region);
+        }
+      });
+      setRegiones(Array.from(regionesMap.values()));
+
     } catch (err) {
       if (err.response?.status !== 401) {
         setError('Ocurrió un error al cargar los datos.');
-      }    
+      }
     } finally {
       setLoading(false);
     }
@@ -53,23 +67,32 @@ const ObrasAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!formCrear.nombre.trim() || !formCrear.direccion.trim() || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa || !formCrear.fechaCierrePostventa) {
+    
+    if (!formCrear.nombre.trim() || !formCrear.direccion.trim() || !formCrear.empresaId || !formCrear.comunaId || !formCrear.fechaInicioPostventa) {
       setModalError('Por favor complete todos los campos obligatorios.');
       return;
     }
 
     try {
-      const response = await api.post('/obras', 
-        { 
-          nombre: formCrear.nombre,
-          direccion: formCrear.direccion,
-          fechaInicioPostventa: formCrear.fechaInicioPostventa,
-          fechaCierrePostventa: formCrear.fechaCierrePostventa,
-          empresaCliente: { id: parseInt(formCrear.empresaId) },
-          comuna: { id: parseInt(formCrear.comunaId) },
-          activo: true
-        }
-      );
+      
+      
+      const formData = new FormData();
+      const obraData = {
+        nombre: formCrear.nombre,
+        direccion: formCrear.direccion,
+        fechaInicioPostventa: formCrear.fechaInicioPostventa,
+        empresaCliente: { id: parseInt(formCrear.empresaId) },
+        comuna: { id: parseInt(formCrear.comunaId) },
+        activo: true
+      };
+
+      formData.append('obra', new Blob([JSON.stringify(obraData)], { type: 'application/json' }));
+      
+      if (formCrear.actaFile) {
+        formData.append('file', formCrear.actaFile);
+      }
+
+      const response = await api.post('/obras', formData);
       
       const nuevaObra = response.data;
       const empresaAsociada = empresas.find(emp => emp.id === parseInt(formCrear.empresaId));
@@ -78,9 +101,9 @@ const ObrasAdmin = () => {
       if (empresaAsociada) nuevaObra.empresaCliente = empresaAsociada;
       if (comunaAsociada) nuevaObra.comuna = comunaAsociada;
 
-      setObras([...obras, nuevaObra]);
+      setObras([nuevaObra, ...obras]);
       setShowCreateModal(false);
-      setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', comunaId: '' });
+      setFormCrear({ nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null });
     } catch (err) {
       if (err.response?.status !== 401) {
         setModalError(err.response?.data?.message || 'Error al guardar: Verifica los datos ingresados.');
@@ -93,7 +116,9 @@ const ObrasAdmin = () => {
     setObraAEditar({
       ...obra,
       empresaIdForm: obra.empresaCliente ? obra.empresaCliente.id : '',
-      comunaIdForm: obra.comuna ? obra.comuna.id : ''
+      regionIdForm: obra.comuna && obra.comuna.region ? obra.comuna.region.id : '',
+      comunaIdForm: obra.comuna ? obra.comuna.id : '',
+      actaFile: null
     });
     setShowEditModal(true);
   };
@@ -101,22 +126,31 @@ const ObrasAdmin = () => {
   const handleEditar = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!obraAEditar.nombre.trim() || !obraAEditar.direccion.trim() || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa || !obraAEditar.fechaCierrePostventa) {
+    
+    if (!obraAEditar.nombre.trim() || !obraAEditar.direccion.trim() || !obraAEditar.empresaIdForm || !obraAEditar.comunaIdForm || !obraAEditar.fechaInicioPostventa) {
       setModalError('Por favor complete todos los campos obligatorios.');
       return;
     }
 
     try {
-      const response = await api.put(`/obras/${obraAEditar.id}`, 
-        { 
-          nombre: obraAEditar.nombre,
-          direccion: obraAEditar.direccion,
-          fechaInicioPostventa: obraAEditar.fechaInicioPostventa,
-          fechaCierrePostventa: obraAEditar.fechaCierrePostventa,
-          empresaCliente: { id: parseInt(obraAEditar.empresaIdForm) },
-          comuna: { id: parseInt(obraAEditar.comunaIdForm) }
-        }
-      );
+      
+      
+      const formData = new FormData();
+      const obraData = {
+        nombre: obraAEditar.nombre,
+        direccion: obraAEditar.direccion,
+        fechaInicioPostventa: obraAEditar.fechaInicioPostventa,
+        empresaCliente: { id: parseInt(obraAEditar.empresaIdForm) },
+        comuna: { id: parseInt(obraAEditar.comunaIdForm) }
+      };
+
+      formData.append('obra', new Blob([JSON.stringify(obraData)], { type: 'application/json' }));
+      
+      if (obraAEditar.actaFile) {
+        formData.append('file', obraAEditar.actaFile);
+      }
+
+      const response = await api.put(`/obras/${obraAEditar.id}`, formData);
 
       const obraActualizada = response.data;
       const empresaAsociada = empresas.find(emp => emp.id === parseInt(obraAEditar.empresaIdForm));
@@ -144,6 +178,7 @@ const ObrasAdmin = () => {
   const handleEliminar = async () => {
     setModalError('');
     try {
+      
       await api.delete(`/obras/${obraAEliminar.id}`);
 
       setObras(obras.filter(ob => ob.id !== obraAEliminar.id));
@@ -151,9 +186,7 @@ const ObrasAdmin = () => {
       setObraAEliminar(null);
     } catch (err) {
       if (err.response?.status !== 401) {
-        setModalError(err.response?.data?.message || 'No se puede eliminar la obra. Es probable que tenga solicitudes asociadas.');
-    
-      }
+        setModalError(err.response?.data?.message || 'No se puede eliminar la obra. Es probable que tenga solicitudes asociadas pendientes.');}
     }
   };
 
@@ -165,6 +198,9 @@ const ObrasAdmin = () => {
   const cancelBtnStyle = { ...btnStyle, backgroundColor: '#ccc', color: '#333' };
   const confirmBtnStyle = { ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' };
   const deleteBtnStyle = { ...btnStyle, backgroundColor: '#d9534f', color: '#fff' };
+
+  const comunasFiltradasCrear = comunas.filter(c => c.region && c.region.id === parseInt(formCrear.regionId));
+  const comunasFiltradasEditar = obraAEditar ? comunas.filter(c => c.region && c.region.id === parseInt(obraAEditar.regionIdForm)) : [];
 
   return (
     <div className={styles.container}>
@@ -190,12 +226,15 @@ const ObrasAdmin = () => {
           obras.map((ob) => (
             <div key={ob.id} className={styles.itemRow}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className={styles.itemName}>{ob.nombre}</span>
-                <span style={{ fontSize: '12px', color: '#e0e0e0' }}>
+                <span className={styles.itemName}>
+                   {ob.nombre}
+                </span>
+                <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '4px' }}>
                   Empresa: {ob.empresaCliente ? ob.empresaCliente.razonSocial : 'Sin empresa'} | Comuna: {ob.comuna ? ob.comuna.nombre : 'Sin comuna'}
                 </span>
               </div>
-              <div className={styles.actions}>
+              <div className={styles.actions} style={{ display: 'flex', gap: '8px' }}>
+                <button className={styles.editBtn} style={{ backgroundColor: '#304557' }} onClick={() => navigate(`/admin/gestion/obras/${ob.id}`)}>Ver Detalle</button>
                 <button className={styles.editBtn} onClick={() => abrirModalEditar(ob)}>Editar</button>
                 <button className={styles.deleteBtn} onClick={() => abrirModalEliminar(ob)}>Eliminar</button>
               </div>
@@ -210,24 +249,16 @@ const ObrasAdmin = () => {
             <h3>Crear Nueva Obra</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleCrear}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={formCrear.nombre} onChange={(e) => setFormCrear({...formCrear, nombre: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={formCrear.direccion} onChange={(e) => setFormCrear({...formCrear, direccion: e.target.value})} style={inputStyle} />
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa:</label>
-                  <input type="date" value={formCrear.fechaInicioPostventa} onChange={(e) => setFormCrear({...formCrear, fechaInicioPostventa: e.target.value})} style={inputStyle} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cierre Postventa:</label>
-                  <input type="date" value={formCrear.fechaCierrePostventa} onChange={(e) => setFormCrear({...formCrear, fechaCierrePostventa: e.target.value})} style={inputStyle} />
-                </div>
-              </div>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa: <span style={{ color: 'red' }}>*</span></label>
+              <input type="date" value={formCrear.fechaInicioPostventa} onChange={(e) => setFormCrear({...formCrear, fechaInicioPostventa: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente: <span style={{ color: 'red' }}>*</span></label>
               <select value={formCrear.empresaId} onChange={(e) => setFormCrear({...formCrear, empresaId: e.target.value})} style={inputStyle}>
                 <option value="">-- Seleccione una empresa --</option>
                 {empresas.map(emp => (
@@ -235,16 +266,41 @@ const ObrasAdmin = () => {
                 ))}
               </select>
 
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna:</label>
-              <select value={formCrear.comunaId} onChange={(e) => setFormCrear({...formCrear, comunaId: e.target.value})} style={inputStyle}>
-                <option value="">-- Seleccione una comuna --</option>
-                {comunas.map(com => (
-                  <option key={com.id} value={com.id}>{com.nombre}</option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
+                  <select 
+                    value={formCrear.regionId} 
+                    onChange={(e) => setFormCrear({...formCrear, regionId: e.target.value, comunaId: ''})} 
+                    style={inputStyle}
+                  >
+                    <option value="">-- Región --</option>
+                    {regiones.map(reg => (
+                      <option key={reg.id} value={reg.id}>{reg.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
+                  <select 
+                    value={formCrear.comunaId} 
+                    onChange={(e) => setFormCrear({...formCrear, comunaId: e.target.value})} 
+                    style={inputStyle}
+                    disabled={!formCrear.regionId}
+                  >
+                    <option value="">-- Comuna --</option>
+                    {comunasFiltradasCrear.map(com => (
+                      <option key={com.id} value={com.id}>{com.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Acta de Entrega (PDF - Opcional):</label>
+              <input type="file" accept="application/pdf" onChange={(e) => setFormCrear({...formCrear, actaFile: e.target.files[0]})} style={inputStyle} />
 
               <div style={buttonGroupStyle}>
-                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', fechaCierrePostventa: '', empresaId: '', comunaId: ''}); setModalError('');}}>Cancelar</button>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setFormCrear({nombre: '', direccion: '', fechaInicioPostventa: '', empresaId: '', regionId: '', comunaId: '', actaFile: null}); setModalError('');}}>Cancelar</button>
                 <button type="submit" style={confirmBtnStyle}>Guardar</button>
               </div>
             </form>
@@ -258,24 +314,16 @@ const ObrasAdmin = () => {
             <h3>Editar Obra</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <form onSubmit={handleEditar}>
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Nombre Obra: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={obraAEditar.nombre} onChange={(e) => setObraAEditar({...obraAEditar, nombre: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Dirección: <span style={{ color: 'red' }}>*</span></label>
               <input type="text" value={obraAEditar.direccion} onChange={(e) => setObraAEditar({...obraAEditar, direccion: e.target.value})} style={inputStyle} />
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa:</label>
-                  <input type="date" value={obraAEditar.fechaInicioPostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaInicioPostventa: e.target.value})} style={inputStyle} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Cierre Postventa:</label>
-                  <input type="date" value={obraAEditar.fechaCierrePostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaCierrePostventa: e.target.value})} style={inputStyle} />
-                </div>
-              </div>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Inicio Postventa: <span style={{ color: 'red' }}>*</span></label>
+              <input type="date" value={obraAEditar.fechaInicioPostventa} onChange={(e) => setObraAEditar({...obraAEditar, fechaInicioPostventa: e.target.value})} style={inputStyle} />
               
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente:</label>
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Empresa Cliente: <span style={{ color: 'red' }}>*</span></label>
               <select value={obraAEditar.empresaIdForm} onChange={(e) => setObraAEditar({...obraAEditar, empresaIdForm: e.target.value})} style={inputStyle}>
                 <option value="">-- Seleccione una empresa --</option>
                 {empresas.map(emp => (
@@ -283,13 +331,44 @@ const ObrasAdmin = () => {
                 ))}
               </select>
 
-              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna:</label>
-              <select value={obraAEditar.comunaIdForm} onChange={(e) => setObraAEditar({...obraAEditar, comunaIdForm: e.target.value})} style={inputStyle}>
-                <option value="">-- Seleccione una comuna --</option>
-                {comunas.map(com => (
-                  <option key={com.id} value={com.id}>{com.nombre}</option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
+                  <select 
+                    value={obraAEditar.regionIdForm} 
+                    onChange={(e) => setObraAEditar({...obraAEditar, regionIdForm: e.target.value, comunaIdForm: ''})} 
+                    style={inputStyle}
+                  >
+                    <option value="">-- Región --</option>
+                    {regiones.map(reg => (
+                      <option key={reg.id} value={reg.id}>{reg.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
+                  <select 
+                    value={obraAEditar.comunaIdForm} 
+                    onChange={(e) => setObraAEditar({...obraAEditar, comunaIdForm: e.target.value})} 
+                    style={inputStyle}
+                    disabled={!obraAEditar.regionIdForm}
+                  >
+                    <option value="">-- Comuna --</option>
+                    {comunasFiltradasEditar.map(com => (
+                      <option key={com.id} value={com.id}>{com.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Actualizar Acta (PDF - Opcional):</label>
+              {obraAEditar.rutaActaEntrega && (
+                <div style={{ marginBottom: '5px', fontSize: '12px' }}>
+                  <span>Acta actual: </span>
+                  <a href={obraAEditar.rutaActaEntrega} target="_blank" rel="noreferrer" style={{ color: '#00d1b2' }}>Ver documento</a>
+                </div>
+              )}
+              <input type="file" accept="application/pdf" onChange={(e) => setObraAEditar({...obraAEditar, actaFile: e.target.files[0]})} style={inputStyle} />
 
               <div style={buttonGroupStyle}>
                 <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setObraAEditar(null); setModalError('');}}>Cancelar</button>

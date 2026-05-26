@@ -20,6 +20,8 @@ const SubcategoriasAdmin = () => {
   const [subcategoriaAEliminar, setSubcategoriaAEliminar] = useState(null);
 
   const [modalError, setModalError] = useState('');
+  
+  const [filtroCategoriaId, setFiltroCategoriaId] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -29,17 +31,16 @@ const SubcategoriasAdmin = () => {
     setLoading(true);
     setError('');
     try {
-     
       const [resSub, resCat] = await Promise.all([
         api.get('/subcategorias'),
         api.get('/categorias')
       ]);
-      
       setSubcategorias(resSub.data);
       setCategorias(resCat.data);
     } catch (err) {
-      if(err.response?.status !== 401){
-        setError('Ocurrió un error al cargar los datos.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Ocurrió un error al cargar los datos.';
+        setError(msg);
       }
     } finally {
       setLoading(false);
@@ -49,31 +50,41 @@ const SubcategoriasAdmin = () => {
   const handleCrear = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!nuevaSubcategoria.trim() || !categoriaSeleccionada) {
+    
+    const nombreLimpio = nuevaSubcategoria.trim();
+    
+    if (!nombreLimpio || !categoriaSeleccionada) {
       setModalError('Por favor ingrese el nombre y seleccione una categoría.');
       return;
     }
 
+    const existe = subcategorias.some(sub => 
+      sub.nombre.toLowerCase() === nombreLimpio.toLowerCase() && 
+      sub.categoria?.id === parseInt(categoriaSeleccionada)
+    );
+    if (existe) {
+      setModalError('Ya existe esta subcategoría dentro de la categoría seleccionada');
+      return;
+    }
+
     try {
-      const response = await api.post('/subcategorias', 
-        { 
-          nombre: nuevaSubcategoria,
-          categoria: { id: parseInt(categoriaSeleccionada) },
-          activo: true
-        }
-      );
-      
+      const response = await api.post('/subcategorias', {
+        nombre: nombreLimpio,
+        categoria: { id: parseInt(categoriaSeleccionada) },
+        activo: true
+      });
       const nuevaSubcat = response.data;
       const catAsociada = categorias.find(c => c.id === parseInt(categoriaSeleccionada));
       if (catAsociada) nuevaSubcat.categoria = catAsociada;
 
-      setSubcategorias([...subcategorias, nuevaSubcat]);
+      setSubcategorias([nuevaSubcat, ...subcategorias]);
       setShowCreateModal(false);
       setNuevaSubcategoria('');
       setCategoriaSeleccionada('');
     } catch (err) {
-      if(err.response?.status !== 401){
-        setModalError(err.response?.data?.message || 'Error al crear la subcategoría.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al crear la subcategoría.';
+        setModalError(msg);
       }
     }
   };
@@ -88,21 +99,30 @@ const SubcategoriasAdmin = () => {
   const handleEditar = async (e) => {
     e.preventDefault();
     setModalError('');
-    if (!subcategoriaAEditar.nombre.trim() || !subcategoriaAEditar.categoriaIdForm) {
+    
+    const nombreLimpio = subcategoriaAEditar.nombre.trim();
+    
+    if (!nombreLimpio || !subcategoriaAEditar.categoriaIdForm) {
       setModalError('Por favor ingrese el nombre y seleccione una categoría.');
       return;
     }
 
-    try {
-      
-      const response = await api.put(`/subcategorias/${subcategoriaAEditar.id}`, 
-        { 
-          nombre: subcategoriaAEditar.nombre,
-          categoria: { id: parseInt(subcategoriaAEditar.categoriaIdForm) }
-        }
-        
-      );
+    const existe = subcategorias.some(sub => 
+      sub.nombre.toLowerCase() === nombreLimpio.toLowerCase() && 
+      sub.categoria?.id === parseInt(subcategoriaAEditar.categoriaIdForm) &&
+      sub.id !== subcategoriaAEditar.id
+    );
 
+    if (existe) {
+      setModalError('Ya existe esta subcategoría dentro de la categoría seleccionada');
+      return;
+    }
+
+    try {
+      const response = await api.put(`/subcategorias/${subcategoriaAEditar.id}`, {
+        nombre: nombreLimpio,
+        categoria: { id: parseInt(subcategoriaAEditar.categoriaIdForm) }
+      });
       const subcatActualizada = response.data;
       const catAsociada = categorias.find(c => c.id === parseInt(subcategoriaAEditar.categoriaIdForm));
       if (catAsociada) subcatActualizada.categoria = catAsociada;
@@ -111,8 +131,9 @@ const SubcategoriasAdmin = () => {
       setShowEditModal(false);
       setSubcategoriaAEditar(null);
     } catch (err) {
-      if(err.response?.status !== 401){
-        setModalError(err.response?.data?.message || 'Error al actualizar la subcategoría.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al actualizar la subcategoría.';
+        setModalError(msg);
       }
     }
   };
@@ -127,17 +148,20 @@ const SubcategoriasAdmin = () => {
     setModalError('');
     try {
       await api.delete(`/subcategorias/${subcategoriaAEliminar.id}`);
-
       setSubcategorias(subcategorias.filter(sub => sub.id !== subcategoriaAEliminar.id));
       setShowDeleteModal(false);
       setSubcategoriaAEliminar(null);
     } catch (err) {
-      if(err.response?.status !== 401){
-
-        setModalError(err.response?.data?.message || 'Error al eliminar. Es probable que esté en uso en alguna solicitud.');
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al eliminar. Es probable que esté en uso en alguna solicitud.';
+        setModalError(msg);
       }
     }
   };
+
+  const subcategoriasFiltradas = filtroCategoriaId
+    ? subcategorias.filter(sub => sub.categoria?.id === parseInt(filtroCategoriaId))
+    : subcategorias;
 
   const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
   const modalContentStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '400px', maxWidth: '90%', color: '#333' };
@@ -161,15 +185,31 @@ const SubcategoriasAdmin = () => {
         </button>
       </div>
 
+      <div className={styles.menuBox}>
+        <div>
+          <label className={styles.selectLabel}>Filtrar por Categoría:</label>
+          <select 
+            className={styles.menuItem}
+            value={filtroCategoriaId} 
+            onChange={(e) => setFiltroCategoriaId(e.target.value)}
+          >
+            <option value="">-- Todas las categorías --</option>
+            {categorias.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {error && <p style={{ color: '#ffcccc', marginBottom: '15px' }}>{error}</p>}
 
       <div className={styles.listBox}>
         {loading ? (
           <p style={{ color: 'white', textAlign: 'center' }}>Cargando subcategorías...</p>
-        ) : subcategorias.length === 0 && !error ? (
-          <p style={{ color: 'white' }}>No hay subcategorías registradas.</p>
+        ) : subcategoriasFiltradas.length === 0 && !error ? (
+          <p style={{ color: 'white' }}>No hay subcategorías registradas para esta selección.</p>
         ) : (
-          subcategorias.map((subcat) => (
+          subcategoriasFiltradas.map((subcat) => (
             <div key={subcat.id} className={styles.itemRow}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span className={styles.itemName}>{subcat.nombre}</span>
