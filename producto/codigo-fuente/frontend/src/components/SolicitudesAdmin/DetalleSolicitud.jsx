@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import styles from './SolicitudesAdmin.module.css';
-import { FaCamera,FaWrench } from "react-icons/fa";
+import { FaCamera, FaWrench } from "react-icons/fa";
 
 const DetalleSolicitud = () => {
   const { id } = useParams();
@@ -32,9 +32,19 @@ const DetalleSolicitud = () => {
   }, [id]);
 
   const cargarDetalle = async () => {
+    setLoading(true);
     try {
-      const resSol = await api.get(`/solicitudes/${id}`);
-      setSolicitud(resSol.data);
+      // Hacemos ambas peticiones en paralelo para evitar problemas de Lazy Loading en el Backend
+      const [resSol, resEvidencias] = await Promise.all([
+        api.get(`/solicitudes/${id}`),
+        api.get(`/archivos-evidencia/solicitud/${id}`).catch(() => ({ data: [] }))
+      ]);
+
+      // Guardamos la solicitud inyectándole directamente las evidencias obtenidas
+      setSolicitud({
+        ...resSol.data,
+        archivosEvidencia: resEvidencias.data
+      });
     } catch (err) {
       if (err.response?.status !== 401) {
         const msg = err.response?.data?.message || 'Error al cargar la solicitud';
@@ -50,9 +60,16 @@ const DetalleSolicitud = () => {
     setSuccess('');
     try {
       const res = await api.patch(`/solicitudes/${id}/estado/${nuevoEstadoId}`);
-      setSolicitud(res.data);
-      setSuccess('Estado actualizado y notificaciones enviadas.');
       
+      // Al actualizar el estado, volvemos a traer las evidencias actualizadas
+      const resEvidencias = await api.get(`/archivos-evidencia/solicitud/${id}`).catch(() => ({ data: [] }));
+      
+      setSolicitud({
+        ...res.data,
+        archivosEvidencia: resEvidencias.data
+      });
+      
+      setSuccess('Estado actualizado y notificaciones enviadas.');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       if (err.response?.status !== 401) {
@@ -78,7 +95,6 @@ const DetalleSolicitud = () => {
     if (archivosReparacion.length === 0) return;
     setIsUploading(true);
     try {
-      const token = localStorage.getItem('token');
       const formData = new FormData();
       archivosReparacion.forEach(f => formData.append('archivos', f));
 
@@ -109,7 +125,8 @@ const DetalleSolicitud = () => {
 
   const estadoActual = solicitud.estadoSolicitud?.nombre || '';
 
-  const listaEvidencias = solicitud.archivos || solicitud.archivoEvidencias || solicitud.evidencias || [];
+  // Filtramos usando la propiedad inyectada de forma segura
+  const listaEvidencias = solicitud.archivosEvidencia || [];
   const evidenciasEstado = listaEvidencias.filter(e => e.tipoEvidencia?.id === 1);
   const evidenciasReparacion = listaEvidencias.filter(e => e.tipoEvidencia?.id === 2);
 
@@ -120,12 +137,12 @@ const DetalleSolicitud = () => {
   };
   
   const formatearFechaCorta = (fechaString) => {
-      if (!fechaString) return 'N/A';
-      return new Date(fechaString).toLocaleDateString('es-CL');
-  }
+    if (!fechaString) return 'N/A';
+    return new Date(fechaString).toLocaleDateString('es-CL');
+  };
 
   const renderEvidenciaCard = (evidencia, index) => {
-    const isPDF = evidencia.rutaArchivo.toLowerCase().endsWith('.pdf');
+    const isPDF = evidencia.rutaArchivo?.toLowerCase().endsWith('.pdf');
     return (
       <div key={index} style={{ width: '100px', height: '100px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', position: 'relative', backgroundColor: '#fdfdfd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {isPDF ? (
@@ -165,20 +182,20 @@ const DetalleSolicitud = () => {
             </div>
           </div>
           
-         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             {estadoActual === 'Pendiente' && (
               <>
                 <button 
                   onClick={() => handleCambioEstado(ESTADOS.EN_PROCESO)} 
                   className={styles.estadoBtn}
-                  style={{backgroundColor: '#ffc107',color: '#333'}}
+                  style={{backgroundColor: '#ffc107', color: '#333'}}
                 >
                   Marcar En Proceso
                 </button>
                 <button 
                   onClick={() => handleCambioEstado(ESTADOS.NO_APLICA)} 
                   className={styles.estadoBtn}
-                  style={{backgroundColor: '#6c757d',color: 'white'}}
+                  style={{backgroundColor: '#6c757d', color: 'white'}}
                 >
                   Marcar No Aplica
                 </button>
@@ -202,11 +219,12 @@ const DetalleSolicitud = () => {
           </div>
         </div>
 
+        {/* Sección de Evidencia Inicial */}
         <div style={{ borderTop: '2px solid #eee', paddingTop: '20px' }}>
           <h3 style={{ 
             display: 'flex',            
             alignItems: 'center',      
-            gap: '8px',                 
+            gap: '8px',                
             fontSize: '16px', 
             color: '#0d3b66', 
             marginBottom: '15px'
@@ -222,6 +240,7 @@ const DetalleSolicitud = () => {
           )}
         </div>
 
+        {/* Sección de Evidencia de Reparación */}
         <div style={{ borderTop: '2px solid #eee', paddingTop: '20px', marginTop: '20px' }}>
           <h3 style={{ 
             display: 'flex',          
