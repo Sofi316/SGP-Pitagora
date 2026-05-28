@@ -13,6 +13,10 @@ const DetalleSolicitud = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Nuevos estados para controlar la caja de texto al cambiar a "En Proceso"
+  const [mostrandoCajaTexto, setMostrandoCajaTexto] = useState(false);
+  const [comentarioEstado, setComentarioEstado] = useState('');
+
   const [archivosReparacion, setArchivosReparacion] = useState([]);
   const [previewsReparacion, setPreviewsReparacion] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -34,13 +38,11 @@ const DetalleSolicitud = () => {
   const cargarDetalle = async () => {
     setLoading(true);
     try {
-      // Hacemos ambas peticiones en paralelo para evitar problemas de Lazy Loading en el Backend
       const [resSol, resEvidencias] = await Promise.all([
         api.get(`/solicitudes/${id}`),
         api.get(`/archivos-evidencia/solicitud/${id}`).catch(() => ({ data: [] }))
       ]);
 
-      // Guardamos la solicitud inyectándole directamente las evidencias obtenidas
       setSolicitud({
         ...resSol.data,
         archivosEvidencia: resEvidencias.data
@@ -59,9 +61,11 @@ const DetalleSolicitud = () => {
     setError('');
     setSuccess('');
     try {
-      const res = await api.patch(`/solicitudes/${id}/estado/${nuevoEstadoId}`);
+      // Enviamos el comentario opcional en el cuerpo de la petición si existe
+      const res = await api.patch(`/solicitudes/${id}/estado/${nuevoEstadoId}`, {
+        comentario: comentarioEstado 
+      });
       
-      // Al actualizar el estado, volvemos a traer las evidencias actualizadas
       const resEvidencias = await api.get(`/archivos-evidencia/solicitud/${id}`).catch(() => ({ data: [] }));
       
       setSolicitud({
@@ -70,6 +74,11 @@ const DetalleSolicitud = () => {
       });
       
       setSuccess('Estado actualizado y notificaciones enviadas.');
+      
+      // Limpiamos y cerramos la caja de texto
+      setMostrandoCajaTexto(false);
+      setComentarioEstado('');
+
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       if (err.response?.status !== 401) {
@@ -124,8 +133,6 @@ const DetalleSolicitud = () => {
   if (!solicitud) return <div className={styles.container}><p style={{color: 'white', textAlign: 'center'}}>Solicitud no encontrada.</p></div>;
 
   const estadoActual = solicitud.estadoSolicitud?.nombre || '';
-
-  // Filtramos usando la propiedad inyectada de forma segura
   const listaEvidencias = solicitud.archivosEvidencia || [];
   const evidenciasEstado = listaEvidencias.filter(e => e.tipoEvidencia?.id === 1);
   const evidenciasReparacion = listaEvidencias.filter(e => e.tipoEvidencia?.id === 2);
@@ -182,23 +189,72 @@ const DetalleSolicitud = () => {
             </div>
           </div>
           
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {/* SECCIÓN INTERACTIVA DE BOTONES DE ESTADO */}
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             {estadoActual === 'Pendiente' && (
               <>
-                <button 
-                  onClick={() => handleCambioEstado(ESTADOS.EN_PROCESO)} 
-                  className={styles.estadoBtn}
-                  style={{backgroundColor: '#ffc107', color: '#333'}}
-                >
-                  Marcar En Proceso
-                </button>
-                <button 
-                  onClick={() => handleCambioEstado(ESTADOS.NO_APLICA)} 
-                  className={styles.estadoBtn}
-                  style={{backgroundColor: '#6c757d', color: 'white'}}
-                >
-                  Marcar No Aplica
-                </button>
+                {!mostrandoCajaTexto ? (
+                  <>
+                    <button 
+                      onClick={() => setMostrandoCajaTexto(true)} 
+                      className={styles.estadoBtn}
+                      style={{ backgroundColor: '#ffc107', color: '#333' }}
+                    >
+                      Marcar En Proceso
+                    </button>
+                    <button 
+                      onClick={() => handleCambioEstado(ESTADOS.NO_APLICA)} 
+                      className={styles.estadoBtn}
+                      style={{ backgroundColor: '#6c757d', color: 'white' }}
+                    >
+                      Marcar No Aplica
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                    <textarea
+                      placeholder="Escribe una observación o mensaje para los correos (opcional)..."
+                      value={comentarioEstado}
+                      onChange={(e) => setComentarioEstado(e.target.value)}
+                      style={{
+                        width: '300px',
+                        height: '70px',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        border: '1px solid #ccc',
+                        fontSize: '13px',
+                        resize: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => {
+                          setMostrandoCajaTexto(false);
+                          setComentarioEstado('');
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: '#e0e0e0',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                      <button 
+                        onClick={() => handleCambioEstado(ESTADOS.EN_PROCESO)} 
+                        className={styles.estadoBtn}
+                        style={{ backgroundColor: '#28a745', color: 'white' }}
+                      >
+                        Enviar correos
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
             {estadoActual === 'En Proceso' && (
@@ -219,7 +275,6 @@ const DetalleSolicitud = () => {
           </div>
         </div>
 
-        {/* Sección de Evidencia Inicial */}
         <div style={{ borderTop: '2px solid #eee', paddingTop: '20px' }}>
           <h3 style={{ 
             display: 'flex',            
@@ -240,7 +295,6 @@ const DetalleSolicitud = () => {
           )}
         </div>
 
-        {/* Sección de Evidencia de Reparación */}
         <div style={{ borderTop: '2px solid #eee', paddingTop: '20px', marginTop: '20px' }}>
           <h3 style={{ 
             display: 'flex',          
