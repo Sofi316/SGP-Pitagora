@@ -250,7 +250,7 @@ const DetalleSolicitud = () => {
                         className={styles.estadoBtn}
                         style={{ backgroundColor: '#28a745', color: 'white' }}
                       >
-                        Enviar correos
+                        Realizar Cambios
                       </button>
                     </div>
                   </div>
