@@ -13,9 +13,10 @@ const DetalleSolicitud = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Nuevos estados para controlar la caja de texto al cambiar a "En Proceso"
+  // Control de la caja de texto y comentarios
   const [mostrandoCajaTexto, setMostrandoCajaTexto] = useState(false);
   const [comentarioEstado, setComentarioEstado] = useState('');
+  const [estadoDestino, setEstadoDestino] = useState(null); // Almacena el ID del estado al que se quiere cambiar
 
   const [archivosReparacion, setArchivosReparacion] = useState([]);
   const [previewsReparacion, setPreviewsReparacion] = useState([]);
@@ -57,13 +58,13 @@ const DetalleSolicitud = () => {
     }
   };
 
-  const handleCambioEstado = async (nuevoEstadoId) => {
+  const handleCambioEstado = async (nuevoEstadoId, textoComentario = '') => {
     setError('');
     setSuccess('');
     try {
-      // Enviamos el comentario opcional en el cuerpo de la petición si existe
+      // Enviamos el comentario estructurado al backend
       const res = await api.patch(`/solicitudes/${id}/estado/${nuevoEstadoId}`, {
-        comentario: comentarioEstado 
+        comentario: textoComentario 
       });
       
       const resEvidencias = await api.get(`/archivos-evidencia/solicitud/${id}`).catch(() => ({ data: [] }));
@@ -75,9 +76,10 @@ const DetalleSolicitud = () => {
       
       setSuccess('Estado actualizado y notificaciones enviadas.');
       
-      // Limpiamos y cerramos la caja de texto
+      // Limpieza de estados de control
       setMostrandoCajaTexto(false);
       setComentarioEstado('');
+      setEstadoDestino(null);
 
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
@@ -86,6 +88,19 @@ const DetalleSolicitud = () => {
         setError(msg);
       }
     }
+  };
+
+  // Activa el flujo de comentarios según el botón presionado
+  const abrirCajaComentario = (idEstado) => {
+    setEstadoDestino(idEstado);
+    setMostrandoCajaTexto(true);
+  };
+
+  // Cancela la acción actual y limpia el formulario
+  const cancelarCambioEstado = () => {
+    setMostrandoCajaTexto(false);
+    setComentarioEstado('');
+    setEstadoDestino(null);
   };
 
   const handleFileChange = (e) => {
@@ -166,6 +181,22 @@ const DetalleSolicitud = () => {
     );
   };
 
+  // Helper para definir dinámicamente el color y texto del botón de confirmación
+  const obtenerConfiguracionBoton = () => {
+    switch(estadoDestino) {
+      case ESTADOS.EN_PROCESO:
+        return { texto: 'Confirmar En Proceso', color: '#ffc107', textoColor: '#333' };
+      case ESTADOS.NO_APLICA:
+        return { texto: 'Confirmar No Aplica', color: '#6c757d', colorTexto: 'white' };
+      case ESTADOS.TERMINADO:
+        return { texto: 'Confirmar Terminado', color: '#17a2b8', colorTexto: 'white' };
+      default:
+        return { texto: 'Realizar Cambios', color: '#28a745', colorTexto: 'white' };
+    }
+  };
+
+  const configBotonFinal = obtenerConfiguracionBoton();
+
   return (
     <div className={styles.container}>
       <div className={styles.headerRow}>
@@ -191,74 +222,81 @@ const DetalleSolicitud = () => {
           
           {/* SECCIÓN INTERACTIVA DE BOTONES DE ESTADO */}
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-            {estadoActual === 'Pendiente' && (
+            {!mostrandoCajaTexto ? (
               <>
-                {!mostrandoCajaTexto ? (
+                {estadoActual === 'Pendiente' && (
                   <>
                     <button 
-                      onClick={() => setMostrandoCajaTexto(true)} 
+                      onClick={() => abrirCajaComentario(ESTADOS.EN_PROCESO)} 
                       className={styles.estadoBtn}
                       style={{ backgroundColor: '#ffc107', color: '#333' }}
                     >
                       Marcar En Proceso
                     </button>
                     <button 
-                      onClick={() => handleCambioEstado(ESTADOS.NO_APLICA)} 
+                      onClick={() => abrirCajaComentario(ESTADOS.NO_APLICA)} 
                       className={styles.estadoBtn}
                       style={{ backgroundColor: '#6c757d', color: 'white' }}
                     >
                       Marcar No Aplica
                     </button>
                   </>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                    <textarea
-                      placeholder="Escribe una observación o mensaje para los correos (opcional)..."
-                      value={comentarioEstado}
-                      onChange={(e) => setComentarioEstado(e.target.value)}
-                      style={{
-                        width: '300px',
-                        height: '70px',
-                        padding: '8px',
-                        borderRadius: '4px',
-                        border: '1px solid #ccc',
-                        fontSize: '13px',
-                        resize: 'none',
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => {
-                          setMostrandoCajaTexto(false);
-                          setComentarioEstado('');
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#e0e0e0',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '13px',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        Cancelar
-                      </button>
-                      <button 
-                        onClick={() => handleCambioEstado(ESTADOS.EN_PROCESO)} 
-                        className={styles.estadoBtn}
-                        style={{ backgroundColor: '#28a745', color: 'white' }}
-                      >
-                        Realizar Cambios
-                      </button>
-                    </div>
-                  </div>
+                )}
+                {estadoActual === 'En Proceso' && (
+                   <button 
+                     onClick={() => abrirCajaComentario(ESTADOS.TERMINADO)} 
+                     className={styles.estadoBtn} 
+                     style={{ backgroundColor: '#17a2b8', color: 'white' }}
+                   >
+                     Marcar Terminado
+                   </button>
                 )}
               </>
-            )}
-            {estadoActual === 'En Proceso' && (
-               <button onClick={() => handleCambioEstado(ESTADOS.TERMINADO)} className={styles.estadoBtn} style={{ backgroundColor: '#17a2b8', color: 'white' }}>Marcar Terminado</button>
+            ) : (
+              /* CAJA DE TEXTO GENERALIZADA PARA CUALQUIER CAMBIO DE ESTADO */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                <textarea
+                  placeholder={`Escribe una observación para el correo de notificación...`}
+                  value={comentarioEstado}
+                  onChange={(e) => setComentarioEstado(e.target.value)}
+                  style={{
+                    width: '300px',
+                    height: '70px',
+                    padding: '8px',
+                    borderRadius: '4px',
+                    border: '1px solid #ccc',
+                    fontSize: '13px',
+                    resize: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={cancelarCambioEstado}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#e0e0e0',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={() => handleCambioEstado(estadoDestino, comentarioEstado)} 
+                    className={styles.estadoBtn}
+                    style={{ 
+                      backgroundColor: configBotonFinal.color, 
+                      color: configBotonFinal.colorTexto || 'white' 
+                    }}
+                  >
+                    {configBotonFinal.texto}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
