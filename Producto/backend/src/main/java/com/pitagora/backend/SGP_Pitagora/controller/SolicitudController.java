@@ -3,7 +3,9 @@ package com.pitagora.backend.SGP_Pitagora.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
+import com.pitagora.backend.SGP_Pitagora.service.ReporteService;
 import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
 
 @RestController
@@ -28,9 +31,11 @@ import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
 public class SolicitudController {
 
     private final SolicitudService solicitudService;
+    private final ReporteService reporteService; 
 
-    public SolicitudController(SolicitudService solicitudService) {
+    public SolicitudController(SolicitudService solicitudService, ReporteService reporteService) { // <-- Modificar el constructor
         this.solicitudService = solicitudService;
+        this.reporteService = reporteService; 
     }
 
     @GetMapping 
@@ -133,5 +138,31 @@ public class SolicitudController {
         solicitudService.agregarEvidenciaReparacion(id, archivos);
         
         return ResponseEntity.ok("Evidencia de reparación guardada exitosamente.");
+    }
+    @PostMapping("/exportar/excel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<byte[]> exportarExcel(@RequestBody List<Long> idsSolicitudes) {
+        try {
+            List<Solicitud> todasLasSolicitudes = solicitudService.obtenerTodas();
+            List<Solicitud> solicitudesFiltradas = todasLasSolicitudes.stream()
+                    .filter(s -> idsSolicitudes.contains(s.getId()))
+                    .toList();
+
+            if (solicitudesFiltradas.isEmpty()) {
+                 return ResponseEntity.badRequest().body(null);
+            }
+
+            byte[] excelBytes = reporteService.exportarSolicitudesAExcel(solicitudesFiltradas);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", "reporte_observaciones.xlsx");
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
