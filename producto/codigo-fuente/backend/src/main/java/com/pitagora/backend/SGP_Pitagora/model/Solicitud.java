@@ -56,6 +56,9 @@ public class Solicitud {
 
     @Column(name = "calificacion")
     private Integer calificacion;
+
+    @Column(name = "costo_reparacion")
+    private Long costoReparacion = 0L;
     
     @ManyToOne
     @JoinColumn(name = "id_estado", nullable = false)

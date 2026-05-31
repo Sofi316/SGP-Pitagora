@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import styles from './SolicitudesAdmin.module.css';
-import { FaCamera, FaWrench } from "react-icons/fa";
+import { FaCamera, FaWrench, FaDollarSign } from "react-icons/fa";
 
 const DetalleSolicitud = () => {
   const { id } = useParams();
@@ -26,6 +26,10 @@ const DetalleSolicitud = () => {
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef(null);
 
+  // --- NUEVOS ESTADOS PARA MANEJAR EL COSTO DE REPARACIÓN ENTERO ---
+  const [costoReparacion, setCostoReparacion] = useState('0');
+  const [isSavingCosts, setIsSavingCosts] = useState(false);
+
   const ESTADOS = {
     PENDIENTE: 1,
     EN_PROCESO: 2,
@@ -38,6 +42,13 @@ const DetalleSolicitud = () => {
   useEffect(() => {
     cargarDetalle();
   }, [id]);
+
+  // Sincronizar el input con el costo proveniente del backend cuando la solicitud cambie
+  useEffect(() => {
+    if (solicitud) {
+      setCostoReparacion(solicitud.costoReparacion?.toString() || '0');
+    }
+  }, [solicitud]);
 
   const cargarDetalle = async () => {
     setLoading(true);
@@ -93,6 +104,43 @@ const DetalleSolicitud = () => {
       }
     } finally {
       setIsChangingStatus(false); // Apagamos el estado de carga al terminar
+    }
+  };
+
+  // --- FUNCIÓN PARA GUARDAR EL COSTO EN EL BACKEND ---
+  const handleGuardarCosto = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    const montoEntero = parseInt(costoReparacion, 10);
+
+    if (isNaN(montoEntero) || montoEntero < 0) {
+      setError('Por favor, ingresa un número entero válido y mayor o igual a cero.');
+      return;
+    }
+
+    setIsSavingCosts(true);
+    try {
+      // Enviamos el valor plano al endpoint del controlador
+      const res = await api.put(`/solicitudes/${id}/costos`, { monto: montoEntero });
+      
+      const resEvidencias = await api.get(`/archivos-evidencia/solicitud/${id}`).catch(() => ({ data: [] }));
+      
+      setSolicitud({
+        ...res.data,
+        archivosEvidencia: resEvidencias.data
+      });
+
+      setSuccess('Costo de reparación actualizado correctamente.');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al guardar el costo.';
+        setError(msg);
+      }
+    } finally {
+      setIsSavingCosts(false);
     }
   };
 
@@ -281,7 +329,7 @@ const DetalleSolicitud = () => {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={cancelarCambioEstado}
-                    disabled={isChangingStatus} // Evita cancelar la operación en medio del envío
+                    disabled={isChangingStatus} // Evita cancelar la operation en medio del envío
                     style={{
                       padding: '6px 12px',
                       backgroundColor: '#e0e0e0',
@@ -360,7 +408,7 @@ const DetalleSolicitud = () => {
             </div>
           )}
 
-          {(estadoActual === 'En Proceso' || estadoActual === 'Terminado') && (
+          {(estadoActual === 'En Proceso' || estadoActual === 'Terminado' || estadoActual === 'Aprobado') && (
             <div style={{ backgroundColor: '#e9ecef', padding: '15px', borderRadius: '6px', border: '1px dashed #adb5bd' }}>
               <input type="file" multiple hidden accept="image/*,.pdf" onChange={handleFileChange} ref={inputRef} />
               
@@ -393,6 +441,57 @@ const DetalleSolicitud = () => {
                 )}
               </div>
             </div>
+          )}
+        </div>
+
+        {/* --- NUEVA SECCIÓN: LIQUIDACIÓN FINANCIERA (CONTROL DE COSTO TOTAL) --- */}
+        <div style={{ borderTop: '2px solid #eee', paddingTop: '20px', marginTop: '20px' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', color: '#0d3b66', marginBottom: '15px' }}>
+            <FaDollarSign /> Liquidación Financiera (Postventa)
+          </h3>
+
+          {/* Validamos si el estado es Terminado o posterior (Aprobado) */}
+          {(estadoActual !== 'Terminado' && estadoActual !== 'Aprobado') ? (
+            <div style={{ padding: '15px', backgroundColor: '#eef2f5', borderRadius: '6px', borderLeft: '4px solid #7e9ab2', color: '#364a5e' }}>
+              <p style={{ margin: 0, fontSize: '13px' }}>
+                El ingreso del costo final de la reparación estará disponible automáticamente cuando la solicitud cambie al estado <strong>Terminado</strong> o <strong>Aprobado</strong>.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleGuardarCosto} style={{ display: 'flex', alignItems: 'center', gap: '20px', backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 'bold', color: '#495057' }}>Costo Total de Reparación ($):</label>
+                <input
+                  type="number"
+                  placeholder="Ej: 6000000"
+                  value={costoReparacion}
+                  onChange={(e) => setCostoReparacion(e.target.value)}
+                  disabled={isSavingCosts}
+                  required
+                  style={{ width: '220px', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', fontSize: '14px' }}
+                />
+              </div>
+
+              <div style={{ marginTop: '22px' }}>
+                <button
+                  type="submit"
+                  disabled={isSavingCosts}
+                  style={{
+                    background: isSavingCosts ? '#ccc' : '#2a9d8f',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '9px 20px',
+                    cursor: isSavingCosts ? 'not-allowed' : 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    transition: 'background 0.2s'
+                  }}
+                >
+                  {isSavingCosts ? 'Guardando...' : 'Guardar Costo Total'}
+                </button>
+              </div>
+            </form>
           )}
         </div>
 

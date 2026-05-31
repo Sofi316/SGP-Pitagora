@@ -129,7 +129,7 @@ public class SolicitudController {
         return ResponseEntity.ok("Evidencia de reparación guardada exitosamente.");
     }
 
-@PatchMapping("/{id}/estado/{nuevoEstadoId}")
+    @PatchMapping("/{id}/estado/{nuevoEstadoId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     public ResponseEntity<?> cambiarEstado(
             @PathVariable Long id,
@@ -140,5 +140,15 @@ public class SolicitudController {
         Solicitud solicitudActualizada = solicitudService.cambiarEstado(id, nuevoEstadoId, comentarioParaCorreo);
         return ResponseEntity.ok(solicitudActualizada);
     }
-}
 
+    @PutMapping("/{id}/costos")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Solicitud> registrarCostoTotal(
+            @PathVariable Long id, 
+            @RequestBody Map<String, Long> body) {
+        
+        Long monto = body.get("monto");
+        Solicitud solicitudActualizada = solicitudService.registrarCostoTotal(id, monto);
+        return ResponseEntity.ok(solicitudActualizada);
+    }
+}

@@ -240,4 +240,11 @@ public class SolicitudService {
         solicitud.setCalificacion(estrellas);
         return solicitudRepository.save(solicitud); 
     }
+
+    @Transactional
+    public Solicitud registrarCostoTotal(Long id, Long monto) {
+        Solicitud solicitud = obtenerPorId(id);
+        solicitud.setCostoReparacion(monto != null ? monto : 0L);
+        return solicitudRepository.save(solicitud);
+    }
 }
