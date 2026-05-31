@@ -18,6 +18,9 @@ const DetalleSolicitud = () => {
   const [comentarioEstado, setComentarioEstado] = useState('');
   const [estadoDestino, setEstadoDestino] = useState(null); // Almacena el ID del estado al que se quiere cambiar
 
+  // Control del estado de carga al procesar cambios de estado
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
+
   const [archivosReparacion, setArchivosReparacion] = useState([]);
   const [previewsReparacion, setPreviewsReparacion] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -61,6 +64,7 @@ const DetalleSolicitud = () => {
   const handleCambioEstado = async (nuevoEstadoId, textoComentario = '') => {
     setError('');
     setSuccess('');
+    setIsChangingStatus(true); // Encendemos el estado de carga
     try {
       // Enviamos el comentario estructurado al backend
       const res = await api.patch(`/solicitudes/${id}/estado/${nuevoEstadoId}`, {
@@ -87,6 +91,8 @@ const DetalleSolicitud = () => {
         const msg = err.response?.data?.message || 'Error al cambiar estado.';
         setError(msg);
       }
+    } finally {
+      setIsChangingStatus(false); // Apagamos el estado de carga al terminar
     }
   };
 
@@ -181,7 +187,7 @@ const DetalleSolicitud = () => {
     );
   };
 
-  // Helper para definir dinámicamente el color y texto del botón de confirmación
+  // Helper para definir dinámicamente el color y texto del botón de confirmation
   const obtenerConfiguracionBoton = () => {
     switch(estadoDestino) {
       case ESTADOS.EN_PROCESO:
@@ -258,6 +264,7 @@ const DetalleSolicitud = () => {
                 <textarea
                   placeholder={`Escribe una observación para el correo de notificación...`}
                   value={comentarioEstado}
+                  disabled={isChangingStatus} // Bloquea la edición del texto mientras carga
                   onChange={(e) => setComentarioEstado(e.target.value)}
                   style={{
                     width: '300px',
@@ -267,18 +274,20 @@ const DetalleSolicitud = () => {
                     border: '1px solid #ccc',
                     fontSize: '13px',
                     resize: 'none',
-                    fontFamily: 'inherit'
+                    fontFamily: 'inherit',
+                    backgroundColor: isChangingStatus ? '#f5f5f5' : '#fff'
                   }}
                 />
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={cancelarCambioEstado}
+                    disabled={isChangingStatus} // Evita cancelar la operación en medio del envío
                     style={{
                       padding: '6px 12px',
                       backgroundColor: '#e0e0e0',
                       border: 'none',
                       borderRadius: '4px',
-                      cursor: 'pointer',
+                      cursor: isChangingStatus ? 'not-allowed' : 'pointer',
                       fontSize: '13px',
                       fontWeight: 'bold'
                     }}
@@ -288,12 +297,14 @@ const DetalleSolicitud = () => {
                   <button 
                     onClick={() => handleCambioEstado(estadoDestino, comentarioEstado)} 
                     className={styles.estadoBtn}
+                    disabled={isChangingStatus} // Deshabilita el clic reiterado
                     style={{ 
-                      backgroundColor: configBotonFinal.color, 
-                      color: configBotonFinal.colorTexto || 'white' 
+                      backgroundColor: isChangingStatus ? '#9e9e9e' : configBotonFinal.color, 
+                      color: configBotonFinal.colorTexto || 'white',
+                      cursor: isChangingStatus ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    {configBotonFinal.texto}
+                    {isChangingStatus ? 'Cargando...' : configBotonFinal.texto}
                   </button>
                 </div>
               </div>
