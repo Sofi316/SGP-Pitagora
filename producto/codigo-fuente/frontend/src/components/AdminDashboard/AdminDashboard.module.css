@@ -1,0 +1,202 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.checkboxContainer input {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.exportBtn {
+  background-color: #28a745; /* Verde */
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s, opacity 0.2s;
+  line-height: 1; 
+  text-decoration: none;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background-color: #218838; /* Verde más oscuro al pasar el ratón */
+}
+
+.exportBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.exportBtn svg {
+  display: block;
+}
+
+.menuBox {
+  background-color: #aec4d6;
+  padding: 20px 30px;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.formGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+.selectLabel {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.menuItem {
+  background-color: #7e9ab2;
+  color: #ffffff;
+  padding: 12px 15px;
+  font-size: 15px;
+  border-radius: 2px;
+  border: none;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  cursor: pointer;
+}
+
+.menuItem option {
+  background-color: #ffffff;
+  color: #333333;
+}
+
+.menuItem::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.kpiRow {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.kpiCard {
+  flex: 1;
+  min-width: 250px;
+  padding: 25px 20px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.kpiTotal {
+  background-color: #007bff;
+  color: #ffffff;
+}
+
+.kpiPendiente {
+  background-color: #ffc107;
+  color: #333333;
+}
+
+.kpiAprobado {
+  background-color: #28a745;
+  color: #ffffff;
+}
+
+.kpiTitle {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.kpiValue {
+  font-size: 38px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.chartsRow {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.chartCard {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chartCardPie {
+  flex: 0 0 40%;
+  min-width: 300px;
+}
+
+.chartCardBar {
+  flex: 1;
+  min-width: 400px;
+}
+
+.chartTitle {
+  color: #333333;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.chartContainer {
+  height: 300px;
+  width: 100%;
+}

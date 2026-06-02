@@ -35,14 +35,14 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/auth/**").permitAll() 
                 .requestMatchers("/api/auth/solicitar-recuperacion").permitAll() 
                 .requestMatchers("/api/auth/reset-password").permitAll()
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
                 
                 // 2. Usuarios
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/todos").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/filtrar").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").authenticated() // Users can view their own profile
-                .requestMatchers(HttpMethod.PUT, "/api/usuarios/*").authenticated() // Users can update their own profile
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").authenticated() 
+                .requestMatchers(HttpMethod.PUT, "/api/usuarios/*").authenticated() 
                 .requestMatchers(HttpMethod.PUT, "/api/usuarios/reactivar/*").hasRole("ADMIN")
                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 

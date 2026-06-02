@@ -22,6 +22,7 @@ import DetalleObra from './components/ObrasAdmin/DetalleObra';
 import ClientSolicitudes from './components/ClientSolicitudes/ClientSolicitudes';
 import ClientProfile from './components/ClientProfile/ClientProfile';
 import AutoLogout from './services/Autologout';
+import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import './index.css';
 
 function App() {
@@ -51,7 +52,7 @@ function App() {
 
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<InicioAdmin />} />
-              <Route path="dashboard" element={<div style={{color: 'white'}}>Dashboard</div>} />
+              <Route path="dashboard" element={<AdminDashboard/>} />
               <Route path="solicitudes" element={<SolicitudesAdmin/>} />
               <Route path="solicitudes/empresa/:id" element={<SolicitudesObras/>} />
               <Route path="solicitudes/:id" element={<DetalleSolicitud />} />
