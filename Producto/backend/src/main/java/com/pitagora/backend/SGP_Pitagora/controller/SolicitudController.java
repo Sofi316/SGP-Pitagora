@@ -165,4 +165,30 @@ public class SolicitudController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+    @PostMapping("/exportar/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<byte[]> exportarPdf(@RequestBody List<Long> idsSolicitudes) {
+        try {
+            List<Solicitud> todasLasSolicitudes = solicitudService.obtenerTodas();
+            List<Solicitud> solicitudesFiltradas = todasLasSolicitudes.stream()
+                    .filter(s -> idsSolicitudes.contains(s.getId()))
+                    .toList();
+
+            if (solicitudesFiltradas.isEmpty()) {
+                 return ResponseEntity.badRequest().body(null);
+            }
+
+            byte[] pdfBytes = reporteService.exportarSolicitudesAPdf(solicitudesFiltradas);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/pdf"));
+            headers.setContentDispositionFormData("attachment", "reporte_observaciones.pdf");
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }

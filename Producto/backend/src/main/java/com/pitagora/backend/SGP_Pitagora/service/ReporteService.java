@@ -1,7 +1,10 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -11,13 +14,22 @@ import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.Element;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 
@@ -28,7 +40,7 @@ public class ReporteService {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             CellStyle headerStyle = workbook.createCellStyle();
-            Font headerFont = workbook.createFont();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
             headerFont.setBold(true);
             headerFont.setColor(IndexedColors.WHITE.getIndex());
             headerStyle.setFont(headerFont);
@@ -46,7 +58,7 @@ public class ReporteService {
             dataStyle.setBorderRight(BorderStyle.THIN);
 
             CellStyle subHeaderStyle = workbook.createCellStyle();
-            Font subHeaderFont = workbook.createFont();
+            org.apache.poi.ss.usermodel.Font subHeaderFont = workbook.createFont();
             subHeaderFont.setBold(true);
             subHeaderStyle.setFont(subHeaderFont);
             subHeaderStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
@@ -204,6 +216,249 @@ public class ReporteService {
 
             workbook.write(out);
             return out.toByteArray();
+        }
+    }
+
+    public byte[] exportarSolicitudesAPdf(List<Solicitud> solicitudes) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4.rotate(), 36, 36, 50, 50);
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            com.lowagie.text.Font fontTitle = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, Color.BLACK);
+            com.lowagie.text.Font fontSubtitle = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, Color.BLACK);
+            com.lowagie.text.Font fontHeader = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.WHITE);
+            com.lowagie.text.Font fontData = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.BLACK);
+            com.lowagie.text.Font fontSubHeader = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, Color.BLACK);
+            com.lowagie.text.Font fontMeta = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10, Color.DARK_GRAY);
+            
+            Color bgHeader = new Color(0, 0, 139);
+            Color bgSubHeader = new Color(220, 220, 220);
+
+            Paragraph title = new Paragraph("Reporte Integral de Solicitudes", fontTitle);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(5);
+            document.add(title);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            Paragraph metadata = new Paragraph("Generado el: " + LocalDateTime.now().format(formatter), fontMeta);
+            metadata.setAlignment(Element.ALIGN_CENTER);
+            metadata.setSpacingAfter(25);
+            document.add(metadata);
+
+            long total = solicitudes.size();
+            long pendientes = 0;
+            long enProceso = 0;
+            long terminados = 0;
+            long aprobados = 0;
+            long rechazados = 0;
+            long noAplica = 0;
+
+            for (Solicitud s : solicitudes) {
+                if (s.getEstadoSolicitud() != null && s.getEstadoSolicitud().getNombre() != null) {
+                    String estadoNormalizado = s.getEstadoSolicitud().getNombre().trim().toUpperCase().replace(" ", "_");
+                    switch (estadoNormalizado) {
+                        case "PENDIENTE": pendientes++; break;
+                        case "EN_PROCESO": enProceso++; break;
+                        case "TERMINADO": terminados++; break;
+                        case "APROBADO": aprobados++; break;
+                        case "RECHAZADO": rechazados++; break;
+                        case "NO_APLICA": noAplica++; break;
+                    }
+                }
+            }
+
+            Paragraph subtitle1 = new Paragraph("1. Resumen General por Estados", fontSubtitle);
+            subtitle1.setSpacingAfter(10);
+            document.add(subtitle1);
+
+            PdfPTable tableEst = new PdfPTable(3);
+            tableEst.setWidthPercentage(70f);
+            tableEst.setHorizontalAlignment(Element.ALIGN_LEFT);
+            tableEst.setSpacingAfter(20);
+
+            String[] estHeaders = {"Métrica de Estado", "Cantidad", "Porcentaje"};
+            for (String h : estHeaders) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, fontHeader));
+                cell.setBackgroundColor(bgHeader);
+                cell.setPadding(6);
+                tableEst.addCell(cell);
+            }
+
+            String[][] summaryData = {
+                {"Total Solicitudes Procesadas", String.valueOf(total), "100.0%"},
+                {"Pendientes", String.valueOf(pendientes), calcularPorcentaje(pendientes, total)},
+                {"Postventa Ejecutada (En Proceso)", String.valueOf(enProceso), calcularPorcentaje(enProceso, total)},
+                {"Terminados", String.valueOf(terminados), calcularPorcentaje(terminados, total)},
+                {"Recepcionados por Clientes (Aprobados)", String.valueOf(aprobados), calcularPorcentaje(aprobados, total)},
+                {"Rechazados", String.valueOf(rechazados), calcularPorcentaje(rechazados, total)},
+                {"No Aplica", String.valueOf(noAplica), calcularPorcentaje(noAplica, total)}
+            };
+
+            for (String[] rowData : summaryData) {
+                for (String text : rowData) {
+                    PdfPCell cell = new PdfPCell(new Phrase(text, fontData));
+                    cell.setPadding(5);
+                    tableEst.addCell(cell);
+                }
+            }
+            document.add(tableEst);
+
+            Paragraph subtitleObra = new Paragraph("2. Resumen de Volumen por Obra", fontSubtitle);
+            subtitleObra.setSpacingAfter(10);
+            document.add(subtitleObra);
+
+            PdfPTable tableObra = new PdfPTable(3);
+            tableObra.setWidthPercentage(70f);
+            tableObra.setHorizontalAlignment(Element.ALIGN_LEFT);
+            tableObra.setSpacingAfter(20);
+
+            String[] obraHeaders = {"Nombre de la Obra", "Cantidad de Solicitudes", "Porcentaje del Total"};
+            for (String h : obraHeaders) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, fontHeader));
+                cell.setBackgroundColor(bgHeader);
+                cell.setPadding(6);
+                tableObra.addCell(cell);
+            }
+
+            Map<String, Long> countByObra = solicitudes.stream()
+                .collect(Collectors.groupingBy(
+                    s -> (s.getObra() != null && s.getObra().getNombre() != null) ? s.getObra().getNombre() : "Sin Obra Asignada",
+                    Collectors.counting()
+                ));
+
+            for (Map.Entry<String, Long> entry : countByObra.entrySet()) {
+                PdfPCell c1 = new PdfPCell(new Phrase(entry.getKey(), fontData));
+                c1.setPadding(5); tableObra.addCell(c1);
+                
+                PdfPCell c2 = new PdfPCell(new Phrase(String.valueOf(entry.getValue()), fontData));
+                c2.setPadding(5); tableObra.addCell(c2);
+                
+                PdfPCell c3 = new PdfPCell(new Phrase(calcularPorcentaje(entry.getValue(), total), fontData));
+                c3.setPadding(5); tableObra.addCell(c3);
+            }
+            document.add(tableObra);
+
+            Paragraph subtitle2 = new Paragraph("3. Desglose Estructural por Categorías", fontSubtitle);
+            subtitle2.setSpacingAfter(10);
+            document.add(subtitle2);
+
+            PdfPTable tableCat = new PdfPTable(4);
+            tableCat.setWidthPercentage(90f);
+            tableCat.setHorizontalAlignment(Element.ALIGN_LEFT);
+            tableCat.setWidths(new float[]{3f, 3f, 1f, 1.5f});
+            tableCat.setSpacingAfter(30);
+
+            String[] catHeaders = {"Categoría Principal", "Subcategoría", "Cantidad", "Porcentaje"};
+            for (String h : catHeaders) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, fontHeader));
+                cell.setBackgroundColor(bgHeader);
+                cell.setPadding(6);
+                tableCat.addCell(cell);
+            }
+
+            Map<String, Map<String, Long>> catSubCatCount = solicitudes.stream()
+                .collect(Collectors.groupingBy(
+                    s -> (s.getSubCategoria() != null && s.getSubCategoria().getCategoria() != null && s.getSubCategoria().getCategoria().getNombre() != null) 
+                         ? s.getSubCategoria().getCategoria().getNombre() : "Sin Categoría",
+                    Collectors.groupingBy(
+                        s -> (s.getSubCategoria() != null && s.getSubCategoria().getNombre() != null)
+                             ? s.getSubCategoria().getNombre() : "Sin Subcategoría",
+                        Collectors.counting()
+                    )
+                ));
+
+            for (Map.Entry<String, Map<String, Long>> catEntry : catSubCatCount.entrySet()) {
+                String categoria = catEntry.getKey();
+                Map<String, Long> subCats = catEntry.getValue();
+                long totalCategoria = subCats.values().stream().mapToLong(Long::longValue).sum();
+
+                PdfPCell c1 = new PdfPCell(new Phrase(categoria, fontSubHeader));
+                c1.setBackgroundColor(bgSubHeader); c1.setPadding(5); tableCat.addCell(c1);
+                
+                PdfPCell c2 = new PdfPCell(new Phrase("TOTAL CATEGORÍA", fontSubHeader));
+                c2.setBackgroundColor(bgSubHeader); c2.setPadding(5); tableCat.addCell(c2);
+                
+                PdfPCell c3 = new PdfPCell(new Phrase(String.valueOf(totalCategoria), fontSubHeader));
+                c3.setBackgroundColor(bgSubHeader); c3.setPadding(5); tableCat.addCell(c3);
+                
+                PdfPCell c4 = new PdfPCell(new Phrase(calcularPorcentaje(totalCategoria, total), fontSubHeader));
+                c4.setBackgroundColor(bgSubHeader); c4.setPadding(5); tableCat.addCell(c4);
+
+                for (Map.Entry<String, Long> subCatEntry : subCats.entrySet()) {
+                    PdfPCell sc1 = new PdfPCell(new Phrase("", fontData));
+                    sc1.setPadding(5); tableCat.addCell(sc1);
+                    
+                    PdfPCell sc2 = new PdfPCell(new Phrase(subCatEntry.getKey(), fontData));
+                    sc2.setPadding(5); tableCat.addCell(sc2);
+                    
+                    PdfPCell sc3 = new PdfPCell(new Phrase(String.valueOf(subCatEntry.getValue()), fontData));
+                    sc3.setPadding(5); tableCat.addCell(sc3);
+                    
+                    PdfPCell sc4 = new PdfPCell(new Phrase(calcularPorcentaje(subCatEntry.getValue(), total), fontData));
+                    sc4.setPadding(5); tableCat.addCell(sc4);
+                }
+            }
+            document.add(tableCat);
+
+            document.newPage();
+
+            Paragraph subtitle3 = new Paragraph("4. Registro Detallado de Solicitudes", fontSubtitle);
+            subtitle3.setSpacingAfter(10);
+            document.add(subtitle3);
+
+            PdfPTable tableDet = new PdfPTable(8);
+            tableDet.setWidthPercentage(100f);
+            tableDet.setWidths(new float[]{1f, 2f, 3f, 3f, 2f, 2.5f, 2.5f, 4f});
+
+            String[] detHeaders = {"ID", "Fecha Ingreso", "Empresa", "Obra", "Estado", "Categoría", "Subcategoría", "Descripción"};
+            for (String h : detHeaders) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, fontHeader));
+                cell.setBackgroundColor(bgHeader);
+                cell.setPadding(6);
+                tableDet.addCell(cell);
+            }
+
+            for (Solicitud solicitud : solicitudes) {
+                PdfPCell idCell = new PdfPCell(new Phrase(String.valueOf(solicitud.getId()), fontData));
+                idCell.setPadding(5); tableDet.addCell(idCell);
+                
+                String fecha = solicitud.getFechaIngreso() != null ? solicitud.getFechaIngreso().toString().split("T")[0] : "N/A";
+                PdfPCell fechaCell = new PdfPCell(new Phrase(fecha, fontData));
+                fechaCell.setPadding(5); tableDet.addCell(fechaCell);
+                
+                String empresa = (solicitud.getObra() != null && solicitud.getObra().getEmpresaCliente() != null)
+                                 ? solicitud.getObra().getEmpresaCliente().getRazonSocial() : "N/A";
+                PdfPCell empCell = new PdfPCell(new Phrase(empresa, fontData));
+                empCell.setPadding(5); tableDet.addCell(empCell);
+                
+                String obra = solicitud.getObra() != null ? solicitud.getObra().getNombre() : "N/A";
+                PdfPCell obraCell = new PdfPCell(new Phrase(obra, fontData));
+                obraCell.setPadding(5); tableDet.addCell(obraCell);
+                
+                String estado = solicitud.getEstadoSolicitud() != null ? solicitud.getEstadoSolicitud().getNombre() : "N/A";
+                PdfPCell estCell = new PdfPCell(new Phrase(estado, fontData));
+                estCell.setPadding(5); tableDet.addCell(estCell);
+                
+                String categoria = (solicitud.getSubCategoria() != null && solicitud.getSubCategoria().getCategoria() != null)
+                                   ? solicitud.getSubCategoria().getCategoria().getNombre() : "N/A";
+                PdfPCell catCell = new PdfPCell(new Phrase(categoria, fontData));
+                catCell.setPadding(5); tableDet.addCell(catCell);
+                
+                String subCategoria = solicitud.getSubCategoria() != null ? solicitud.getSubCategoria().getNombre() : "N/A";
+                PdfPCell subCatCell = new PdfPCell(new Phrase(subCategoria, fontData));
+                subCatCell.setPadding(5); tableDet.addCell(subCatCell);
+                
+                String desc = solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "N/A";
+                PdfPCell descCell = new PdfPCell(new Phrase(desc, fontData));
+                descCell.setPadding(5); tableDet.addCell(descCell);
+            }
+            document.add(tableDet);
+
+            document.close();
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new IOException(e.getMessage());
         }
     }
 

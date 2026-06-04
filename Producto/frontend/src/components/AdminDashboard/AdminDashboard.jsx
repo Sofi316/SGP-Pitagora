@@ -4,7 +4,7 @@ import api from '../../services/api';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { FaFileExcel } from "react-icons/fa6";
+import { FaFileExcel, FaFilePdf } from "react-icons/fa6";
 import styles from './AdminDashboard.module.css';
 
 const COLORES = {
@@ -153,6 +153,28 @@ export default function Dashboard() {
     }
   };
 
+  const descargarPdf = async () => {
+    try {
+      const idsAExportar = dataFiltrada.map(item => item.id);
+      
+      const respuesta = await api.post('/solicitudes/exportar/pdf', idsAExportar, {
+        responseType: 'blob' 
+      });
+
+      const url = window.URL.createObjectURL(new Blob([respuesta.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'reporte_observaciones.pdf');
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.headerRow}>
@@ -173,6 +195,14 @@ export default function Dashboard() {
           >
             <FaFileExcel size={16} />
             <span>Exportar Excel</span>
+          </button>
+          <button 
+            className={styles.exportPdfBtn}
+            onClick={descargarPdf}
+            disabled={dataFiltrada.length === 0}
+          >
+            <FaFilePdf size={16} />
+            <span>Exportar PDF</span>
           </button>
         </div>
       </div>
