@@ -296,10 +296,13 @@ const SolicitudesObras = () => {
                       </p>
                     ) : (
                       <>
+                        {/* CABECERA CORREGIDA: Asegura alineación centrada para la columna Estado */}
                         <div className={styles.solicitudesHeader}>
                           <span className={styles.colId}>ID</span>
                           <span className={styles.colObs}>Observación</span>
-                          <span className={styles.colEstado}>Estado</span>
+                          <span className={styles.colEstado} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            Estado
+                          </span>
                         </div>
 
                         {/* RENDERIZADO ÚNICO CONTINUO EN EL MISMO ABANICO */}
@@ -307,10 +310,30 @@ const SolicitudesObras = () => {
                           <Link key={`sol-${solicitud.id}`} to={`/admin/solicitudes/${solicitud.id}`} className={styles.solicitudRowLink}>
                             <span className={styles.colId}>{solicitud.id}</span>
                             <span className={styles.colObs}>{solicitud.descripcion || 'Sin observación'}</span>
-                            <span className={styles.colEstado}>
-                              <span className={styles.colEstado} style={{ color: getColorPorEstado(solicitud.estadoSolicitud?.nombre), fontWeight: 'bold' }}>
+                            
+                            {/* CELDA DE ESTADO: Perfectamente centrada vertical y horizontalmente */}
+                            <span className={styles.colEstado} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ color: getColorPorEstado(solicitud.estadoSolicitud?.nombre), fontWeight: 'bold', textAlign: 'center' }}>
                                 {solicitud.estadoSolicitud?.nombre || 'Pendiente'}
                               </span>
+                              
+                              {/* COSTO ACTUALIZADO: Alto contraste sobre fondos claros/oscuros */}
+                              {solicitud.costoReparacion > 0 && (
+                                <span style={{
+                                  fontSize: '11px',
+                                  fontWeight: '800',
+                                  color: '#2ae1cc', 
+                                  backgroundColor: 'rgba(0, 0, 0, 0.45)', 
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  display: 'inline-block',
+                                  border: '1px solid rgba(42, 225, 204, 0.3)',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                  letterSpacing: '0.3px'
+                                }}>
+                                  {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(solicitud.costoReparacion)}
+                                </span>
+                              )}
                             </span>
                           </Link>
                         ))}
