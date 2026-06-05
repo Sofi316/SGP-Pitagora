@@ -3,7 +3,9 @@ package com.pitagora.backend.SGP_Pitagora.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.pitagora.backend.SGP_Pitagora.dto.CambioEstadoDto;
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
+import com.pitagora.backend.SGP_Pitagora.service.ReporteService;
 import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
 
 @RestController
@@ -28,9 +32,11 @@ import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
 public class SolicitudController {
 
     private final SolicitudService solicitudService;
+    private final ReporteService reporteService; 
 
-    public SolicitudController(SolicitudService solicitudService) {
+    public SolicitudController(SolicitudService solicitudService, ReporteService reporteService) { // <-- Modificar el constructor
         this.solicitudService = solicitudService;
+        this.reporteService = reporteService; 
     }
 
     @GetMapping 
@@ -117,13 +123,6 @@ public class SolicitudController {
         return ResponseEntity.ok(solicitudCalificada);
     }
     
-    @PatchMapping("/{id}/estado/{idEstado}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Solicitud> cambiarEstado(@PathVariable Long id, @PathVariable Long idEstado) {
-        Solicitud solicitudActualizada = solicitudService.cambiarEstado(id, idEstado);
-        return ResponseEntity.ok(solicitudActualizada);
-    }
-
     @PostMapping(value = "/{id}/evidencia-reparacion", consumes = { "multipart/form-data" })
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')") 
     public ResponseEntity<String> subirEvidenciaReparacion(
@@ -133,5 +132,81 @@ public class SolicitudController {
         solicitudService.agregarEvidenciaReparacion(id, archivos);
         
         return ResponseEntity.ok("Evidencia de reparación guardada exitosamente.");
+    }
+
+    @PatchMapping("/{id}/estado/{nuevoEstadoId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<?> cambiarEstado(
+            @PathVariable Long id,
+            @PathVariable Long nuevoEstadoId,
+            @RequestBody(required = false) CambioEstadoDto dto) {
+        
+        String comentarioParaCorreo = (dto != null) ? dto.getComentario() : "";
+        Solicitud solicitudActualizada = solicitudService.cambiarEstado(id, nuevoEstadoId, comentarioParaCorreo);
+        return ResponseEntity.ok(solicitudActualizada);
+    }
+
+    @PutMapping("/{id}/costos")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Solicitud> registrarCostoTotal(
+            @PathVariable Long id, 
+            @RequestBody Map<String, Long> body) {
+        
+        Long monto = body.get("monto");
+        Solicitud solicitudActualizada = solicitudService.registrarCostoTotal(id, monto);
+        return ResponseEntity.ok(solicitudActualizada);
+    }
+
+    @PostMapping("/exportar/excel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<byte[]> exportarExcel(@RequestBody List<Long> idsSolicitudes) {
+        try {
+            List<Solicitud> todasLasSolicitudes = solicitudService.obtenerTodas();
+            List<Solicitud> solicitudesFiltradas = todasLasSolicitudes.stream()
+                    .filter(s -> idsSolicitudes.contains(s.getId()))
+                    .toList();
+
+            if (solicitudesFiltradas.isEmpty()) {
+                 return ResponseEntity.badRequest().body(null);
+            }
+
+            byte[] excelBytes = reporteService.exportarSolicitudesAExcel(solicitudesFiltradas);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", "reporte_observaciones.xlsx");
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    @PostMapping("/exportar/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<byte[]> exportarPdf(@RequestBody List<Long> idsSolicitudes) {
+        try {
+            List<Solicitud> todasLasSolicitudes = solicitudService.obtenerTodas();
+            List<Solicitud> solicitudesFiltradas = todasLasSolicitudes.stream()
+                    .filter(s -> idsSolicitudes.contains(s.getId()))
+                    .toList();
+
+            if (solicitudesFiltradas.isEmpty()) {
+                 return ResponseEntity.badRequest().body(null);
+            }
+
+            byte[] pdfBytes = reporteService.exportarSolicitudesAPdf(solicitudesFiltradas);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/pdf"));
+            headers.setContentDispositionFormData("attachment", "reporte_observaciones.pdf");
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }

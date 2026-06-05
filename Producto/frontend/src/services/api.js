@@ -18,16 +18,17 @@ api.interceptors.response.use(
   (response) => response, 
   (error) => {
     if (error.response && error.response.status === 401) {
-      
       if (window.location.pathname !== '/') {
         console.warn("Sesión expirada detectada por el servidor.");
-        
         localStorage.clear(); 
-        
         window.location.replace('/?expired=true'); 
       }
+    } else if (!error.response) {
+      console.error("Error de red: No se pudo conectar con el backend.");
+      alert("No se pudo conectar con el servidor. Revisa tu conexión o intenta nuevamente más tarde.");
     }
     return Promise.reject(error);
   }
 );
+
 export default api;

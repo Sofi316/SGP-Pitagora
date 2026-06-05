@@ -36,7 +36,9 @@ public class SolicitudService {
                             SupabaseStorageService supabaseStorageService,
                             EmailSenderService emailSenderService,
                             UsuarioRepository usuarioRepository,
-                            EstadoSolicitudRepository estadoSolicitudRepository, ObraRepository obraRepository, SubCategoriaRepository subCategoriaRepository) {
+                            EstadoSolicitudRepository estadoSolicitudRepository, 
+                            ObraRepository obraRepository, 
+                            SubCategoriaRepository subCategoriaRepository) {
         this.solicitudRepository = solicitudRepository;
         this.archivoEvidenciaRepository = archivoEvidenciaRepository;
         this.supabaseStorageService = supabaseStorageService;
@@ -69,7 +71,7 @@ public class SolicitudService {
             }
         }
 
-        notificarUsuarios(solicitudGuardada, "Se ha creado una nueva solicitud de hallazgo en su obra.");
+        notificarUsuarios(solicitudGuardada, "Se ha creado una nueva solicitud de hallazgo en su obra.", "");
 
         return solicitudGuardada;
     }
@@ -99,7 +101,7 @@ public class SolicitudService {
     }
 
     @Transactional
-    public Solicitud cambiarEstado(Long idSolicitud, Long idNuevoEstado) {
+    public Solicitud cambiarEstado(Long idSolicitud, Long idNuevoEstado, String comentario) {
         Solicitud solicitud = solicitudRepository.findById(idSolicitud)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
 
@@ -127,14 +129,16 @@ public class SolicitudService {
         solicitud.setEstadoSolicitud(nuevoEstado);
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
 
-        // notificarUsuarios(solicitudActualizada, "El estado de su solicitud ha cambiado a: " + nuevoEstado.getNombre());
+        notificarUsuarios(
+            solicitudActualizada, 
+            "El estado de su solicitud ha cambiado a: " + nuevoEstado.getNombre(), 
+            comentario
+        );
 
         return solicitudActualizada;
     }
 
-
-
-    private void notificarUsuarios(Solicitud solicitud, String mensajeBase) {
+    private void notificarUsuarios(Solicitud solicitud, String mensajeBase, String comentario) {
         if (solicitud.getObra() == null || solicitud.getObra().getId() == null) return;
 
         List<String> correosDestino = usuarioRepository.findCorreosByObraId(solicitud.getObra().getId());
@@ -158,20 +162,26 @@ public class SolicitudService {
 
         String asunto = "Actualización SGP Pitagora [ID-" + solicitud.getId() + "] - Obra: " + nombreObra;
 
-        String cuerpo = mensajeBase + "\n\n" +
-                        "--- Detalles de la Solicitud ---\n" +
-                        "ID: " + solicitud.getId() + "\n" +
-                        "Categoría: " + categoriaNombre + " - " + subCategoriaNombre + "\n" +
-                        "Ubicación: " + (solicitud.getUbicacionExacta() != null ? solicitud.getUbicacionExacta() : "No especificada") + "\n" +
-                        "Descripción: " + (solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "Sin descripción") + "\n\n" +
-                        "--------------------------------\n\n" +
-                        "Por favor, si desea agregar algún comentario, responda a este correo manteniendo el asunto intacto.";
+        StringBuilder cuerpoBuilder = new StringBuilder();
+        cuerpoBuilder.append(mensajeBase).append("\n\n");
+
+        if (comentario != null && !comentario.trim().isEmpty()) {
+            cuerpoBuilder.append("Observaciones adicionales del administrador:\n");
+            cuerpoBuilder.append("\"").append(comentario.trim()).append("\"\n\n");
+        }
+
+        cuerpoBuilder.append("--- Detalles de la Solicitud ---\n")
+                     .append("ID: ").append(solicitud.getId()).append("\n")
+                     .append("Categoría: ").append(categoriaNombre).append(" - ").append(subCategoriaNombre).append("\n")
+                     .append("Ubicación: ").append(solicitud.getUbicacionExacta() != null ? solicitud.getUbicacionExacta() : "No especificada").append("\n")
+                     .append("Descripción: ").append(solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "Sin descripción").append("\n\n")
+                     .append("--------------------------------\n\n")
+                     .append("Por favor, si desea agregar algún comentario, responda a este correo manteniendo el asunto intacto.");
 
         for (String correo : correosDestino) {
-            emailSenderService.enviarYArchivarCorreo(correo, asunto, cuerpo, solicitud);
+            emailSenderService.enviarYArchivarCorreo(correo, asunto, cuerpoBuilder.toString(), solicitud);
         }
     }
-
 
     public List<Solicitud> obtenerTodas() {
         return solicitudRepository.findAllConDetalles();
@@ -225,5 +235,12 @@ public class SolicitudService {
         }
         solicitud.setCalificacion(estrellas);
         return solicitudRepository.save(solicitud); 
+    }
+
+    @Transactional
+    public Solicitud registrarCostoTotal(Long id, Long monto) {
+        Solicitud solicitud = obtenerPorId(id);
+        solicitud.setCostoReparacion(monto != null ? monto : 0L);
+        return solicitudRepository.save(solicitud);
     }
 }
