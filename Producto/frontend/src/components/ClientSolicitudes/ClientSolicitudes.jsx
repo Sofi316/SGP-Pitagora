@@ -84,13 +84,9 @@ const ClientSolicitudes = () => {
 
       <div className={styles.listBox}>
         {loading ? (
-          <div style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <p style={{ color: 'white', fontSize: '18px' }}>Cargando obras...</p>
-          </div>
+          <p style={{ color: 'white', textAlign: 'center' }}>Cargando obras...</p>
         ) : !usuario || !usuario.obras || usuario.obras.length === 0 ? (
-          <div style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <p style={{ color: 'white', fontSize: '18px' }}>No tiene obras asignadas.</p>
-          </div>
+          <p style={{ color: 'white' }}>No tiene obras asignadas.</p>
         ) : (
           usuario.obras.map((obra) => {
             const isObraExpanded = obrasExpandidas.includes(obra.id);

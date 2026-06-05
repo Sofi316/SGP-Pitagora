@@ -59,7 +59,6 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public Usuario actualizar(@PathVariable Long id, @Valid @RequestBody Usuario usuario) { 
         return usuarioService.update(id, usuario);
     }

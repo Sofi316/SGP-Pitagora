@@ -41,8 +41,8 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/todos").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/filtrar").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").authenticated() 
-                .requestMatchers(HttpMethod.PUT, "/api/usuarios/*").authenticated() 
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/*").authenticated() // Users can view their own profile
+                .requestMatchers(HttpMethod.PUT, "/api/usuarios/*").authenticated() // Users can update their own profile
                 .requestMatchers(HttpMethod.PUT, "/api/usuarios/reactivar/*").hasRole("ADMIN")
                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 
