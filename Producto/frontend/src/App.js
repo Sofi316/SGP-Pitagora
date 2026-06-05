@@ -20,9 +20,10 @@ import ArchivadosAdmin from './components/ArchivadosAdmin/ArchivadosAdmin';
 import DetalleSolicitud from './components/SolicitudesAdmin/DetalleSolicitud';
 import DetalleObra from './components/ObrasAdmin/DetalleObra';
 import ClientSolicitudes from './components/ClientSolicitudes/ClientSolicitudes';
-import ClientProfile from './components/ClientProfile/ClientProfile';
+import ClientUsuarioDetalle from './components/ClientUsuarioDetalle/ClientUsuarioDetalle';
 import AutoLogout from './services/Autologout';
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
+import ClientDetalleSolicitud from './components/ClientDetalleSolicitud/ClientDetalleSolicitud';
 import './index.css';
 
 function App() {
@@ -70,7 +71,8 @@ function App() {
 
             <Route path="/cliente" element={<ClientLayout />}>
               <Route index element={<ClientSolicitudes />} />
-              <Route path="perfil" element={<ClientProfile />} />
+              <Route path="perfil" element={<ClientUsuarioDetalle/>} />
+              <Route path="solicitudes/:id" element={<ClientDetalleSolicitud/>} />
             </Route>
 
             </Routes>

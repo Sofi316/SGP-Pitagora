@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.pitagora.backend.SGP_Pitagora.dto.CambioEstadoDto;
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.service.ReporteService;
@@ -122,13 +123,6 @@ public class SolicitudController {
         return ResponseEntity.ok(solicitudCalificada);
     }
     
-    @PatchMapping("/{id}/estado/{idEstado}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Solicitud> cambiarEstado(@PathVariable Long id, @PathVariable Long idEstado) {
-        Solicitud solicitudActualizada = solicitudService.cambiarEstado(id, idEstado);
-        return ResponseEntity.ok(solicitudActualizada);
-    }
-
     @PostMapping(value = "/{id}/evidencia-reparacion", consumes = { "multipart/form-data" })
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')") 
     public ResponseEntity<String> subirEvidenciaReparacion(
@@ -139,6 +133,30 @@ public class SolicitudController {
         
         return ResponseEntity.ok("Evidencia de reparación guardada exitosamente.");
     }
+
+    @PatchMapping("/{id}/estado/{nuevoEstadoId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
+    public ResponseEntity<?> cambiarEstado(
+            @PathVariable Long id,
+            @PathVariable Long nuevoEstadoId,
+            @RequestBody(required = false) CambioEstadoDto dto) {
+        
+        String comentarioParaCorreo = (dto != null) ? dto.getComentario() : "";
+        Solicitud solicitudActualizada = solicitudService.cambiarEstado(id, nuevoEstadoId, comentarioParaCorreo);
+        return ResponseEntity.ok(solicitudActualizada);
+    }
+
+    @PutMapping("/{id}/costos")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Solicitud> registrarCostoTotal(
+            @PathVariable Long id, 
+            @RequestBody Map<String, Long> body) {
+        
+        Long monto = body.get("monto");
+        Solicitud solicitudActualizada = solicitudService.registrarCostoTotal(id, monto);
+        return ResponseEntity.ok(solicitudActualizada);
+    }
+
     @PostMapping("/exportar/excel")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     public ResponseEntity<byte[]> exportarExcel(@RequestBody List<Long> idsSolicitudes) {

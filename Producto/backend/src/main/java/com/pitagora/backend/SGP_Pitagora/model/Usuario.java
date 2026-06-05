@@ -23,12 +23,11 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
 
 
 @Entity
@@ -83,7 +82,7 @@ public class Usuario implements UserDetails {
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "usuario_obra",
         joinColumns = @JoinColumn(name = "id_usuario"),
