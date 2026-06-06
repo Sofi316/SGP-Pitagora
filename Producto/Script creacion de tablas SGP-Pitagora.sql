@@ -106,6 +106,12 @@ CREATE TABLE solicitud (
     comentario_cierre VARCHAR(250),
     calificacion INTEGER CHECK (calificacion >= 1 AND calificacion <= 5),
     activo BOOLEAN NOT NULL DEFAULT TRUE,
+    token_conformidad VARCHAR(255) UNIQUE,
+    fecha_expiracion_token TIMESTAMPTZ,
+    contador_recordatorios INTEGER DEFAULT 0,
+    fecha_ultimo_recordatorio TIMESTAMPTZ,
+    motivo_rechazo TEXT,
+    costo_reparacion BIGINT DEFAULT 0,
     id_estado INTEGER NOT NULL,
     id_subcategoria INTEGER NOT NULL,
     id_usuario INTEGER NOT NULL,
@@ -115,6 +121,7 @@ CREATE TABLE solicitud (
     CONSTRAINT fk_solicitud_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     CONSTRAINT fk_solicitud_obra FOREIGN KEY (id_obra) REFERENCES obra(id_obra)
 );
+
 CREATE TABLE archivo_evidencia (
     id_archivo SERIAL PRIMARY KEY,
     ruta_archivo TEXT NOT NULL,
