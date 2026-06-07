@@ -1,11 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header/Header';
 import LoginPanel from './components/LoginPanel/LoginPanel';
 import RecoverPassword from './components/RecoverPassword/RecoverPassword';
 import AdminLayout from './components/AdminLayout/AdminLayout';
 import ClientLayout from './components/ClientLayout/ClientLayout';
-import InicioAdmin from './components/InicioAdmin/InicioAdmin';
 import ResetPassword from './components/ResetPassword/ResetPassword';
 import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin';
 import DetalleUsuario from './components/UsuariosAdmin/DetalleUsuario';
@@ -24,6 +23,7 @@ import ClientUsuarioDetalle from './components/ClientUsuarioDetalle/ClientUsuari
 import AutoLogout from './services/Autologout';
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import ClientDetalleSolicitud from './components/ClientDetalleSolicitud/ClientDetalleSolicitud';
+import ConformidadCliente from './components/ConformidadCliente/ConformidadCliente';
 import './index.css';
 
 function App() {
@@ -50,9 +50,12 @@ function App() {
                 <ResetPassword />
               </div>
             } />
+            <Route path="/conformidad/:token" element={
+              <ConformidadCliente />} />
 
             <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<InicioAdmin />} />
+              {/* Redirige automáticamente al dashboard si entran a /admin vacío */}
+              <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard/>} />
               <Route path="solicitudes" element={<SolicitudesAdmin/>} />
               <Route path="solicitudes/empresa/:id" element={<SolicitudesObras/>} />
@@ -66,7 +69,6 @@ function App() {
               <Route path="archivados" element={<ArchivadosAdmin/>}/>
               <Route path="gestion/usuarios" element={<UsuariosAdmin/>}/>
               <Route path="gestion/usuarios/:id" element={<DetalleUsuario />} />
-
             </Route>
 
             <Route path="/cliente" element={<ClientLayout />}>
@@ -75,7 +77,7 @@ function App() {
               <Route path="solicitudes/:id" element={<ClientDetalleSolicitud/>} />
             </Route>
 
-            </Routes>
+          </Routes>
         </AutoLogout>
     </Router>
   );

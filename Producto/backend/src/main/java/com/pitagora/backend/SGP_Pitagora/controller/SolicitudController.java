@@ -26,6 +26,7 @@ import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.service.ReporteService;
 import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
+import com.pitagora.backend.SGP_Pitagora.dto.ConformidadDto;
 
 @RestController
 @RequestMapping("/api/solicitudes")
@@ -77,6 +78,15 @@ public class SolicitudController {
     @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.obras.![id].contains(#id))")
     public ResponseEntity<List<Solicitud>> obtenerPorObra(@PathVariable Long id) {
         return ResponseEntity.ok(solicitudService.obtenerPorObra(id));
+    }
+
+    @GetMapping("/public/conformidad/{token}")
+    public ResponseEntity<com.pitagora.backend.SGP_Pitagora.dto.SolicitudPublicoDto> obtenerPorTokenConformidad(@PathVariable String token) {
+        return ResponseEntity.ok(solicitudService.obtenerPorTokenConformidad(token));
+    }
+    @PostMapping("/public/conformidad/{token}")
+    public ResponseEntity<Solicitud> procesarConformidad(@PathVariable String token, @RequestBody ConformidadDto dto) {
+        return ResponseEntity.ok(solicitudService.procesarConformidad(token, dto));
     }
 
     @PostMapping(consumes = { "multipart/form-data" })

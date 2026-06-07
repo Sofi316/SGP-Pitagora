@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -91,4 +92,8 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
            "WHERE s.estadoSolicitud.id = :id " +
            "ORDER BY s.fechaIngreso DESC")
     List<Solicitud> findByEstadoSolicitudIdConDetalles(@Param("id") Long id);
+
+    Optional<Solicitud> findByTokenConformidad(String tokenConformidad);
+       @Query("SELECT s FROM Solicitud s WHERE s.estadoSolicitud.id = 3 AND s.contadorRecordatorios < 4 AND s.activo = true AND s.motivoRechazo IS NULL")
+       List<Solicitud> findPendientesDeConformidad();
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import styles from '../ClientSolicitudes/ClientSolicitudes.module.css';
-import { FaCamera, FaWrench, FaUser, FaCalendarAlt } from "react-icons/fa";
+import { FaCamera, FaWrench, FaUser, FaCalendarAlt, FaCheckCircle } from "react-icons/fa";
 
 const ClientDetalleSolicitud = () => {
   const { id } = useParams();
@@ -115,6 +115,36 @@ const ClientDetalleSolicitud = () => {
              <div className={styles.descriptionText}>{solicitud.descripcion}</div>
           </div>
         </div>
+
+        {/* BLOQUE DE CIERRE Y CONFORMIDAD */}
+        {(solicitud.motivoRechazo || solicitud.comentarioCierre || (solicitud.calificacion && solicitud.calificacion > 0) || solicitud.fechaFirma) && (
+          <div className={styles.dividerSection}>
+            <h3 className={styles.subTitleBlue}><FaCheckCircle /> Cierre y Conformidad del Cliente</h3>
+            <div className={styles.infoBox}>
+              {solicitud.motivoRechazo && (
+                <p className={styles.infoText}><strong>Motivo de Rechazo:</strong> {solicitud.motivoRechazo}</p>
+              )}
+              {solicitud.comentarioCierre && (
+                <p className={styles.infoText}><strong>Comentario de Cierre:</strong> {solicitud.comentarioCierre}</p>
+              )}
+              {solicitud.calificacion > 0 && (
+                <p className={styles.infoText}>
+                  <strong>Calificación:</strong> 
+                  <span style={{ color: '#ffc107', fontSize: '18px', marginLeft: '5px' }}>
+                    {'★'.repeat(solicitud.calificacion)}{'☆'.repeat(5 - solicitud.calificacion)}
+                  </span>
+                </p>
+              )}
+              {solicitud.fechaFirma && (
+                <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #ccc' }}>
+                  <p className={styles.infoTextLast}>
+                    <strong><FaCalendarAlt className={styles.metaIcon} /> Fecha de Resolución:</strong> {formatearFecha(solicitud.fechaFirma)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className={styles.dividerSection}>
           <h3 className={styles.subTitleBlue}><FaCamera/> Evidencia Inicial (Hallazgo)</h3>

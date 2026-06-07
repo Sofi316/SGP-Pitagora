@@ -44,7 +44,6 @@ const LoginPanel = () => {
         localStorage.setItem('rol', rolUsuario);
         localStorage.setItem('userEmail', correo.trim());
 
-        // Decode JWT to extract userId
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           if (payload.userId) {
@@ -55,7 +54,8 @@ const LoginPanel = () => {
         }
 
         if (rolUsuario === 'ADMIN') {
-          navigate('/admin');
+          // AQUÍ SE ACTUALIZÓ LA RUTA AL DASHBOARD
+          navigate('/admin/dashboard');
         } else if (rolUsuario === 'CLIENTE') {
           navigate('/cliente');
         } else {

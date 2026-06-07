@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import styles from './SolicitudesAdmin.module.css';
-import { FaCamera, FaWrench, FaDollarSign, FaUser, FaCalendarAlt } from "react-icons/fa";
+import { FaCamera, FaWrench, FaDollarSign, FaUser, FaCalendarAlt, FaCheckCircle } from "react-icons/fa";
 
 const DetalleSolicitud = () => {
   const { id } = useParams();
@@ -147,6 +147,7 @@ const DetalleSolicitud = () => {
       if (file.type.startsWith('image/')) reader.readAsDataURL(file);
       else reader.onloadend();
     });
+    e.target.value = '';
   };
 
   const handleSubirReparacion = async () => {
@@ -320,6 +321,36 @@ const DetalleSolicitud = () => {
           </div>
         </div>
 
+        {/* BLOQUE DE CIERRE Y CONFORMIDAD */}
+        {(solicitud.motivoRechazo || solicitud.comentarioCierre || (solicitud.calificacion && solicitud.calificacion > 0) || solicitud.fechaFirma) && (
+          <div className={styles.dividerSection}>
+            <h3 className={styles.subTitleBlue}><FaCheckCircle /> Cierre y Conformidad del Cliente</h3>
+            <div className={styles.infoBox}>
+              {solicitud.motivoRechazo && (
+                <p className={styles.infoText}><strong>Motivo de Rechazo:</strong> {solicitud.motivoRechazo}</p>
+              )}
+              {solicitud.comentarioCierre && (
+                <p className={styles.infoText}><strong>Comentario de Cierre:</strong> {solicitud.comentarioCierre}</p>
+              )}
+              {solicitud.calificacion > 0 && (
+                <p className={styles.infoText}>
+                  <strong>Calificación:</strong> 
+                  <span style={{ color: '#ffc107', fontSize: '18px', marginLeft: '5px' }}>
+                    {'★'.repeat(solicitud.calificacion)}{'☆'.repeat(5 - solicitud.calificacion)}
+                  </span>
+                </p>
+              )}
+              {solicitud.fechaFirma && (
+                <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #ccc' }}>
+                  <p className={styles.infoTextLast}>
+                    <strong><FaCalendarAlt className={styles.metaIcon} /> Fecha de Resolución:</strong> {formatearFecha(solicitud.fechaFirma)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className={styles.dividerSection}>
           <h3 className={styles.subTitleBlue}><FaCamera/> Evidencia Inicial (Hallazgo)</h3>
           
@@ -380,10 +411,10 @@ const DetalleSolicitud = () => {
         <div className={styles.dividerSection}>
           <h3 className={styles.subTitleBlue}><FaDollarSign /> Liquidación Financiera (Postventa)</h3>
 
-          {(estadoActual !== 'Terminado' && estadoActual !== 'Aprobado') ? (
+          {!(estadoActual === 'Terminado' || estadoActual === 'Aprobado' || estadoActual === 'Rechazado') ? (
             <div className={styles.costoInfoBox}>
               <p className={styles.costoInfoText}>
-                El ingreso del costo final de la reparación estará disponible automáticamente cuando la solicitud cambie al estado <strong>Terminado</strong>.
+                El ingreso del costo final de la reparación estará disponible automáticamente cuando la solicitud alcance la etapa de cierre (<strong>Terminado</strong>, <strong>Aprobado</strong> o <strong>Rechazado</strong>).
               </p>
             </div>
           ) : (
@@ -395,29 +426,27 @@ const DetalleSolicitud = () => {
                   placeholder="Ej: 6000000"
                   value={costoReparacion}
                   onChange={(e) => setCostoReparacion(e.target.value)}
-                  disabled={isSavingCosts || costoBloqueado || estadoActual === 'Aprobado'}
+                  disabled={isSavingCosts || costoBloqueado}
                   required
-                  className={`${styles.costoInput} ${(costoBloqueado || estadoActual === 'Aprobado') ? styles.costoInputDisabled : styles.costoInputActive}`}
+                  className={`${styles.costoInput} ${costoBloqueado ? styles.costoInputDisabled : styles.costoInputActive}`}
                 />
               </div>
 
-              {estadoActual === 'Terminado' && (
-                <div className={styles.costoBtnGroup}>
-                  {!costoBloqueado ? (
-                    <button
-                      type="submit"
-                      disabled={isSavingCosts}
-                      className={`${styles.saveCostoBtn} ${isSavingCosts ? styles.saveCostoBtnDisabled : styles.saveCostoBtnActive}`}
-                    >
-                      {isSavingCosts ? 'Guardando...' : 'Guardar Costo Total'}
-                    </button>
-                  ) : (
-                    <button type="button" onClick={(e) => { e.preventDefault(); setCostoBloqueado(false); }} className={styles.modCostoBtn}>
-                      Modificar Costo
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className={styles.costoBtnGroup}>
+                {!costoBloqueado ? (
+                  <button
+                    type="submit"
+                    disabled={isSavingCosts}
+                    className={`${styles.saveCostoBtn} ${isSavingCosts ? styles.saveCostoBtnDisabled : styles.saveCostoBtnActive}`}
+                  >
+                    {isSavingCosts ? 'Guardando...' : 'Guardar Costo Total'}
+                  </button>
+                ) : (
+                  <button type="button" onClick={(e) => { e.preventDefault(); setCostoBloqueado(false); }} className={styles.modCostoBtn}>
+                    Modificar Costo
+                  </button>
+                )}
+              </div>
             </form>
           )}
         </div>
