@@ -1,13 +1,18 @@
 package com.pitagora.backend.SGP_Pitagora.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pitagora.backend.SGP_Pitagora.dto.ConformidadDto;
+import com.pitagora.backend.SGP_Pitagora.dto.SolicitudPublicoDto;
 import com.pitagora.backend.SGP_Pitagora.model.ArchivoEvidencia;
 import com.pitagora.backend.SGP_Pitagora.model.EstadoSolicitud;
 import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
@@ -30,6 +35,9 @@ public class SolicitudService {
     private final EstadoSolicitudRepository estadoSolicitudRepository;
     private final ObraRepository obraRepository;
     private final SubCategoriaRepository subCategoriaRepository;
+
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     public SolicitudService(SolicitudRepository solicitudRepository, 
                             ArchivoEvidenciaRepository archivoEvidenciaRepository, 
@@ -126,16 +134,56 @@ public class SolicitudService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transición de estado no permitida.");
         }
 
+        if (idNuevoEstado.equals(3L)) {
+            solicitud.setTokenConformidad(UUID.randomUUID().toString());
+            solicitud.setFechaExpiracionToken(LocalDateTime.now().plusWeeks(4));
+            solicitud.setContadorRecordatorios(1);
+            solicitud.setFechaUltimoRecordatorio(LocalDateTime.now());
+        }
+
         solicitud.setEstadoSolicitud(nuevoEstado);
         Solicitud solicitudActualizada = solicitudRepository.save(solicitud);
 
-        notificarUsuarios(
-            solicitudActualizada, 
-            "El estado de su solicitud ha cambiado a: " + nuevoEstado.getNombre(), 
-            comentario
-        );
+        if (idNuevoEstado.equals(3L)) {
+            notificarConformidadCliente(solicitudActualizada, comentario);
+        } else {
+            notificarUsuarios(solicitudActualizada, "El estado de su solicitud ha cambiado a: " + nuevoEstado.getNombre(), comentario);
+        }
 
         return solicitudActualizada;
+    }
+
+    private void notificarConformidadCliente(Solicitud solicitud, String comentario) {
+        if (solicitud.getObra() == null || solicitud.getObra().getId() == null) return;
+
+        List<String> correosDestino = usuarioRepository.findCorreosByObraId(solicitud.getObra().getId());
+        if (correosDestino == null || correosDestino.isEmpty()) return;
+
+        String nombreObra = obraRepository.findById(solicitud.getObra().getId())
+                .map(o -> o.getNombre())
+                .orElse("Obra Desconocida");
+
+        String asunto = "Conformidad Requerida SGP Pitagora [ID-" + solicitud.getId() + "] - Obra: " + nombreObra;
+        String enlaceConformidad = frontendUrl + "/conformidad/" + solicitud.getTokenConformidad();
+
+        StringBuilder cuerpoBuilder = new StringBuilder();
+        cuerpoBuilder.append("Estimado cliente,\n\n");
+        cuerpoBuilder.append("El trabajo asociado a su solicitud ha sido finalizado. Para completar el proceso de postventa, requerimos que revise los detalles y registre su conformidad.\n\n");
+        
+        if (comentario != null && !comentario.trim().isEmpty()) {
+            cuerpoBuilder.append("Comentarios del equipo técnico:\n");
+            cuerpoBuilder.append("\"").append(comentario.trim()).append("\"\n\n");
+        }
+
+        cuerpoBuilder.append("Por favor, ingrese al siguiente enlace seguro para revisar el reporte de reparación y emitir su aprobación o rechazo del trabajo:\n\n");
+        cuerpoBuilder.append(enlaceConformidad).append("\n\n");
+        cuerpoBuilder.append("Atención: Este enlace es exclusivo para la gestión de esta solicitud y solo permite una respuesta única. Una vez enviado, el enlace dejará de estar activo.\n\n");
+        cuerpoBuilder.append("Este enlace no requiere inicio de sesión y estará activo por un plazo de 4 semanas.\n\n");
+        cuerpoBuilder.append("Atentamente,\nEquipo de Postventa - Constructora Pitagora");
+
+        for (String correo : correosDestino) {
+            emailSenderService.enviarYArchivarCorreo(correo, asunto, cuerpoBuilder.toString(), solicitud);
+        }
     }
 
     private void notificarUsuarios(Solicitud solicitud, String mensajeBase, String comentario) {
@@ -176,6 +224,8 @@ public class SolicitudService {
                      .append("Ubicación: ").append(solicitud.getUbicacionExacta() != null ? solicitud.getUbicacionExacta() : "No especificada").append("\n")
                      .append("Descripción: ").append(solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "Sin descripción").append("\n\n")
                      .append("--------------------------------\n\n")
+                     .append("Puede acceder al sistema para ver más detalles en el siguiente enlace:\n")
+                     .append(frontendUrl).append("\n\n")
                      .append("Por favor, si desea agregar algún comentario, responda a este correo manteniendo el asunto intacto.");
 
         for (String correo : correosDestino) {
@@ -241,6 +291,66 @@ public class SolicitudService {
     public Solicitud registrarCostoTotal(Long id, Long monto) {
         Solicitud solicitud = obtenerPorId(id);
         solicitud.setCostoReparacion(monto != null ? monto : 0L);
+        return solicitudRepository.save(solicitud);
+    }
+
+    public SolicitudPublicoDto obtenerPorTokenConformidad(String token) {
+        Solicitud solicitud = solicitudRepository.findByTokenConformidad(token)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El enlace es inválido o no existe."));
+
+        if (solicitud.getFechaExpiracionToken() != null && solicitud.getFechaExpiracionToken().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este enlace ya ha expirado.");
+        }
+
+        List<ArchivoEvidencia> evidencias = archivoEvidenciaRepository.findBySolicitudId(solicitud.getId());
+
+        String catNombre = solicitud.getSubCategoria() != null && solicitud.getSubCategoria().getCategoria() != null ? solicitud.getSubCategoria().getCategoria().getNombre() : "N/A";
+        String subNombre = solicitud.getSubCategoria() != null ? solicitud.getSubCategoria().getNombre() : "N/A";
+        String obNombre = solicitud.getObra() != null ? solicitud.getObra().getNombre() : "N/A";
+
+        return new SolicitudPublicoDto(
+            solicitud.getId(),
+            solicitud.getFechaIngreso(),
+            solicitud.getDescripcion(),
+            solicitud.getUbicacionExacta(),
+            catNombre,
+            subNombre,
+            obNombre,
+            evidencias
+        );
+    }
+
+   @Transactional
+    public Solicitud procesarConformidad(String token, ConformidadDto dto) {
+        Solicitud solicitud = solicitudRepository.findByTokenConformidad(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El enlace es inválido o no existe."));
+
+        if (solicitud.getFechaExpiracionToken() != null && solicitud.getFechaExpiracionToken().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este enlace ya ha expirado.");
+        }
+
+        if (Boolean.TRUE.equals(dto.getConforme())) {
+            EstadoSolicitud estadoAprobado = estadoSolicitudRepository.findById(4L)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estado APROBADO no encontrado"));
+            solicitud.setEstadoSolicitud(estadoAprobado);
+        } else {
+            if (dto.getMotivoRechazo() == null || dto.getMotivoRechazo().trim().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe indicar el motivo del rechazo.");
+            }
+            EstadoSolicitud estadoRechazado = estadoSolicitudRepository.findById(5L)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estado RECHAZADO no encontrado"));
+            solicitud.setEstadoSolicitud(estadoRechazado);
+            solicitud.setMotivoRechazo(dto.getMotivoRechazo());
+        }
+
+        if (dto.getCalificacion() != null && dto.getCalificacion() >= 1 && dto.getCalificacion() <= 5) {
+            solicitud.setCalificacion(dto.getCalificacion());
+        }
+
+        solicitud.setTokenConformidad(null);
+        solicitud.setFechaExpiracionToken(null);
+        solicitud.setContadorRecordatorios(0);
+
         return solicitudRepository.save(solicitud);
     }
 }

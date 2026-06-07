@@ -77,6 +77,21 @@ public class Solicitud {
     @JoinColumn(name = "id_obra", nullable = false)
     private Obra obra;
 
+    @Column(name = "token_conformidad", unique = true)
+    private String tokenConformidad;
+
+    @Column(name = "fecha_expiracion_token")
+    private LocalDateTime fechaExpiracionToken;
+
+    @Column(name = "contador_recordatorios")
+    private Integer contadorRecordatorios = 0;
+
+    @Column(name = "fecha_ultimo_recordatorio")
+    private LocalDateTime fechaUltimoRecordatorio;
+
+    @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
+    private String motivoRechazo;
+
     @PrePersist
     protected void onCreate() {
         this.fechaIngreso = LocalDateTime.now();

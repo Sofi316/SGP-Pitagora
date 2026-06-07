@@ -24,6 +24,7 @@ import ClientUsuarioDetalle from './components/ClientUsuarioDetalle/ClientUsuari
 import AutoLogout from './services/Autologout';
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import ClientDetalleSolicitud from './components/ClientDetalleSolicitud/ClientDetalleSolicitud';
+import ConformidadCliente from './components/ConformidadCliente/ConformidadCliente';
 import './index.css';
 
 function App() {
@@ -50,6 +51,8 @@ function App() {
                 <ResetPassword />
               </div>
             } />
+            <Route path="/conformidad/:token" element={
+              <ConformidadCliente />} />
 
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<InicioAdmin />} />

@@ -1,6 +1,7 @@
 package com.pitagora.backend.SGP_Pitagora.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,84 +12,90 @@ import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 
 @Repository
 public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
-    
-    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Solicitud s " +
-           "WHERE s.obra.id = :obraId " +
-           "AND s.estadoSolicitud.id IN (1L, 2L, 3L)")
-    boolean existsSolicitudesBloqueantesEnObra(@Param("obraId") Long obraId);
+       
+       @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Solicitud s " +
+              "WHERE s.obra.id = :obraId " +
+              "AND s.estadoSolicitud.id IN (1L, 2L, 3L)")
+       boolean existsSolicitudesBloqueantesEnObra(@Param("obraId") Long obraId);
 
-    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Solicitud s " +
-           "WHERE s.obra.empresaCliente.id = :empresaId " +
-           "AND s.estadoSolicitud.id IN (1L, 2L, 3L)")
-    boolean existsSolicitudesBloqueantesEnEmpresa(@Param("empresaId") Long empresaId);
+       @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Solicitud s " +
+              "WHERE s.obra.empresaCliente.id = :empresaId " +
+              "AND s.estadoSolicitud.id IN (1L, 2L, 3L)")
+       boolean existsSolicitudesBloqueantesEnEmpresa(@Param("empresaId") Long empresaId);
 
-    @Query("SELECT s FROM Solicitud s " +
-           "JOIN FETCH s.estadoSolicitud " +
-           "JOIN FETCH s.subCategoria sub " +
-           "JOIN FETCH sub.categoria " +
-           "JOIN FETCH s.usuario u " +
-           "JOIN FETCH u.rol " +
-           "JOIN FETCH s.obra o " +
-           "JOIN FETCH o.empresaCliente " +
-           "JOIN FETCH o.comuna c " +            
-           "JOIN FETCH c.region " +
-           "ORDER BY CASE " +
-           "  WHEN s.estadoSolicitud.id = 1 THEN 1 " + 
-           "  WHEN s.estadoSolicitud.id = 2 THEN 2 " + 
-           "  WHEN s.estadoSolicitud.id = 3 THEN 3 " + 
-           "  ELSE 4 END ASC, " +                      
-           "s.fechaIngreso DESC")                      
-    List<Solicitud> findAllConDetalles();
-    
-    @Query("SELECT s FROM Solicitud s " +
-           "JOIN FETCH s.estadoSolicitud " +
-           "JOIN FETCH s.subCategoria sub " +
-           "JOIN FETCH sub.categoria " +
-           "JOIN FETCH s.usuario u " +
-           "JOIN FETCH u.rol " +
-           "JOIN FETCH s.obra o " +
-           "JOIN FETCH o.empresaCliente " +
-           "JOIN FETCH o.comuna c " +
-           "JOIN FETCH c.region " +
-           "WHERE u.id = :id " +
-           "ORDER BY CASE " +
-           "  WHEN s.estadoSolicitud.id = 1 THEN 1 " +
-           "  WHEN s.estadoSolicitud.id = 2 THEN 2 " +
-           "  WHEN s.estadoSolicitud.id = 3 THEN 3 " +
-           "  ELSE 4 END ASC, " +
-           "s.fechaIngreso DESC")
-    List<Solicitud> findByUsuarioIdConDetalles(@Param("id") Long id);
+       @Query("SELECT s FROM Solicitud s " +
+              "JOIN FETCH s.estadoSolicitud " +
+              "JOIN FETCH s.subCategoria sub " +
+              "JOIN FETCH sub.categoria " +
+              "JOIN FETCH s.usuario u " +
+              "JOIN FETCH u.rol " +
+              "JOIN FETCH s.obra o " +
+              "JOIN FETCH o.empresaCliente " +
+              "JOIN FETCH o.comuna c " +            
+              "JOIN FETCH c.region " +
+              "ORDER BY CASE " +
+              "  WHEN s.estadoSolicitud.id = 1 THEN 1 " + 
+              "  WHEN s.estadoSolicitud.id = 2 THEN 2 " + 
+              "  WHEN s.estadoSolicitud.id = 3 THEN 3 " + 
+              "  ELSE 4 END ASC, " +                      
+              "s.fechaIngreso DESC")                      
+       List<Solicitud> findAllConDetalles();
+       
+       @Query("SELECT s FROM Solicitud s " +
+              "JOIN FETCH s.estadoSolicitud " +
+              "JOIN FETCH s.subCategoria sub " +
+              "JOIN FETCH sub.categoria " +
+              "JOIN FETCH s.usuario u " +
+              "JOIN FETCH u.rol " +
+              "JOIN FETCH s.obra o " +
+              "JOIN FETCH o.empresaCliente " +
+              "JOIN FETCH o.comuna c " +
+              "JOIN FETCH c.region " +
+              "WHERE u.id = :id " +
+              "ORDER BY CASE " +
+              "  WHEN s.estadoSolicitud.id = 1 THEN 1 " +
+              "  WHEN s.estadoSolicitud.id = 2 THEN 2 " +
+              "  WHEN s.estadoSolicitud.id = 3 THEN 3 " +
+              "  ELSE 4 END ASC, " +
+              "s.fechaIngreso DESC")
+       List<Solicitud> findByUsuarioIdConDetalles(@Param("id") Long id);
 
-    @Query("SELECT s FROM Solicitud s " +
-           "JOIN FETCH s.estadoSolicitud " +
-           "JOIN FETCH s.subCategoria sub " +
-           "JOIN FETCH sub.categoria " +
-           "JOIN FETCH s.usuario u " +
-           "JOIN FETCH u.rol " +
-           "JOIN FETCH s.obra o " +
-           "JOIN FETCH o.empresaCliente " +
-           "JOIN FETCH o.comuna c " +
-           "JOIN FETCH c.region " +
-           "WHERE o.id = :id " +
-           "ORDER BY CASE " +
-           "  WHEN s.estadoSolicitud.id = 1 THEN 1 " +
-           "  WHEN s.estadoSolicitud.id = 2 THEN 2 " +
-           "  WHEN s.estadoSolicitud.id = 3 THEN 3 " +
-           "  ELSE 4 END ASC, " +
-           "s.fechaIngreso DESC")
-    List<Solicitud> findByObraIdConDetalles(@Param("id") Long id);
+       @Query("SELECT s FROM Solicitud s " +
+              "JOIN FETCH s.estadoSolicitud " +
+              "JOIN FETCH s.subCategoria sub " +
+              "JOIN FETCH sub.categoria " +
+              "JOIN FETCH s.usuario u " +
+              "JOIN FETCH u.rol " +
+              "JOIN FETCH s.obra o " +
+              "JOIN FETCH o.empresaCliente " +
+              "JOIN FETCH o.comuna c " +
+              "JOIN FETCH c.region " +
+              "WHERE o.id = :id " +
+              "ORDER BY CASE " +
+              "  WHEN s.estadoSolicitud.id = 1 THEN 1 " +
+              "  WHEN s.estadoSolicitud.id = 2 THEN 2 " +
+              "  WHEN s.estadoSolicitud.id = 3 THEN 3 " +
+              "  ELSE 4 END ASC, " +
+              "s.fechaIngreso DESC")
+       List<Solicitud> findByObraIdConDetalles(@Param("id") Long id);
 
-    @Query("SELECT s FROM Solicitud s " +
-           "JOIN FETCH s.estadoSolicitud " +
-           "JOIN FETCH s.subCategoria sub " +
-           "JOIN FETCH sub.categoria " +
-           "JOIN FETCH s.usuario u " +
-           "JOIN FETCH u.rol " +
-           "JOIN FETCH s.obra o " +
-           "JOIN FETCH o.empresaCliente " +
-           "JOIN FETCH o.comuna c " +
-           "JOIN FETCH c.region " +
-           "WHERE s.estadoSolicitud.id = :id " +
-           "ORDER BY s.fechaIngreso DESC")
-    List<Solicitud> findByEstadoSolicitudIdConDetalles(@Param("id") Long id);
+       @Query("SELECT s FROM Solicitud s " +
+              "JOIN FETCH s.estadoSolicitud " +
+              "JOIN FETCH s.subCategoria sub " +
+              "JOIN FETCH sub.categoria " +
+              "JOIN FETCH s.usuario u " +
+              "JOIN FETCH u.rol " +
+              "JOIN FETCH s.obra o " +
+              "JOIN FETCH o.empresaCliente " +
+              "JOIN FETCH o.comuna c " +
+              "JOIN FETCH c.region " +
+              "WHERE s.estadoSolicitud.id = :id " +
+              "ORDER BY s.fechaIngreso DESC")
+       List<Solicitud> findByEstadoSolicitudIdConDetalles(@Param("id") Long id);
+              
+       Optional<Solicitud> findByTokenConformidad(String tokenConformidad);
+       @Query("SELECT s FROM Solicitud s WHERE s.estadoSolicitud.id = 3 AND s.contadorRecordatorios < 4 AND s.activo = true AND s.motivoRechazo IS NULL")
+       List<Solicitud> findPendientesDeConformidad();
+
+
 }
