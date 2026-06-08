@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import styles from './ClientSolicitudes.module.css';
+import ModalCrearSolicitud from '../Shared/ModalCrearSolicitud';
 
 const ClientSolicitudes = () => {
   const [usuario, setUsuario] = useState(null);
@@ -14,6 +15,9 @@ const ClientSolicitudes = () => {
   const [buscarIdPorObra, setBuscarIdPorObra] = useState({});
   const [ordenIdPorObra, setOrdenIdPorObra] = useState({});
   const [filtroEstadoPorObra, setFiltroEstadoPorObra] = useState({});
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [obraSeleccionadaModal, setObraSeleccionadaModal] = useState(null);
 
   useEffect(() => {
     cargarDatosUsuario();
@@ -63,6 +67,21 @@ const ClientSolicitudes = () => {
         setLoadingObraId(null);
       }
     }
+  };
+
+  const abrirModalCrear = (obra) => {
+    setObraSeleccionadaModal(obra);
+    setShowCreateModal(true);
+  };
+
+  const handleSolicitudCreada = (obraId, nuevaSolicitud) => {
+    setSolicitudesPorObra(prev => {
+      const solicitudesExistentes = prev[obraId] || [];
+      return {
+        ...prev,
+        [obraId]: [nuevaSolicitud, ...solicitudesExistentes]
+      };
+    });
   };
 
   const getColorPorEstado = (nombreEstado) => {
@@ -177,11 +196,22 @@ const ClientSolicitudes = () => {
                 <div
                   className={`${styles.itemRow} ${styles.obraRow}`}
                   onClick={() => toggleObra(obra.id)}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                   <span className={styles.itemName}>{obra.nombre}</span>
-                  <span className={styles.indicator} style={{ minWidth: '20px', textAlign: 'center' }}>
-                    {isObraExpanded ? '▼' : '▲'}
-                  </span>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <button 
+                      className={styles.createClientBtn} 
+                      onClick={(e) => { e.stopPropagation(); abrirModalCrear(obra); }}
+                      style={{ padding: '6px 12px', fontSize: '13px', margin: 0 }}
+                    >
+                     Nueva Solicitud
+                    </button>
+                    <span className={styles.indicator} style={{ minWidth: '20px', textAlign: 'center' }}>
+                      {isObraExpanded ? '▼' : '▲'}
+                    </span>
+                  </div>
                 </div>
 
                 {isObraExpanded && (
@@ -278,6 +308,13 @@ const ClientSolicitudes = () => {
           })
         )}
       </div>
+      
+      <ModalCrearSolicitud 
+        show={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+        obra={obraSeleccionadaModal}
+        onSolicitudCreada={handleSolicitudCreada}
+      />
     </div>
   );
 };

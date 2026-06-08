@@ -13,6 +13,7 @@ public class SolicitudPublicoDto {
     private String subCategoriaNombre;
     private String obraNombre;
     private List<ArchivoEvidencia> evidencias;
+    
 
     public SolicitudPublicoDto(Long id, LocalDateTime fechaIngreso, String descripcion, String ubicacionExacta,
                                String categoriaNombre, String subCategoriaNombre, String obraNombre, List<ArchivoEvidencia> evidencias) {
