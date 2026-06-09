@@ -91,7 +91,7 @@ const SolicitudesObras = () => {
     if (est.includes('proceso')) return '#e6e22e';   
     if (est.includes('terminado')) return '#143c5e'; 
     if (est.includes('no aplica')) return '#494848'; 
-    if (est.includes('aprobado') || est.includes('aceptado')) return '#4caf50';  
+    if (est.includes('aprobado') || est.includes('aceptado')) return '#59e05e';  
     if (est.includes('rechazado')) return '#f44336'; 
     return '#ffffff';
   };

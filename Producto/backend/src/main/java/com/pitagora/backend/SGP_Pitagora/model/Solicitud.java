@@ -76,7 +76,7 @@ public class Solicitud {
     @ManyToOne
     @JoinColumn(name = "id_obra", nullable = false)
     private Obra obra;
-
+    
     @Column(name = "token_conformidad", unique = true)
     private String tokenConformidad;
 

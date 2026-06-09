@@ -153,6 +153,21 @@
   margin: 0;
 }
 
+.createClientBtn {
+  background-color: #0d3b66;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.createClientBtn:hover {
+  background-color: #082a4a;
+}
+
 .alertError { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; }
 .alertSuccess { background-color: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; }
 

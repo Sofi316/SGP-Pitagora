@@ -36,7 +36,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/auth/reset-password").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
                 .requestMatchers("/api/solicitudes/public/**").permitAll()
-                
+
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/todos").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/usuarios/filtrar").hasRole("ADMIN")

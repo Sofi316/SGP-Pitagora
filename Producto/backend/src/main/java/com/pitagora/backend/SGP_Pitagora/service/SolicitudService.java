@@ -346,7 +346,7 @@ public class SolicitudService {
         if (dto.getCalificacion() != null && dto.getCalificacion() >= 1 && dto.getCalificacion() <= 5) {
             solicitud.setCalificacion(dto.getCalificacion());
         }
-
+        solicitud.setFechaFirma(LocalDateTime.now());
         solicitud.setTokenConformidad(null);
         solicitud.setFechaExpiracionToken(null);
         solicitud.setContadorRecordatorios(0);

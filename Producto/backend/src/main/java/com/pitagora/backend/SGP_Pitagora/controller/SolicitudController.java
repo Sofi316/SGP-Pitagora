@@ -27,6 +27,7 @@ import com.pitagora.backend.SGP_Pitagora.model.Usuario;
 import com.pitagora.backend.SGP_Pitagora.service.ReporteService;
 import com.pitagora.backend.SGP_Pitagora.service.SolicitudService;
 import com.pitagora.backend.SGP_Pitagora.dto.ConformidadDto;
+
 @RestController
 @RequestMapping("/api/solicitudes")
 public class SolicitudController {
@@ -78,6 +79,7 @@ public class SolicitudController {
     public ResponseEntity<List<Solicitud>> obtenerPorObra(@PathVariable Long id) {
         return ResponseEntity.ok(solicitudService.obtenerPorObra(id));
     }
+
     @GetMapping("/public/conformidad/{token}")
     public ResponseEntity<com.pitagora.backend.SGP_Pitagora.dto.SolicitudPublicoDto> obtenerPorTokenConformidad(@PathVariable String token) {
         return ResponseEntity.ok(solicitudService.obtenerPorTokenConformidad(token));
