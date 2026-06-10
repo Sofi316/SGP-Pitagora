@@ -87,7 +87,7 @@ const DetalleSolicitud = () => {
       setMostrandoCajaTexto(false);
       setComentarioEstado('');
       setEstadoDestino(null);
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
       if (err.response?.status !== 401) {
         setError(err.response?.data?.message || 'Error al cambiar estado.');
@@ -116,7 +116,7 @@ const DetalleSolicitud = () => {
       setSolicitud({ ...res.data, archivosEvidencia: resEvidencias.data });
       setSuccess('Costo de reparación actualizado correctamente.');
       setCostoBloqueado(true);
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
       if (err.response?.status !== 401) {
         setError(err.response?.data?.message || 'Error al guardar el costo.');
@@ -162,7 +162,7 @@ const DetalleSolicitud = () => {
       setArchivosReparacion([]);
       setPreviewsReparacion([]);
       cargarDetalle(); 
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
       if (err.response?.status !== 401) {
         setError(err.response?.data?.message || 'Error al subir evidencias.');
@@ -364,18 +364,28 @@ const DetalleSolicitud = () => {
         </div>
 
         <div className={styles.dividerSection}>
-          <h3 className={styles.subTitleGreen}><FaWrench /> Evidencia de Reparación</h3>
-          
-          {evidenciasReparacion.length > 0 && (
-            <div className={styles.evidenciaList}>
-              {evidenciasReparacion.map((ev, index) => renderEvidenciaCard(ev, index))}
-            </div>
-          )}
+        <h3 className={styles.subTitleGreen}><FaWrench /> Evidencia de Reparación</h3>
+        
+        {/* Mensaje informativo para estado Pendiente */}
+        {estadoActual === 'Pendiente' ? (
+          <div className={styles.costoInfoBox}>
+            <p className={styles.costoInfoText}>
+              La opción para adjuntar evidencia de reparación estará disponible automáticamente cuando la solicitud cambie al estado <strong>En Proceso</strong>.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Listado de evidencias (siempre visible si no es Pendiente) */}
+            {evidenciasReparacion.length > 0 && (
+              <div className={styles.evidenciaList}>
+                {evidenciasReparacion.map((ev, index) => renderEvidenciaCard(ev, index))}
+              </div>
+            )}
 
-          {(estadoActual === 'En Proceso' || estadoActual === 'Terminado' || estadoActual === 'Aprobado') && (
-            <div className={styles.uploadBox}>
-              <input type="file" multiple hidden accept="image/*,.pdf" onChange={handleFileChange} ref={inputRef} />
-              
+            {/* Formulario de subida: SOLO visible si el estado es 'En Proceso' */}
+            {estadoActual === 'En Proceso' && (
+              <div className={styles.uploadBox}>
+                <input type="file" multiple hidden accept="image/*,.pdf" onChange={handleFileChange} ref={inputRef} />
               <div className={styles.uploadForm}>
                 <div className={styles.uploadHeader}>
                   <span className={styles.uploadLabel}>Adjuntar fotos del trabajo finalizado:</span>
@@ -406,6 +416,8 @@ const DetalleSolicitud = () => {
               </div>
             </div>
           )}
+          </>
+           )}
         </div>
 
         <div className={styles.dividerSection}>

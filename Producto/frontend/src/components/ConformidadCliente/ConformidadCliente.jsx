@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { FaStar, FaInfoCircle } from 'react-icons/fa';
+import { FaStar, FaInfoCircle, FaCamera, FaWrench } from 'react-icons/fa';
 import api from '../../services/api';
 import styles from './ConformidadCliente.module.css';
 
@@ -15,7 +15,6 @@ const ConformidadCliente = () => {
   const [accion, setAccion] = useState(null);
   const [motivoRechazo, setMotivoRechazo] = useState('');
   
-  // Estados para el Modal de Calificación
   const [showModal, setShowModal] = useState(false);
   const [calificacion, setCalificacion] = useState(0);
   const [hover, setHover] = useState(null);
@@ -71,6 +70,9 @@ const ConformidadCliente = () => {
   if (error) return <div className={styles.container}><div className={styles.errorBox}><FaInfoCircle size={40} style={{ marginBottom: '15px' }} /><h3>No se pudo acceder</h3><p>{error}</p></div></div>;
   if (success) return <div className={styles.container}><div className={styles.successBox}><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#28a745" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg><h3>Respuesta Registrada</h3><p>Su conformidad ha sido procesada exitosamente.</p></div></div>;
 
+  const evidenciasProblema = solicitud.evidencias?.filter(e => e.tipoEvidencia?.id === 1) || [];
+  const evidenciasReparacion = solicitud.evidencias?.filter(e => e.tipoEvidencia?.id === 2) || [];
+
   return (
     <div className={styles.container}>
       <div className={styles.mainCard}>
@@ -91,12 +93,34 @@ const ConformidadCliente = () => {
           <p>{solicitud.descripcion}</p>
         </div>
 
-        {solicitud.evidencias && solicitud.evidencias.length > 0 && (
+        {solicitud.comentarioCierre && (
           <div className={styles.descriptionBox}>
-            <span className={styles.infoLabel}>Evidencia Adjunta</span>
+            <span className={styles.infoLabel}>Comentario de Cierre del Administrador</span>
+            <p>{solicitud.comentarioCierre}</p>
+          </div>
+        )}
+
+        {evidenciasProblema.length > 0 && (
+          <div className={styles.descriptionBox}>
+            <span className={styles.infoLabel} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FaCamera/> Evidencia del Problema</span>
             <div className={styles.imageGrid}>
-              {solicitud.evidencias.map((img, idx) => (
-                <img key={idx} src={img.rutaArchivo} alt={`Evidencia ${idx}`} className={styles.evidenciaImg} />
+              {evidenciasProblema.map((img, idx) => (
+                <a key={`prob-${idx}`} href={img.rutaArchivo} target="_blank" rel="noopener noreferrer">
+                  <img src={img.rutaArchivo} alt="Evidencia Problema" className={styles.evidenciaImg} />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {evidenciasReparacion.length > 0 && (
+          <div className={styles.descriptionBox}>
+            <span className={styles.infoLabel} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#28a745' }}><FaWrench/> Evidencia de Reparación</span>
+            <div className={styles.imageGrid}>
+              {evidenciasReparacion.map((img, idx) => (
+                <a key={`rep-${idx}`} href={img.rutaArchivo} target="_blank" rel="noopener noreferrer">
+                  <img src={img.rutaArchivo} alt="Evidencia Reparación" className={styles.evidenciaImg} />
+                </a>
               ))}
             </div>
           </div>
@@ -128,7 +152,6 @@ const ConformidadCliente = () => {
         </div>
       </div>
 
-      {/* MODAL DE CALIFICACIÓN */}
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>

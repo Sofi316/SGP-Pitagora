@@ -137,8 +137,10 @@ public class SolicitudService {
         if (idNuevoEstado.equals(3L)) {
             solicitud.setTokenConformidad(UUID.randomUUID().toString());
             solicitud.setFechaExpiracionToken(LocalDateTime.now().plusWeeks(4));
-            solicitud.setContadorRecordatorios(1);
+            solicitud.setContadorRecordatorios(0);
             solicitud.setFechaUltimoRecordatorio(LocalDateTime.now());
+
+            solicitud.setComentarioCierre(comentario);
         }
 
         solicitud.setEstadoSolicitud(nuevoEstado);
@@ -316,11 +318,12 @@ public class SolicitudService {
             catNombre,
             subNombre,
             obNombre,
+            solicitud.getComentarioCierre(),
             evidencias
         );
     }
-
-   @Transactional
+    
+    @Transactional
     public Solicitud procesarConformidad(String token, ConformidadDto dto) {
         Solicitud solicitud = solicitudRepository.findByTokenConformidad(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El enlace es inválido o no existe."));
@@ -329,10 +332,15 @@ public class SolicitudService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este enlace ya ha expirado.");
         }
 
+        String estadoFinalStr;
+        String detalleCuerpo;
+
         if (Boolean.TRUE.equals(dto.getConforme())) {
             EstadoSolicitud estadoAprobado = estadoSolicitudRepository.findById(4L)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estado APROBADO no encontrado"));
             solicitud.setEstadoSolicitud(estadoAprobado);
+            estadoFinalStr = "APROBADO";
+            detalleCuerpo = "El cliente ha aprobado el trabajo realizado.\n";
         } else {
             if (dto.getMotivoRechazo() == null || dto.getMotivoRechazo().trim().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe indicar el motivo del rechazo.");
@@ -341,10 +349,35 @@ public class SolicitudService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Estado RECHAZADO no encontrado"));
             solicitud.setEstadoSolicitud(estadoRechazado);
             solicitud.setMotivoRechazo(dto.getMotivoRechazo());
+            estadoFinalStr = "RECHAZADO";
+            detalleCuerpo = "El cliente ha rechazado el trabajo.\nMotivo: " + dto.getMotivoRechazo() + "\n";
         }
 
         if (dto.getCalificacion() != null && dto.getCalificacion() >= 1 && dto.getCalificacion() <= 5) {
             solicitud.setCalificacion(dto.getCalificacion());
+            detalleCuerpo += "\nCalificación del servicio: " + dto.getCalificacion() + " estrellas.\n";
+        }
+
+        // Enviar y archivar correo a los administradores de la obra ---
+        if (solicitud.getObra() != null && solicitud.getObra().getId() != null) {
+            List<String> correosAdmin = usuarioRepository.findCorreosByObraId(solicitud.getObra().getId());
+            if (correosAdmin != null && !correosAdmin.isEmpty()) {
+                String nombreObra = solicitud.getObra().getNombre();
+                String asuntoAdmin = "Conformidad Registrada (" + estadoFinalStr + ") SGP Pitagora [ID-" + solicitud.getId() + "] - Obra: " + nombreObra;
+                
+                StringBuilder cuerpoBuilder = new StringBuilder();
+                cuerpoBuilder.append("Estimado Equipo Administrador,\n\n");
+                cuerpoBuilder.append("El cliente ha respondido a la solicitud de conformidad para el trabajo realizado.\n\n");
+                cuerpoBuilder.append("--- Resultado de la Evaluación ---\n");
+                cuerpoBuilder.append(detalleCuerpo).append("\n");
+                cuerpoBuilder.append("----------------------------------\n\n");
+                cuerpoBuilder.append("Puede acceder al sistema para ver los detalles completos.\n");
+
+                for (String correo : correosAdmin) {
+                    
+                    emailSenderService.enviarYArchivarCorreo(correo, asuntoAdmin, cuerpoBuilder.toString(), solicitud);
+                }
+            }
         }
         solicitud.setFechaFirma(LocalDateTime.now());
         solicitud.setTokenConformidad(null);
@@ -353,4 +386,6 @@ public class SolicitudService {
 
         return solicitudRepository.save(solicitud);
     }
+
+
 }

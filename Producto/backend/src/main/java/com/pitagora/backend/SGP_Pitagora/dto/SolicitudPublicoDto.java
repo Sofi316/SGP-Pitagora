@@ -12,11 +12,12 @@ public class SolicitudPublicoDto {
     private String categoriaNombre;
     private String subCategoriaNombre;
     private String obraNombre;
+    private String comentarioCierre;
     private List<ArchivoEvidencia> evidencias;
-    
 
     public SolicitudPublicoDto(Long id, LocalDateTime fechaIngreso, String descripcion, String ubicacionExacta,
-                               String categoriaNombre, String subCategoriaNombre, String obraNombre, List<ArchivoEvidencia> evidencias) {
+                               String categoriaNombre, String subCategoriaNombre, String obraNombre, 
+                               String comentarioCierre, List<ArchivoEvidencia> evidencias) {
         this.id = id;
         this.fechaIngreso = fechaIngreso;
         this.descripcion = descripcion;
@@ -24,6 +25,7 @@ public class SolicitudPublicoDto {
         this.categoriaNombre = categoriaNombre;
         this.subCategoriaNombre = subCategoriaNombre;
         this.obraNombre = obraNombre;
+        this.comentarioCierre = comentarioCierre;
         this.evidencias = evidencias;
     }
 
@@ -34,5 +36,6 @@ public class SolicitudPublicoDto {
     public String getCategoriaNombre() { return categoriaNombre; }
     public String getSubCategoriaNombre() { return subCategoriaNombre; }
     public String getObraNombre() { return obraNombre; }
+    public String getComentarioCierre() { return comentarioCierre; }
     public List<ArchivoEvidencia> getEvidencias() { return evidencias; }
 }
