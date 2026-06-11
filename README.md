@@ -1,6 +1,6 @@
 # SGP Pitágora 🏗️
 
-**Sistema de Gestión de Postventa Automatizado**
+**Sistema de Gestión de Postventa**
 
 > Aplicación web responsive modular diseñada para centralizar la información, optimizar los tiempos de respuesta y asegurar la trazabilidad técnica y legal de los requerimientos de postventa para la Constructora Pitágora S.A.
 
