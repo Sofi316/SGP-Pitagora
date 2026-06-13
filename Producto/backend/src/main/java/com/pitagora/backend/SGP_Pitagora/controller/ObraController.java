@@ -11,9 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pitagora.backend.SGP_Pitagora.model.Obra;
 import com.pitagora.backend.SGP_Pitagora.model.Usuario;
@@ -39,17 +40,19 @@ public class ObraController {
     public ResponseEntity<?> getById(@PathVariable Long id, @AuthenticationPrincipal Usuario principal) {
         Obra obra = obraService.findById(id);
         
-        if (principal.getRol().getNombre().equals("ROLE_CLIENTE")) {
-            if (obra.getEmpresaCliente() == null || principal.getEmpresa() == null || 
-                !obra.getEmpresaCliente().getId().equals(principal.getEmpresa().getId())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permisos para ver obras de otra empresa.");
+        if (principal.getRol().getNombre().equals("CLIENTE")) {
+            boolean tieneAcceso = principal.getObras().stream()
+                    .anyMatch(o -> o.getId().equals(obra.getId()));
+                    
+            if (!tieneAcceso) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permisos para ver esta obra.");
             }
         }
         return ResponseEntity.ok(obra);
     }
 
     @GetMapping("/empresa/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.empresa != null and #id == authentication.principal.empresa.id)")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENTE') and authentication.principal.obras.![empresaCliente.id].contains(#id))")
     public ResponseEntity<List<Obra>> getByEmpresa(@PathVariable Long id) {
         List<Obra> obras = obraService.listarPorEmpresa(id);
         if (obras.isEmpty()) {
@@ -58,21 +61,28 @@ public class ObraController {
         return ResponseEntity.ok(obras);
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Obra obra) {
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<?> create(
+            @RequestPart("obra") Obra obra,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        
         if (obra.getEmpresaCliente() == null || obra.getEmpresaCliente().getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Debe asociar una empresa válida.");
         }
-        Obra nuevaObra = obraService.save(obra);
+        Obra nuevaObra = obraService.save(obra, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaObra);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Obra obra) {
+    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
+    public ResponseEntity<?> update(
+            @PathVariable Long id, 
+            @RequestPart("obra") Obra obra,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        
         if (obra.getEmpresaCliente() == null || obra.getEmpresaCliente().getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La obra debe mantener una empresa válida.");
         }
-        return ResponseEntity.ok(obraService.update(id, obra));
+        return ResponseEntity.ok(obraService.update(id, obra, file));
     }
 
     @DeleteMapping("/{id}")

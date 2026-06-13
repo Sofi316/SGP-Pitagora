@@ -16,7 +16,8 @@ public interface ComunicacionArchivadaRepository extends JpaRepository<Comunicac
     @Query("""
         SELECT c
         FROM ComunicacionArchivada c
-        WHERE c.solicitud.id = :id
+        JOIN FETCH c.solicitud s 
+        WHERE s.id = :id
         AND (CAST(:fechaInicio AS timestamp) IS NULL OR c.fechaEnvio >= :fechaInicio)
         AND (CAST(:fechaFin AS timestamp) IS NULL OR c.fechaEnvio <= :fechaFin)
         AND (

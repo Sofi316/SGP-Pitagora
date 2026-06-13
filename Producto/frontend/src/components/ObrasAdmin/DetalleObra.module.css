@@ -1,0 +1,221 @@
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.backButton {
+  color: #ffffff;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.backButton:hover {
+  opacity: 0.8;
+  transform: translateX(-4px); 
+}
+
+.title {
+  color: #fff;
+  margin: 0;
+  font-size: 24px;
+}
+
+.loadingText {
+  color: white;
+  text-align: center;
+}
+
+.errorText {
+  color: #ffcccc;
+  text-align: center;
+}
+
+.mainCard {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  color: #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  border-bottom: 2px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.obraNombre {
+  margin: 0 0 5px 0;
+  color: #0d3b66;
+  font-size: 24px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badgeActiva {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badgeInactiva {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.btnSolicitudes {
+  padding: 8px 16px;
+  background-color: #17a2b8;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btnSolicitudes:hover {
+  background-color: #138496;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.sectionCard {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 8px;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.sectionTitleIcons {
+  display: flex;             
+  align-items: center;       
+  gap: 8px;                  
+  font-size: 16px;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 8px;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.detailText {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.detailText strong {
+  color: #333;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.detailRow p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.detailRow span {
+  font-size: 14px;
+  color: #555;
+}
+
+.actaContainer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed #ced4da;
+}
+
+.actaContainer p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.actaLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0056b3;
+  padding-bottom: 8px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.actaLink:hover {
+  text-decoration: underline;
+}
+
+.noActa {
+  color: #6c757d;
+  font-size: 13px;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .btnSolicitudes {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .actaLink {
+    word-break: break-word;
+  }
+}

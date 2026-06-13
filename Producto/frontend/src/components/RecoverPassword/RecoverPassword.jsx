@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import InputGroup from '../InputGroup/InputGroup';
 import styles from './RecoverPassword.module.css';
@@ -22,11 +22,16 @@ const RecoverPassword=()=>{
           return;
         }
         try{
-            await axios.post(`http://localhost:8080/api/auth/solicitar-recuperacion?correo=${correo}`);
+            await api.post(`/auth/solicitar-recuperacion?correo=${correo}`);
             setMensaje('Si el correo existe en nuestro sistema, te hemos enviado un enlace para recuperar tu contraseña.');
 
         }catch(err){
+           if(err.response?.status === 403){
+            // Cuenta desactivada
+            setError(err.response?.data || 'Su cuenta está desactivada. Por favor, contacte con un administrador para reactivarla.');
+          } else if(err.response?.status !== 401){
             setError('Ocurrió un error al intentar enviar el correo de recuperación.');
+          }
         }
     };
     return(

@@ -3,6 +3,8 @@ package com.pitagora.backend.SGP_Pitagora.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -55,6 +57,9 @@ public class Solicitud {
     @Column(name = "calificacion")
     private Integer calificacion;
     
+    @Column(name = "costo_reparacion")
+    private Long costoReparacion = 0L;
+    
     @ManyToOne
     @JoinColumn(name = "id_estado", nullable = false)
     private EstadoSolicitud estadoSolicitud;
@@ -65,11 +70,27 @@ public class Solicitud {
 
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)
+    @JsonIgnoreProperties("obras")
     private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "id_obra", nullable = false)
     private Obra obra;
+    
+    @Column(name = "token_conformidad", unique = true)
+    private String tokenConformidad;
+
+    @Column(name = "fecha_expiracion_token")
+    private LocalDateTime fechaExpiracionToken;
+
+    @Column(name = "contador_recordatorios")
+    private Integer contadorRecordatorios = 0;
+
+    @Column(name = "fecha_ultimo_recordatorio")
+    private LocalDateTime fechaUltimoRecordatorio;
+
+    @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
+    private String motivoRechazo;
 
     @PrePersist
     protected void onCreate() {

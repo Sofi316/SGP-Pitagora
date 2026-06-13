@@ -1,0 +1,300 @@
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
+import { Link } from 'react-router-dom';
+import styles from '../CategoriasAdmin/ListadoAdmin.module.css';
+
+const SubcategoriasAdmin = () => {
+  const [subcategorias, setSubcategorias] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const [nuevaSubcategoria, setNuevaSubcategoria] = useState('');
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+  
+  const [subcategoriaAEditar, setSubcategoriaAEditar] = useState(null);
+  const [subcategoriaAEliminar, setSubcategoriaAEliminar] = useState(null);
+
+  const [modalError, setModalError] = useState('');
+  
+  const [filtroCategoriaId, setFiltroCategoriaId] = useState('');
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const [resSub, resCat] = await Promise.all([
+        api.get('/subcategorias'),
+        api.get('/categorias')
+      ]);
+      setSubcategorias(resSub.data);
+      setCategorias(resCat.data);
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Ocurrió un error al cargar los datos.';
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCrear = async (e) => {
+    e.preventDefault();
+    setModalError('');
+    
+    const nombreLimpio = nuevaSubcategoria.trim();
+    
+    if (!nombreLimpio || !categoriaSeleccionada) {
+      setModalError('Por favor ingrese el nombre y seleccione una categoría.');
+      return;
+    }
+
+    const existe = subcategorias.some(sub => 
+      sub.nombre.toLowerCase() === nombreLimpio.toLowerCase() && 
+      sub.categoria?.id === parseInt(categoriaSeleccionada)
+    );
+    if (existe) {
+      setModalError('Ya existe esta subcategoría dentro de la categoría seleccionada');
+      return;
+    }
+
+    try {
+      const response = await api.post('/subcategorias', {
+        nombre: nombreLimpio,
+        categoria: { id: parseInt(categoriaSeleccionada) },
+        activo: true
+      });
+      const nuevaSubcat = response.data;
+      const catAsociada = categorias.find(c => c.id === parseInt(categoriaSeleccionada));
+      if (catAsociada) nuevaSubcat.categoria = catAsociada;
+
+      setSubcategorias([nuevaSubcat, ...subcategorias]);
+      setShowCreateModal(false);
+      setNuevaSubcategoria('');
+      setCategoriaSeleccionada('');
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al crear la subcategoría.';
+        setModalError(msg);
+      }
+    }
+  };
+
+  const abrirModalEditar = (subcat) => {
+    setModalError('');
+    const catId = subcat.categoria ? subcat.categoria.id : '';
+    setSubcategoriaAEditar({ ...subcat, categoriaIdForm: catId });
+    setShowEditModal(true);
+  };
+
+  const handleEditar = async (e) => {
+    e.preventDefault();
+    setModalError('');
+    
+    const nombreLimpio = subcategoriaAEditar.nombre.trim();
+    
+    if (!nombreLimpio || !subcategoriaAEditar.categoriaIdForm) {
+      setModalError('Por favor ingrese el nombre y seleccione una categoría.');
+      return;
+    }
+
+    const existe = subcategorias.some(sub => 
+      sub.nombre.toLowerCase() === nombreLimpio.toLowerCase() && 
+      sub.categoria?.id === parseInt(subcategoriaAEditar.categoriaIdForm) &&
+      sub.id !== subcategoriaAEditar.id
+    );
+
+    if (existe) {
+      setModalError('Ya existe esta subcategoría dentro de la categoría seleccionada');
+      return;
+    }
+
+    try {
+      const response = await api.put(`/subcategorias/${subcategoriaAEditar.id}`, {
+        nombre: nombreLimpio,
+        categoria: { id: parseInt(subcategoriaAEditar.categoriaIdForm) }
+      });
+      const subcatActualizada = response.data;
+      const catAsociada = categorias.find(c => c.id === parseInt(subcategoriaAEditar.categoriaIdForm));
+      if (catAsociada) subcatActualizada.categoria = catAsociada;
+
+      setSubcategorias(subcategorias.map(sub => sub.id === subcategoriaAEditar.id ? subcatActualizada : sub));
+      setShowEditModal(false);
+      setSubcategoriaAEditar(null);
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al actualizar la subcategoría.';
+        setModalError(msg);
+      }
+    }
+  };
+
+  const abrirModalEliminar = (subcat) => {
+    setModalError('');
+    setSubcategoriaAEliminar(subcat);
+    setShowDeleteModal(true);
+  };
+
+  const handleEliminar = async () => {
+    setModalError('');
+    try {
+      await api.delete(`/subcategorias/${subcategoriaAEliminar.id}`);
+      setSubcategorias(subcategorias.filter(sub => sub.id !== subcategoriaAEliminar.id));
+      setShowDeleteModal(false);
+      setSubcategoriaAEliminar(null);
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        const msg = err.response?.data?.message || 'Error al eliminar. Es probable que esté en uso en alguna solicitud.';
+        setModalError(msg);
+      }
+    }
+  };
+
+  const subcategoriasFiltradas = filtroCategoriaId
+    ? subcategorias.filter(sub => sub.categoria?.id === parseInt(filtroCategoriaId))
+    : subcategorias;
+
+  const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
+  const modalContentStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '400px', maxWidth: '90%', color: '#333', maxHeight: '90vh', overflowY: 'auto' };
+  const inputStyle = { width: '100%', padding: '10px', margin: '10px 0', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' };
+  const buttonGroupStyle = { display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '10px', marginTop: '20px' };
+  const btnStyle = { padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', flex: '1 1 auto', textAlign: 'center' };
+  const cancelBtnStyle = { ...btnStyle, backgroundColor: '#ccc', color: '#333' };
+  const confirmBtnStyle = { ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' };
+  const deleteBtnStyle = { ...btnStyle, backgroundColor: '#d9534f', color: '#fff' };
+
+  return (
+    <div className={styles.container}>
+      
+      <div className={styles.headerRow}>
+        <div className={styles.titleContainer}>
+          <Link to="/admin/gestion" className={styles.backButton} title="Volver a Gestión">&#8592;</Link>
+          <h1 className={styles.title}>Subcategorías</h1>
+        </div>
+        <button className={styles.createBtn} onClick={() => { setModalError(''); setShowCreateModal(true); }}>
+          Crear Nueva
+        </button>
+      </div>
+
+      <div className={styles.menuBox}>
+        <div>
+          <label className={styles.selectLabel}>Filtrar por Categoría:</label>
+          <select 
+            className={styles.menuItem}
+            value={filtroCategoriaId} 
+            onChange={(e) => setFiltroCategoriaId(e.target.value)}
+          >
+            <option value="">-- Todas las categorías --</option>
+            {categorias.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {error && <p style={{ color: '#ffcccc', marginBottom: '15px' }}>{error}</p>}
+
+      <div className={styles.listBox}>
+        {loading ? (
+          <p style={{ color: 'white', textAlign: 'center' }}>Cargando subcategorías...</p>
+        ) : subcategoriasFiltradas.length === 0 && !error ? (
+          <p style={{ color: 'white' }}>No hay subcategorías registradas para esta selección.</p>
+        ) : (
+          subcategoriasFiltradas.map((subcat) => (
+            <div key={subcat.id} className={styles.itemRow}>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 }}>
+                <span className={styles.itemName}>{subcat.nombre}</span>
+                <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '4px', wordBreak: 'break-word' }}>
+                  Categoría: {subcat.categoria ? subcat.categoria.nombre : 'Sin categoría'}
+                </span>
+              </div>
+              <div className={styles.actions}>
+                <button className={styles.editBtn} onClick={() => abrirModalEditar(subcat)}>Editar</button>
+                <button className={styles.deleteBtn} onClick={() => abrirModalEliminar(subcat)}>Eliminar</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {showCreateModal && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h3>Crear Nueva Subcategoría</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
+            <form onSubmit={handleCrear}>
+              <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Nombre:</label>
+              <input type="text" placeholder="Ej: Pintura exterior" value={nuevaSubcategoria} onChange={(e) => setNuevaSubcategoria(e.target.value)} style={inputStyle} autoFocus />
+              
+              <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Categoría Padre:</label>
+              <select value={categoriaSeleccionada} onChange={(e) => setCategoriaSeleccionada(e.target.value)} style={inputStyle}>
+                <option value="">-- Seleccione una categoría --</option>
+                {categorias.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                ))}
+              </select>
+
+              <div style={buttonGroupStyle}>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowCreateModal(false); setNuevaSubcategoria(''); setCategoriaSeleccionada(''); setModalError('');}}>Cancelar</button>
+                <button type="submit" style={confirmBtnStyle}>Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && subcategoriaAEditar && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h3>Editar Subcategoría</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
+            <form onSubmit={handleEditar}>
+              <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Nombre:</label>
+              <input type="text" value={subcategoriaAEditar.nombre} onChange={(e) => setSubcategoriaAEditar({...subcategoriaAEditar, nombre: e.target.value})} style={inputStyle} autoFocus />
+              
+              <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Categoría Padre:</label>
+              <select value={subcategoriaAEditar.categoriaIdForm} onChange={(e) => setSubcategoriaAEditar({...subcategoriaAEditar, categoriaIdForm: e.target.value})} style={inputStyle}>
+                <option value="">-- Seleccione una categoría --</option>
+                {categorias.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                ))}
+              </select>
+
+              <div style={buttonGroupStyle}>
+                <button type="button" style={cancelBtnStyle} onClick={() => {setShowEditModal(false); setSubcategoriaAEditar(null); setModalError('');}}>Cancelar</button>
+                <button type="submit" style={confirmBtnStyle}>Actualizar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && subcategoriaAEliminar && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h3 style={{ margin: '0 0 15px 0', color: '#d9534f' }}>Confirmar Eliminación</h3>
+            {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
+            <p>¿Estás seguro de que deseas eliminar la subcategoría <strong>"{subcategoriaAEliminar.nombre}"</strong>?</p>
+            <p style={{fontSize: '12px', color: '#666', marginBottom: '15px'}}>Esta acción no se puede deshacer.</p>
+            <div style={buttonGroupStyle}>
+              <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setSubcategoriaAEliminar(null); setModalError('');}}>Cancelar</button>
+              <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default SubcategoriasAdmin;

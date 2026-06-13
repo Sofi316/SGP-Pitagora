@@ -1,0 +1,197 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.backButton:hover {
+  opacity: 0.8;
+  transform: translateX(-4px);
+}
+
+.title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.listBox {
+  background-color: #aec4d6;
+  padding: 20px;
+  border-radius: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.accordionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.itemRow {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.itemRow:hover {
+  opacity: 0.85;
+}
+
+.obraRow {
+  background-color: #7e9ab2;
+}
+
+.itemName {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.indicator {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.solicitudesWrapper {
+  background-color: #a3bbcf; 
+  padding: 0 15px 15px 15px; 
+  display: flex;
+  flex-direction: column;
+  gap: 8px; 
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.solicitudesHeader {
+  position: sticky;
+  display: flex;
+  align-items: center;
+  padding: 15px 20px 12px 20px;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 15px;
+  top: 0;
+  background-color: #a3bbcf;
+  border-bottom: 2px solid #97adc0;
+  z-index: 100;
+}
+
+.solicitudRowLink {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px; 
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 14px;
+  background-color: #7792a8; 
+  border-radius: 6px; 
+  transition: background-color 0.2s, transform 0.2s; 
+  cursor: pointer;
+}
+
+.solicitudRowLink:hover {
+  background-color: #587186; 
+  transform: translateX(4px);  
+}
+
+.colId {
+  width: 10%;
+  min-width: 40px;
+  font-weight: bold;
+}
+
+.colObs {
+  flex: 1; 
+  padding-right: 15px;
+}
+
+.colEstado {
+  width: 25%;
+  min-width: 100px;
+  font-weight: 500;
+}
+
+.emptyText {
+  color: #ffffff;
+  font-size: 14px;
+  font-style: italic;
+  padding: 10px 0;
+  margin: 0;
+}
+
+.createClientBtn {
+  background-color: #0d3b66;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.createClientBtn:hover {
+  background-color: #082a4a;
+}
+
+.alertError { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; }
+.alertSuccess { background-color: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; }
+
+.detailCard { background-color: #fff; padding: 25px; border-radius: 8px; color: #333; }
+.sectionHeaderRow { display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+.sectionTitle { margin: 0 0 10px 0; font-size: 18px; }
+.statusHighlight { color: #0d3b66; }
+.metaInfoList { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #666; margin: 0; }
+.metaInfoItem { margin: 0; }
+.metaIcon { margin-right: 5px; }
+
+.infoGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+.infoBox { background-color: #f8f9fa; padding: 15px; border-radius: 6px; }
+.infoText { margin: 0 0 8px 0; }
+.infoTextLast { margin: 0; }
+.descriptionText { font-size: 14px; line-height: 1.5; }
+
+.dividerSection { border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px; }
+.subTitleBlue { display: flex; align-items: center; gap: 8px; font-size: 16px; color: #0d3b66; margin-bottom: 15px; margin-top: 0; }
+.subTitleGreen { display: flex; align-items: center; gap: 8px; font-size: 16px; color: #28a745; margin-bottom: 15px; margin-top: 0; }
+.emptyItalic { font-size: 13px; color: #777; font-style: italic; margin: 0; }
+.evidenciaList { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+.evidenciaCard { width: 100px; height: 100px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; position: relative; background-color: #fdfdfd; display: flex; align-items: center; justify-content: center; }
+.evidenciaLink { text-decoration: none; text-align: center; color: inherit; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.evidenciaImg { width: 100%; height: 100%; object-fit: cover; }
+.pdfIconLarge { font-size: 30px; }
+.pdfTextSmall { font-size: 10px; color: #0d3b66; margin-top: 5px; }

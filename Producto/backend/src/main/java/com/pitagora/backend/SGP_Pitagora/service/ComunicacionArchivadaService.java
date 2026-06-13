@@ -5,19 +5,53 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pitagora.backend.SGP_Pitagora.dto.MensajeSalienteDto;
 import com.pitagora.backend.SGP_Pitagora.model.ComunicacionArchivada;
+import com.pitagora.backend.SGP_Pitagora.model.Solicitud;
 import com.pitagora.backend.SGP_Pitagora.repository.ComunicacionArchivadaRepository;
+import com.pitagora.backend.SGP_Pitagora.repository.SolicitudRepository;
 
 @Service
 public class ComunicacionArchivadaService {
 
     private final ComunicacionArchivadaRepository comunicacionArchivadaRepository;
+    private final SolicitudRepository solicitudRepository;
+    private final JavaMailSender mailSender;
 
-    public ComunicacionArchivadaService(ComunicacionArchivadaRepository comunicacionArchivadaRepository) {
+    public ComunicacionArchivadaService(ComunicacionArchivadaRepository comunicacionArchivadaRepository,
+                                        SolicitudRepository solicitudRepository,
+                                        JavaMailSender mailSender) {
         this.comunicacionArchivadaRepository = comunicacionArchivadaRepository;
+        this.solicitudRepository = solicitudRepository;
+        this.mailSender = mailSender;
+    }
+
+    public ComunicacionArchivada enviarRespuestaCliente(Long id, MensajeSalienteDto dto) {
+        Solicitud solicitud = solicitudRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
+
+        String asuntoConId = dto.getAsunto() + " [ID-" + id + "]";
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(dto.getDestinatario());
+        message.setSubject(asuntoConId);
+        message.setText(dto.getCuerpoMensaje());
+        mailSender.send(message);
+
+        ComunicacionArchivada nuevaCom = new ComunicacionArchivada();
+        nuevaCom.setSolicitud(solicitud);
+        nuevaCom.setAsunto(asuntoConId);
+        nuevaCom.setCuerpoMensaje(dto.getCuerpoMensaje());
+        nuevaCom.setRemitente("dudu@dudu.com"); 
+        nuevaCom.setDestinatario(dto.getDestinatario());
+        nuevaCom.setFechaEnvio(LocalDateTime.now());
+
+        return comunicacionArchivadaRepository.save(nuevaCom);
     }
 
     public List<ComunicacionArchivada> findAll() {
@@ -49,32 +83,12 @@ public class ComunicacionArchivadaService {
     }
 
     public List<ComunicacionArchivada> filtrarComunicaciones(
-        Long id,
-        LocalDate fechaInicio,
-        LocalDate fechaFin,
-        String keyword
-    ) {
-        LocalDateTime inicio = null;
-        LocalDateTime fin = null;
-
-        if (fechaInicio != null) {
-            inicio = fechaInicio.atStartOfDay(); 
-        }
+        Long id, LocalDate fechaInicio, LocalDate fechaFin, String keyword) {
         
-        if (fechaFin != null) {
-            fin = fechaFin.atTime(23, 59, 59, 999999999);
-        }
+        LocalDateTime inicio = fechaInicio != null ? fechaInicio.atStartOfDay() : null;
+        LocalDateTime fin = fechaFin != null ? fechaFin.atTime(23, 59, 59, 999999999) : null;
+        String keywordProcesada = (keyword != null && !keyword.isBlank()) ? "%" + keyword.toLowerCase() + "%" : null;
 
-        String keywordProcesada = null;
-        if (keyword != null && !keyword.isBlank()) {
-            keywordProcesada = "%" + keyword.toLowerCase() + "%";
-        }
-
-        return comunicacionArchivadaRepository.filtrarComunicaciones(
-                id,
-                inicio,
-                fin,
-                keywordProcesada
-        );
+        return comunicacionArchivadaRepository.filtrarComunicaciones(id, inicio, fin, keywordProcesada);
     }
 }
