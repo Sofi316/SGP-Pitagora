@@ -24,7 +24,7 @@ const ModalEliminarUsuario = ({ isOpen, onClose, usuario, onSuccess }) => {
   };
 
   const sOverlay = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const sContent = { backgroundColor: '#fff', padding: '25px', borderRadius: '4px', width: '400px', textAlign: 'center', color: '#333' };
+  const sContent = { backgroundColor: '#fff', padding: '25px', borderRadius: '4px', width: '400px', maxWidth: '90%', textAlign: 'center', color: '#333' };
   const sError = { color: '#d9534f', fontSize: '11px', marginTop: '2px', fontWeight: 'bold' };
 
   return (
@@ -35,7 +35,7 @@ const ModalEliminarUsuario = ({ isOpen, onClose, usuario, onSuccess }) => {
         <p style={{ fontSize: '12px', color: '#777', marginBottom: '15px' }}>Se mantendrá en el histórico, pero no podrá acceder ni recibir correos.</p>
         {backendError && <p style={sError}>{backendError}</p>}
         
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '15px' }}>
           <button onClick={() => { setBackendError(''); onClose(); }} className={styles.btnSecondaryModal}>Cancelar</button>
           <button onClick={handleEliminar} className={styles.deleteBtn}>Eliminar</button>
         </div>

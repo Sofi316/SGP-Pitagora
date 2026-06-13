@@ -135,70 +135,10 @@ public class EmailPollerService {
         }
         return result.toString();
     }   
-    /* 
-    @Scheduled(cron = "0 0 9 * * *") // Se ejecuta todos los días a las 09:00 AM
+
+    @Scheduled(cron = "0 0 9 * * *")
     @Transactional
     public void procesarRecordatoriosYCierresAutomaticos() {
-        // Buscar solicitudes en estado TERMINADO (id = 3)
-        List<Solicitud> solicitudesTerminadas = solicitudRepository.findAll().stream()
-                .filter(s -> Boolean.TRUE.equals(s.getActivo()) && s.getEstadoSolicitud().getId().equals(3L))
-                .toList();
-
-        LocalDateTime ahora = LocalDateTime.now();
-
-        for (Solicitud sol : solicitudesTerminadas) {
-            
-            boolean tokenExpiro = sol.getFechaExpiracionToken() != null && sol.getFechaExpiracionToken().isBefore(ahora);
-            boolean limiteRecordatoriosAlcanzado = sol.getContadorRecordatorios() != null && sol.getContadorRecordatorios() >= 4;
-
-            // LÓGICA DE CIERRE AUTOMÁTICO
-            if (tokenExpiro || limiteRecordatoriosAlcanzado) {
-                // Estado 4 = APROBADO
-                EstadoSolicitud estadoAprobado = estadoSolicitudRepository.findById(4L).orElseThrow();
-                sol.setEstadoSolicitud(estadoAprobado);
-                sol.setComentarioCierre("Aprobación automática por el sistema: Plazo expirado o límite de recordatorios alcanzado sin respuesta del cliente.");
-                sol.setFechaFirma(ahora);
-                sol.setTokenConformidad(null);
-                sol.setFechaExpiracionToken(null);
-                solicitudRepository.save(sol);
-
-                // Notificar cierre automático
-                String asunto = "Aprobación Automática SGP Pitagora [ID-" + sol.getId() + "]";
-                String cuerpo = "El sistema ha aprobado automáticamente la solicitud debido a que el plazo de respuesta ha expirado sin recibir evaluación.";
-                
-                List<String> correos = sol.getObra() != null ? usuarioRepository.findCorreosByObraId(sol.getObra().getId()) : List.of();
-                for (String correo : correos) {
-                    emailSenderService.enviarYArchivarCorreo(correo, asunto, cuerpo, sol);
-                }
-                continue; 
-            }
-
-            // LÓGICA DE RECORDATORIOS (Si han pasado 7 días desde el último)
-            LocalDateTime fechaReferencia = sol.getFechaUltimoRecordatorio() != null ? sol.getFechaUltimoRecordatorio() : sol.getFechaExpiracionToken().minusWeeks(4);
-            
-            if (fechaReferencia.plusDays(7).isBefore(ahora)) {
-                int nuevoContador = (sol.getContadorRecordatorios() == null ? 0 : sol.getContadorRecordatorios()) + 1;
-                
-                sol.setContadorRecordatorios(nuevoContador);
-                sol.setFechaUltimoRecordatorio(ahora);
-                solicitudRepository.save(sol);
-
-                String asunto = "Recordatorio #" + nuevoContador + " - Conformidad Requerida SGP Pitagora [ID-" + sol.getId() + "]";
-                String enlace = "http://localhost:3000/conformidad/" + sol.getTokenConformidad(); // Ajustar con variable de entorno si tienes
-                String cuerpo = "Estimado cliente,\n\nLe recordamos que aún está pendiente su evaluación para el trabajo finalizado en la solicitud #" + sol.getId() + ".\n\nPor favor, ingrese al siguiente enlace para emitir su respuesta:\n" + enlace + "\n\nEste es el recordatorio número " + nuevoContador + " de 4.";
-
-                List<String> correos = sol.getObra() != null ? usuarioRepository.findCorreosByObraId(sol.getObra().getId()) : List.of();
-                for (String correo : correos) {
-                    emailSenderService.enviarYArchivarCorreo(correo, asunto, cuerpo, sol);
-                }
-            }
-        }
-    }*/
-    @Scheduled(fixedRate = 20000)
-    @Transactional
-    public void procesarRecordatoriosYCierresAutomaticos() {
-        System.out.println("\n[POLLER] Ejecutando revision: " + LocalDateTime.now());
-
         List<Solicitud> solicitudesTerminadas = solicitudRepository.findAll().stream()
                 .filter(s -> Boolean.TRUE.equals(s.getActivo()) && s.getEstadoSolicitud() != null && s.getEstadoSolicitud().getId().equals(3L))
                 .toList();
@@ -210,17 +150,16 @@ public class EmailPollerService {
             if (sol.getFechaExpiracionToken() == null) continue;
 
             int recordatoriosEnviados = sol.getContadorRecordatorios() != null ? sol.getContadorRecordatorios() : 0;
-            System.out.println("-> Evaluando Solicitud ID: " + sol.getId() + " | Recordatorios enviados: " + recordatoriosEnviados);
             
             boolean tokenExpiro = sol.getFechaExpiracionToken().isBefore(ahora);
             LocalDateTime fechaReferencia = sol.getFechaUltimoRecordatorio() != null ? sol.getFechaUltimoRecordatorio() : sol.getFechaExpiracionToken().minusWeeks(4);
             
-            // ¿Ya pasó el intervalo de tiempo (45 segs en prueba / 7 días real)?
-            boolean tiempoCumplido = fechaReferencia.plusSeconds(45).isBefore(ahora);
+            // LÓGICA DE PRODUCCIÓN: ¿Ya pasaron 7 días (1 semana) desde el último correo?
+            boolean tiempoCumplido = fechaReferencia.plusDays(7).isBefore(ahora);
 
             // 1. LÓGICA DE CIERRE (Si expiró el token real, o si ya mandamos los 3 recordatorios Y pasó el último intervalo de tiempo)
             if (tokenExpiro || (tiempoCumplido && recordatoriosEnviados >= 3)) {
-                System.out.println("[POLLER] Cerrando solicitud automaticamente ID: " + sol.getId());
+                System.out.println("[POSTVENTA] Cerrando solicitud automáticamente ID: " + sol.getId());
                 
                 EstadoSolicitud estadoAprobado = estadoSolicitudRepository.findById(4L).orElseThrow();
                 sol.setEstadoSolicitud(estadoAprobado);
@@ -241,7 +180,7 @@ public class EmailPollerService {
             // 2. LÓGICA DE RECORDATORIOS (Si pasó el tiempo y aún no llegamos a los 3 recordatorios)
             else if (tiempoCumplido && recordatoriosEnviados < 3) {
                 int nuevoContador = recordatoriosEnviados + 1;
-                System.out.println("[POLLER] Disparando Recordatorio #" + nuevoContador + " para la Solicitud ID: " + sol.getId());
+                System.out.println("[POSTVENTA] Disparando Recordatorio #" + nuevoContador + " para la Solicitud ID: " + sol.getId());
                 
                 sol.setContadorRecordatorios(nuevoContador);
                 sol.setFechaUltimoRecordatorio(ahora);

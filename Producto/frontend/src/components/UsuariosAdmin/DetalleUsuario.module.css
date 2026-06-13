@@ -62,6 +62,7 @@
   margin: 0 0 5px 0;
   color: #0d3b66;
   font-size: 24px;
+  word-break: break-word;
 }
 
 .badge {
@@ -110,6 +111,7 @@
 .detailText {
   margin: 0 0 10px 0;
   font-size: 14px;
+  word-break: break-word;
 }
 
 .detailText strong {
@@ -152,4 +154,32 @@
   color: #6c757d;
   font-size: 14px;
   font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .editBtn, .deleteBtn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -22,8 +22,8 @@
   background-color: #0d3b66;
   color: #ffffff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 8px 18px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
@@ -90,6 +90,7 @@
 .itemName {
   color: #ffffff;
   font-size: 16px;
+  word-break: break-word;
 }
 
 .actions {
@@ -136,4 +137,33 @@
 .backButton:hover {
   opacity: 0.8;
   transform: translateX(-4px); 
+}
+
+@media (max-width: 768px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .createBtn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .itemRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .editBtn, .deleteBtn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
 }

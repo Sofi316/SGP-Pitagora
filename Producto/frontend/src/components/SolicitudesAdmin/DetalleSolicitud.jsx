@@ -240,7 +240,7 @@ const DetalleSolicitud = () => {
       <div className={styles.detailCard}>
         
         <div className={styles.sectionHeaderRow}>
-          <div>
+          <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <h2 className={styles.sectionTitle}>Estado Actual: <span className={styles.statusHighlight}>{estadoActual}</span></h2>
             <div className={styles.metaInfoList}>
                <p className={styles.metaInfoItem}>
@@ -321,7 +321,6 @@ const DetalleSolicitud = () => {
           </div>
         </div>
 
-        {/* BLOQUE DE CIERRE Y CONFORMIDAD */}
         {(solicitud.motivoRechazo || solicitud.comentarioCierre || (solicitud.calificacion && solicitud.calificacion > 0) || solicitud.fechaFirma) && (
           <div className={styles.dividerSection}>
             <h3 className={styles.subTitleBlue}><FaCheckCircle /> Cierre y Conformidad del Cliente</h3>
@@ -366,7 +365,6 @@ const DetalleSolicitud = () => {
         <div className={styles.dividerSection}>
         <h3 className={styles.subTitleGreen}><FaWrench /> Evidencia de Reparación</h3>
         
-        {/* Mensaje informativo para estado Pendiente */}
         {estadoActual === 'Pendiente' ? (
           <div className={styles.costoInfoBox}>
             <p className={styles.costoInfoText}>
@@ -375,14 +373,12 @@ const DetalleSolicitud = () => {
           </div>
         ) : (
           <>
-            {/* Listado de evidencias (siempre visible si no es Pendiente) */}
             {evidenciasReparacion.length > 0 && (
               <div className={styles.evidenciaList}>
                 {evidenciasReparacion.map((ev, index) => renderEvidenciaCard(ev, index))}
               </div>
             )}
 
-            {/* Formulario de subida: SOLO visible si el estado es 'En Proceso' */}
             {estadoActual === 'En Proceso' && (
               <div className={styles.uploadBox}>
                 <input type="file" multiple hidden accept="image/*,.pdf" onChange={handleFileChange} ref={inputRef} />

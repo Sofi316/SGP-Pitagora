@@ -164,10 +164,10 @@ const SubcategoriasAdmin = () => {
     : subcategorias;
 
   const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const modalContentStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '400px', maxWidth: '90%', color: '#333' };
+  const modalContentStyle = { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '400px', maxWidth: '90%', color: '#333', maxHeight: '90vh', overflowY: 'auto' };
   const inputStyle = { width: '100%', padding: '10px', margin: '10px 0', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' };
-  const buttonGroupStyle = { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' };
-  const btnStyle = { padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer' };
+  const buttonGroupStyle = { display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '10px', marginTop: '20px' };
+  const btnStyle = { padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', flex: '1 1 auto', textAlign: 'center' };
   const cancelBtnStyle = { ...btnStyle, backgroundColor: '#ccc', color: '#333' };
   const confirmBtnStyle = { ...btnStyle, backgroundColor: '#0d3b66', color: '#fff' };
   const deleteBtnStyle = { ...btnStyle, backgroundColor: '#d9534f', color: '#fff' };
@@ -211,9 +211,9 @@ const SubcategoriasAdmin = () => {
         ) : (
           subcategoriasFiltradas.map((subcat) => (
             <div key={subcat.id} className={styles.itemRow}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 }}>
                 <span className={styles.itemName}>{subcat.nombre}</span>
-                <span style={{ fontSize: '12px', color: '#e0e0e0' }}>
+                <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '4px', wordBreak: 'break-word' }}>
                   Categoría: {subcat.categoria ? subcat.categoria.nombre : 'Sin categoría'}
                 </span>
               </div>
@@ -281,10 +281,10 @@ const SubcategoriasAdmin = () => {
       {showDeleteModal && subcategoriaAEliminar && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h3>Confirmar Eliminación</h3>
+            <h3 style={{ margin: '0 0 15px 0', color: '#d9534f' }}>Confirmar Eliminación</h3>
             {modalError && <p style={{ color: '#d9534f', fontSize: '13px', margin: '5px 0' }}>{modalError}</p>}
             <p>¿Estás seguro de que deseas eliminar la subcategoría <strong>"{subcategoriaAEliminar.nombre}"</strong>?</p>
-            <p style={{fontSize: '12px', color: '#666'}}>Esta acción no se puede deshacer.</p>
+            <p style={{fontSize: '12px', color: '#666', marginBottom: '15px'}}>Esta acción no se puede deshacer.</p>
             <div style={buttonGroupStyle}>
               <button style={cancelBtnStyle} onClick={() => {setShowDeleteModal(false); setSubcategoriaAEliminar(null); setModalError('');}}>Cancelar</button>
               <button style={deleteBtnStyle} onClick={handleEliminar}>Eliminar</button>

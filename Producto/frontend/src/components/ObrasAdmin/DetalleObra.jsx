@@ -37,7 +37,7 @@ const DetalleObra = () => {
   if (error) return <div className={styles.container}><p className={styles.errorText}>{error}</p></div>;
   if (!obra) return null;
 
-  const gridUsuariosStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px', marginTop: '15px' };
+  const gridUsuariosStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px', marginTop: '15px' };
   const cardUsuarioStyle = { padding: '15px', backgroundColor: '#f8f9fa', borderLeft: '4px solid #0d3b66', borderRadius: '6px', fontSize: '14px', color: '#333' };
 
   return (

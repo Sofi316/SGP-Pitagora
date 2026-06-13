@@ -20,10 +20,10 @@
 
 .backButton {
   color: #ffffff;
-  text-decoration: none; /* Quita el subrayado si usas <Link> */
-  background: transparent; /* Quita el fondo azul si usas <button> */
-  border: none; /* Quita el borde si usas <button> */
-  padding: 0; /* Quita el padding para que no ocupe espacio extra */
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
@@ -196,4 +196,26 @@
   color: #6c757d;
   font-size: 13px;
   font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .btnSolicitudes {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .actaLink {
+    word-break: break-word;
+  }
 }

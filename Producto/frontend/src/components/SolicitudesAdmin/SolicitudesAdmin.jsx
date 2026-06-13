@@ -62,7 +62,6 @@ const SolicitudesAdmin = () => {
                 <span className={styles.itemName}>{empresa.razonSocial}</span>
                 <span style={{ fontSize: '12px', color: '#e0e0e0' }}>RUT: {empresa.rut}</span>
               </div>
-              
             </div>
           ))
         )}

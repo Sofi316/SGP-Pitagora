@@ -224,19 +224,19 @@ const ObrasAdmin = () => {
           <p style={{ color: 'white' }}>No hay obras registradas.</p>
         ) : (
           obras.map((ob) => (
-            <div key={ob.id} className={styles.itemRow}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className={styles.itemName}>
+            <div key={ob.id} className={styles.itemRow} style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 250px', minWidth: 0 }}>
+                <span className={styles.itemName} style={{ wordBreak: 'break-word' }}>
                    {ob.nombre}
                 </span>
-                <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '4px' }}>
+                <span style={{ fontSize: '12px', color: '#e0e0e0', marginTop: '4px', wordBreak: 'break-word' }}>
                   Empresa: {ob.empresaCliente ? ob.empresaCliente.razonSocial : 'Sin empresa'} | Comuna: {ob.comuna ? ob.comuna.nombre : 'Sin comuna'}
                 </span>
               </div>
-              <div className={styles.actions} style={{ display: 'flex', gap: '8px' }}>
-                <button className={styles.editBtn} style={{ backgroundColor: '#304557' }} onClick={() => navigate(`/admin/gestion/obras/${ob.id}`)}>Ver Detalle</button>
-                <button className={styles.editBtn} onClick={() => abrirModalEditar(ob)}>Editar</button>
-                <button className={styles.deleteBtn} onClick={() => abrirModalEliminar(ob)}>Eliminar</button>
+              <div className={styles.actions} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button className={styles.editBtn} style={{ backgroundColor: '#304557', flex: '1 1 auto', textAlign: 'center' }} onClick={() => navigate(`/admin/gestion/obras/${ob.id}`)}>Ver Detalle</button>
+                <button className={styles.editBtn} style={{ flex: '1 1 auto', textAlign: 'center' }} onClick={() => abrirModalEditar(ob)}>Editar</button>
+                <button className={styles.deleteBtn} style={{ flex: '1 1 auto', textAlign: 'center' }} onClick={() => abrirModalEliminar(ob)}>Eliminar</button>
               </div>
             </div>
           ))
@@ -266,8 +266,8 @@ const ObrasAdmin = () => {
                 ))}
               </select>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={formCrear.regionId} 
@@ -280,7 +280,7 @@ const ObrasAdmin = () => {
                     ))}
                   </select>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: '1 1 200px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={formCrear.comunaId} 
@@ -331,8 +331,8 @@ const ObrasAdmin = () => {
                 ))}
               </select>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Región: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={obraAEditar.regionIdForm} 
@@ -345,7 +345,7 @@ const ObrasAdmin = () => {
                     ))}
                   </select>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: '1 1 200px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 'bold' }}>Comuna: <span style={{ color: 'red' }}>*</span></label>
                   <select 
                     value={obraAEditar.comunaIdForm} 

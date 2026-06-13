@@ -24,6 +24,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .checkboxContainer {
@@ -155,7 +156,7 @@
 
 .kpiCard {
   flex: 1;
-  min-width: 250px;
+  min-width: 200px;
   padding: 25px 20px;
   border-radius: 4px;
   display: flex;
@@ -209,13 +210,14 @@
 }
 
 .chartCardPie {
-  flex: 0 0 40%;
+  flex: 1;
   min-width: 300px;
 }
 
 .chartCardBar {
-  flex: 1;
-  min-width: 400px;
+  flex: 2;
+  min-width: 300px;
+  overflow: hidden;
 }
 
 .chartTitle {
@@ -227,6 +229,40 @@
 }
 
 .chartContainer {
-  height: 300px;
+  height: 350px;
   width: 100%;
+}
+
+.scrollableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 10px;
+}
+
+.minWidthChart {
+  min-width: 600px;
+  height: 350px;
+}
+
+.chartHeaderFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.emptyState {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-style: italic;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px dashed #ccc;
+  min-height: 200px;
 }

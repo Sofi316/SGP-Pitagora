@@ -55,6 +55,7 @@ const ModalReactivarUsuario = ({ isOpen, onClose, mensaje, formData, onSuccess }
     padding: '25px', 
     borderRadius: '4px', 
     width: '450px', 
+    maxWidth: '90%',
     textAlign: 'center', 
     color: '#333' 
   };
@@ -76,7 +77,7 @@ const ModalReactivarUsuario = ({ isOpen, onClose, mensaje, formData, onSuccess }
         </p>
         {backendError && <p style={sError}>{backendError}</p>}
         
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '15px', marginTop: '20px' }}>
           <button
             onClick={() => { setBackendError(''); onClose(); }}
             className={styles.btnSecondaryModal}

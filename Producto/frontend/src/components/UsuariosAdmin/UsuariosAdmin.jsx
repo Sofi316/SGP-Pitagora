@@ -91,6 +91,7 @@ const UsuariosAdmin = () => {
 
     return errores;
   };
+
   useEffect(() => {
     cargarDatosIniciales();
   }, []);
@@ -209,11 +210,11 @@ const UsuariosAdmin = () => {
     : todasLasObras;
 
   const sOverlay = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const sContent = { backgroundColor: '#fff', padding: '25px', borderRadius: '4px', width: '650px', color: '#333', maxHeight: '95vh', overflowY: 'auto' };
-  const sGrid = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '5px' };
+  const sContent = { backgroundColor: '#fff', padding: '25px', borderRadius: '4px', width: '650px', maxWidth: '90%', color: '#333', maxHeight: '95vh', overflowY: 'auto' };
+  const sGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '5px' };
   const sGroup = { display: 'flex', flexDirection: 'column', minHeight: '85px' };
   const sLabel = { fontSize: '13px', fontWeight: 'bold', marginBottom: '4px', color: '#555' };
-  const sInput = (err) => ({ padding: '10px', borderRadius: '2px', border: err ? '2px solid #d9534f' : '1px solid #ccc', fontSize: '14px', outline: 'none' });
+  const sInput = (err) => ({ padding: '10px', borderRadius: '2px', border: err ? '2px solid #d9534f' : '1px solid #ccc', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box' });
   const sError = { color: '#d9534f', fontSize: '11px', marginTop: '2px', fontWeight: 'bold' };
   const sBtnSubmit = { backgroundColor: '#0d3b66', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' };
 

@@ -124,7 +124,6 @@
   border: 1px solid white;
 }
 
-/* NUEVA CLASE PARA EL MODAL */
 .btnSecondaryModal {
   height: 40px;
   padding: 0 20px;
@@ -163,16 +162,23 @@
   border-radius: 2px;
 }
 
+.itemInfo {
+  flex: 1;
+  min-width: 0; /* Ayuda a que el texto se trunque o baje sin romper flex */
+}
+
 .itemName {
   color: #ffffff;
   font-size: 16px;
   margin: 0;
+  word-break: break-word;
 }
 
 .itemSubtext {
   color: rgba(255, 255, 255, 0.8);
   margin: 5px 0 0 0;
   font-size: 13px;
+  word-break: break-word;
 }
 
 .actions {
@@ -180,8 +186,7 @@
   gap: 10px;
 }
 
-
-.editBtn, .deleteBtn,.detailBtn {
+.editBtn, .deleteBtn, .detailBtn {
   border: none;
   padding: 8px 15px;
   border-radius: 4px;
@@ -204,4 +209,42 @@
 
 .editBtn:hover, .deleteBtn:hover {
   opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .createBtn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .filtersForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btnGroup {
+    flex-direction: column;
+  }
+  
+  .itemRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .editBtn, .deleteBtn, .detailBtn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
 }

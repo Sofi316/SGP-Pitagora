@@ -18,6 +18,19 @@ const COLORES = {
 
 const ESTADOS = Object.keys(COLORES);
 
+const CustomTick = ({ x, y, payload }) => {
+  const words = payload.value.split(' ');
+  return (
+    <text x={x} y={y + 15} textAnchor="middle" fill="#333333" fontSize={11}>
+      {words.map((word, index) => (
+        <tspan x={x} dy={index === 0 ? 0 : 14} key={index}>
+          {word}
+        </tspan>
+      ))}
+    </text>
+  );
+};
+
 export default function Dashboard() {
   const [dataReal, setDataReal] = useState([]);
   const [filtroEmpresa, setFiltroEmpresa] = useState('');
@@ -134,18 +147,15 @@ export default function Dashboard() {
   const descargarExcel = async () => {
     try {
       const idsAExportar = dataFiltrada.map(item => item.id);
-      
       const respuesta = await api.post('/solicitudes/exportar/excel', idsAExportar, {
         responseType: 'blob' 
       });
-
       const url = window.URL.createObjectURL(new Blob([respuesta.data]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'reporte_observaciones.xlsx');
       document.body.appendChild(link);
       link.click();
-      
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -156,18 +166,15 @@ export default function Dashboard() {
   const descargarPdf = async () => {
     try {
       const idsAExportar = dataFiltrada.map(item => item.id);
-      
       const respuesta = await api.post('/solicitudes/exportar/pdf', idsAExportar, {
         responseType: 'blob' 
       });
-
       const url = window.URL.createObjectURL(new Blob([respuesta.data]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'reporte_observaciones.pdf');
       document.body.appendChild(link);
       link.click();
-      
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -188,19 +195,11 @@ export default function Dashboard() {
             />
             Ver en porcentajes
           </label>
-          <button 
-            className={styles.exportBtn}
-            onClick={descargarExcel}
-            disabled={dataFiltrada.length === 0}
-          >
+          <button className={styles.exportBtn} onClick={descargarExcel} disabled={dataFiltrada.length === 0}>
             <FaFileExcel size={16} />
             <span>Exportar Excel</span>
           </button>
-          <button 
-            className={styles.exportPdfBtn}
-            onClick={descargarPdf}
-            disabled={dataFiltrada.length === 0}
-          >
+          <button className={styles.exportPdfBtn} onClick={descargarPdf} disabled={dataFiltrada.length === 0}>
             <FaFilePdf size={16} />
             <span>Exportar PDF</span>
           </button>
@@ -256,18 +255,24 @@ export default function Dashboard() {
           <h3 className={styles.chartTitle}>Resumen General por Estado</h3>
           <div className={styles.chartContainer}>
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ top: 20, right: 30, left: 30, bottom: 20 }}>
                 <Pie
                   data={dataTorta}
                   cx="50%"
                   cy="50%"
                   innerRadius={0}
-                  outerRadius={90} 
+                  outerRadius="55%" 
                   paddingAngle={0}
                   dataKey="value"
-                  label={({ name, percent, value }) => 
-                    mostrarPorcentaje ? `${name} ${(percent * 100).toFixed(1)}%` : `${name} ${value}`
-                  }
+                  labelLine={true}
+                  label={({ x, y, name, percent, value, cx }) => (
+                    <text x={x} y={y} fill="#333333" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11}>
+                      <tspan x={x} dy="-0.4em">{name}</tspan>
+                      <tspan x={x} dy="1.2em" fill={COLORES[name]} fontWeight="bold">
+                        {mostrarPorcentaje ? `${(percent * 100).toFixed(1)}%` : value}
+                      </tspan>
+                    </text>
+                  )}
                 >
                   {dataTorta.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORES[entry.name]} />
@@ -290,19 +295,21 @@ export default function Dashboard() {
 
         <div className={`${styles.chartCard} ${styles.chartCardBar}`}>
           <h3 className={styles.chartTitle}>Distribución de Estados por Obra</h3>
-          <div className={styles.chartContainer}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dataBarras} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis dataKey="obra" tick={{ fill: '#333333' }} />
-                <YAxis tick={{ fill: '#333333' }} />
-                <Tooltip cursor={{ fill: '#f5f5f5' }} />
-                <Legend wrapperStyle={{ paddingTop: '15px', color: '#333333' }} />
-                {ESTADOS.map(estado => (
-                  <Bar key={estado} dataKey={estado} stackId="a" fill={COLORES[estado]} />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+          <div className={styles.scrollableWrapper}>
+            <div className={styles.minWidthChart}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dataBarras} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <XAxis dataKey="obra" tick={<CustomTick />} interval={0} height={60} />
+                  <YAxis tick={{ fill: '#333333' }} />
+                  <Tooltip cursor={{ fill: '#f5f5f5' }} />
+                  <Legend wrapperStyle={{ paddingTop: '15px', color: '#333333' }} />
+                  {ESTADOS.map(estado => (
+                    <Bar key={estado} dataKey={estado} stackId="a" fill={COLORES[estado]} />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </div>
@@ -310,10 +317,9 @@ export default function Dashboard() {
       <div className={styles.chartsRow}>
         <div className={`${styles.chartCard} ${styles.chartCardBar}`} style={{ flex: '1 1 100%' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div className={styles.chartHeaderFlex}>
             <h3 className={styles.chartTitle} style={{ margin: 0 }}>Volumen de Fallas por Categoría</h3>
-            
-            <div style={{ width: '250px' }}>
+            <div style={{ flex: '1', minWidth: '200px', maxWidth: '300px' }}>
               <select 
                 className={styles.menuItem} 
                 style={{ backgroundColor: '#f0f0f0', color: '#333', border: '1px solid #ccc' }}
@@ -330,23 +336,25 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className={styles.chartContainer}>
+          <div className={styles.scrollableWrapper}>
             {dataFallas.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dataFallas} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                  <XAxis dataKey="nombre" tick={{ fill: '#333333' }} />
-                  <YAxis tick={{ fill: '#333333' }} />
-                  <Tooltip cursor={{ fill: '#f5f5f5' }} />
-                  <Bar 
-                    dataKey="cantidad" 
-                    fill={categoriaSeleccionada === 'TODAS' ? '#0d3b66' : '#17a2b8'} 
-                    name="Cantidad de Solicitudes" 
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className={styles.minWidthChart}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dataFallas} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                    <XAxis dataKey="nombre" tick={<CustomTick />} interval={0} height={80} />
+                    <YAxis tick={{ fill: '#333333' }} />
+                    <Tooltip cursor={{ fill: '#f5f5f5' }} />
+                    <Bar 
+                      dataKey="cantidad" 
+                      fill={categoriaSeleccionada === 'TODAS' ? '#0d3b66' : '#17a2b8'} 
+                      name="Cantidad de Solicitudes" 
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#666', fontStyle: 'italic', backgroundColor: '#f9f9f9', borderRadius: '4px', border: '1px dashed #ccc' }}>
+              <div className={styles.emptyState}>
                 No hay solicitudes asociadas a esta categoría con los filtros actuales.
               </div>
             )}

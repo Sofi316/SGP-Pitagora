@@ -62,7 +62,7 @@ const DetalleUsuario = () => {
 
       <div className={styles.mainCard}>
         <div className={styles.cardHeader}>
-            <div>
+            <div style={{ flex: '1 1 auto', minWidth: 0 }}>
                 <h2 className={styles.obraNombre}>{usuario.nombre} {usuario.apellido}</h2>
                 <span className={`${styles.badge} ${usuario.activo ? styles.badgeActiva : styles.badgeInactiva}`}>
                     {usuario.activo ? 'Cuenta activa' : 'Cuenta inactiva'}
