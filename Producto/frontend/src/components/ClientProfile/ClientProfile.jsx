@@ -88,20 +88,35 @@ const ClientProfile = () => {
 
     try {
       const userId = localStorage.getItem('userId');
+      
+      // 1. Payload limpiado para evitar errores de Spring Security
       const payload = {
-        ...usuario,
+        id: usuario.id,
+        rut: usuario.rut,
         nombre: formData.nombre,
         apellido: formData.apellido,
         correo: formData.correo,
-        celular: formData.celular
+        celular: formData.celular,
+        cargo: usuario.cargo,
+        recibe_notificaciones: usuario.recibe_notificaciones,
+        activo: usuario.activo,
+        rol: { id: usuario.rol?.id },
+        obras: usuario.obras?.map(o => ({ id: o.id })) || []
       };
 
-      // If changing password, include it
       if (editandoPassword && formData.contrasenaNueva) {
         payload.contrasena = formData.contrasenaNueva;
       }
 
-      await api.put(`/usuarios/${userId}`, payload);
+      // 2. Guardamos la respuesta
+      const response = await api.put(`/usuarios/${userId}`, payload);
+      
+      // 3. Refrescamos el JWT en LocalStorage con la nueva info
+      if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userEmail', formData.correo);
+      }
+
       setSuccess('Perfil actualizado exitosamente.');
       setEditandoPassword(false);
       setFormData(prev => ({
@@ -110,7 +125,6 @@ const ClientProfile = () => {
         contrasenaConfirmar: ''
       }));
       
-      // Reload user data
       cargarDatosUsuario();
     } catch (err) {
       if (err.response?.status !== 401) {

@@ -51,15 +51,12 @@ const ModalCrearSolicitud = ({ show, onClose, obra, onSolicitudCreada }) => {
     }
   };
 
-  // MANEJO DE ARCHIVOS CON RESTRICCIONES DE CANTIDAD Y PESO
   const handleFileChange = (e) => {
     setModalError('');
     const files = Array.from(e.target.files);
     
-    // 1. Validar límite máximo de 2 evidencias en total
     if (evidencias.length + files.length > 2) {
       setModalError('No puedes subir más de 2 evidencias en total.');
-      // Limpiar el input para que permita volver a seleccionar si se equivoca
       if (inputArchivoRef.current) inputArchivoRef.current.value = '';
       return;
     }
@@ -67,11 +64,9 @@ const ModalCrearSolicitud = ({ show, onClose, obra, onSolicitudCreada }) => {
     const archivosValidos = [];
     const nuevasPreviews = [];
 
-    // Definición de 10 Megabytes en bytes (10 * 1024 * 1024)
     const MAX_FILE_SIZE = 10 * 1024 * 1024; 
 
     for (const file of files) {
-      // 2. Validar que el peso individual no sobrepase los 10MB
       if (file.size > MAX_FILE_SIZE) {
         setModalError(`El archivo "${file.name}" supera el límite de peso permitido (10MB).`);
         if (inputArchivoRef.current) inputArchivoRef.current.value = '';
@@ -80,7 +75,6 @@ const ModalCrearSolicitud = ({ show, onClose, obra, onSolicitudCreada }) => {
       archivosValidos.push(file);
     }
 
-    // Si todo es válido, procesamos las imágenes/archivos para las previews
     setEvidencias(prev => [...prev, ...archivosValidos]);
 
     archivosValidos.forEach(file => {
@@ -99,14 +93,13 @@ const ModalCrearSolicitud = ({ show, onClose, obra, onSolicitudCreada }) => {
       }
     });
 
-    // Limpiar el valor del input para admitir re-selecciones
     if (inputArchivoRef.current) inputArchivoRef.current.value = '';
   };
 
   const handleEliminarEvidencia = (index) => {
     setEvidencias(prev => prev.filter((_, i) => i !== index));
     setPreviewsEvidencias(prev => prev.filter((_, i) => i !== index));
-    setModalError(''); // Limpiar errores al remover
+    setModalError(''); 
   };
 
   const handleSubmitModal = async (e) => {

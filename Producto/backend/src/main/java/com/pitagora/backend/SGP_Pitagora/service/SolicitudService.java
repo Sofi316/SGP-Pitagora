@@ -366,7 +366,7 @@ public class SolicitudService {
                 String asuntoAdmin = "Conformidad Registrada (" + estadoFinalStr + ") SGP Pitagora [ID-" + solicitud.getId() + "] - Obra: " + nombreObra;
                 
                 StringBuilder cuerpoBuilder = new StringBuilder();
-                cuerpoBuilder.append("Estimado Equipo Administrador,\n\n");
+                cuerpoBuilder.append("Estimados,\n\n");
                 cuerpoBuilder.append("El cliente ha respondido a la solicitud de conformidad para el trabajo realizado.\n\n");
                 cuerpoBuilder.append("--- Resultado de la Evaluación ---\n");
                 cuerpoBuilder.append(detalleCuerpo).append("\n");

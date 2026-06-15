@@ -239,6 +239,23 @@ const DetalleSolicitud = () => {
 
       <div className={styles.detailCard}>
         
+        {/* NUEVO BANNER DE ADVERTENCIA GLOBAL MOVIDO ARRIBA */}
+        {estadoActual === 'En Proceso' && (
+          <div style={{ 
+            backgroundColor: '#fff3cd', 
+            color: '#856404', 
+            padding: '14px 20px', 
+            borderRadius: '6px', 
+            borderLeft: '5px solid #ffeeba', 
+            marginBottom: '20px', 
+            fontSize: '14px',
+            lineHeight: '1.5',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}>
+            <strong>⚠️ Recordatorio Importante:</strong> Asegúrese de adjuntar y guardar todas las evidencias fotográficas en la sección inferior <strong>antes</strong> de marcar la solicitud como "Terminado". Una vez que cambie el estado, la carga de archivos se bloqueará de forma definitiva.
+          </div>
+        )}
+
         <div className={styles.sectionHeaderRow}>
           <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <h2 className={styles.sectionTitle}>Estado Actual: <span className={styles.statusHighlight}>{estadoActual}</span></h2>
@@ -380,40 +397,42 @@ const DetalleSolicitud = () => {
             )}
 
             {estadoActual === 'En Proceso' && (
-              <div className={styles.uploadBox}>
-                <input type="file" multiple hidden accept="image/*,.pdf" onChange={handleFileChange} ref={inputRef} />
-              <div className={styles.uploadForm}>
-                <div className={styles.uploadHeader}>
-                  <span className={styles.uploadLabel}>Adjuntar fotos del trabajo finalizado:</span>
-                  <button type="button" onClick={() => inputRef.current.click()} className={styles.uploadBtn}>
-                    + Seleccionar Archivos
-                  </button>
-                </div>
+              <>
+                <div className={styles.uploadBox}>
+                  <input type="file" multiple hidden accept="image/*,.pdf" onChange={handleFileChange} ref={inputRef} />
+                  <div className={styles.uploadForm}>
+                    <div className={styles.uploadHeader}>
+                      <span className={styles.uploadLabel}>Adjuntar fotos del trabajo finalizado:</span>
+                      <button type="button" onClick={() => inputRef.current.click()} className={styles.uploadBtn}>
+                        + Seleccionar Archivos
+                      </button>
+                    </div>
 
-                {previewsReparacion.length > 0 && (
-                   <div className={styles.previewContainer}>
-                     <div className={styles.previewList}>
-                       {previewsReparacion.map((p, i) => (
-                         <div key={i} className={styles.previewCard}>
-                           {p.tipo === 'application/pdf' ? (
-                             <div className={styles.pdfIconLarge} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>📄</div>
-                           ) : (
-                             <img src={p.url} alt="prev" className={styles.evidenciaImg} />
-                           )}
-                           <button type="button" onClick={() => handleEliminarEvidencia(i)} className={styles.deleteBtn}>X</button>
+                    {previewsReparacion.length > 0 && (
+                       <div className={styles.previewContainer}>
+                         <div className={styles.previewList}>
+                           {previewsReparacion.map((p, i) => (
+                             <div key={i} className={styles.previewCard}>
+                               {p.tipo === 'application/pdf' ? (
+                                 <div className={styles.pdfIconLarge} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>📄</div>
+                               ) : (
+                                 <img src={p.url} alt="prev" className={styles.evidenciaImg} />
+                               )}
+                               <button type="button" onClick={() => handleEliminarEvidencia(i)} className={styles.deleteBtn}>X</button>
+                             </div>
+                           ))}
                          </div>
-                       ))}
-                     </div>
-                     <button type="button" onClick={handleSubirReparacion} disabled={isUploading} className={styles.saveEvidenciaBtn}>
-                       {isUploading ? 'Subiendo archivos...' : 'Guardar Evidencias'}
-                     </button>
-                   </div>
-                )}
-              </div>
-            </div>
-          )}
+                         <button type="button" onClick={handleSubirReparacion} disabled={isUploading} className={styles.saveEvidenciaBtn}>
+                           {isUploading ? 'Subiendo archivos...' : 'Guardar Evidencias'}
+                         </button>
+                       </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </>
-           )}
+        )}
         </div>
 
         <div className={styles.dividerSection}>

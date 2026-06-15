@@ -25,13 +25,17 @@ const RecoverPassword=()=>{
             await api.post(`/auth/solicitar-recuperacion?correo=${correo}`);
             setMensaje('Si el correo existe en nuestro sistema, te hemos enviado un enlace para recuperar tu contraseña.');
 
-        }catch(err){
-           if(err.response?.status === 403){
-            // Cuenta desactivada
-            setError(err.response?.data || 'Su cuenta está desactivada. Por favor, contacte con un administrador para reactivarla.');
-          } else if(err.response?.status !== 401){
-            setError('Ocurrió un error al intentar enviar el correo de recuperación.');
-          }
+        } catch (err) {
+            if (err.response?.status === 403) {
+                // Cuenta desactivada
+                setError(err.response?.data?.message || err.response?.data || 'Su cuenta está desactivada. Por favor, contacte con un administrador para reactivarla.');
+            } else if (err.response?.status === 404) {
+                // Correo no encontrado en la base de datos
+                // Intenta capturar el texto enviado por Spring Boot, o usa el fallback literal
+                setError(err.response?.data?.message || err.response?.data || 'El correo electrónico no existe en el sistema.');
+            } else {
+                setError('Ocurrió un error al intentar enviar el correo de recuperación.');
+            }
         }
     };
     return(

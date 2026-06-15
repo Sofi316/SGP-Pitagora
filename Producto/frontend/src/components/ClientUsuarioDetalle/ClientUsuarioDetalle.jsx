@@ -104,25 +104,34 @@ const ClientUsuarioDetalle = () => {
     setBackendError('');
 
     try {
-
+      // 1. Limpiamos el payload para evitar errores de deserialización en Spring Boot (Jackson)
       const payload = {
-        ...usuario, 
+        id: usuario.id,
+        rut: usuario.rut,
         nombre: formData.nombre,
         apellido: formData.apellido,
         correo: formData.correo,
         celular: formData.celular,
-        rol: { id: parseInt(usuario.rol.id) },
-        obras: usuario.obras.map(o => ({ id: parseInt(o.id) }))
+        cargo: usuario.cargo,
+        recibe_notificaciones: usuario.recibe_notificaciones,
+        activo: usuario.activo,
+        rol: { id: usuario.rol?.id },
+        obras: usuario.obras?.map(o => ({ id: o.id })) || []
       };
 
-      if (formData.contrasena.trim() !== '') {
+      if (formData.contrasena && formData.contrasena.trim() !== '') {
         payload.contrasena = formData.contrasena;
-      } else {
-        delete payload.contrasena;
       }
 
-      await api.put(`/usuarios/${usuario.id}`, payload);
+      // 2. Guardamos la respuesta para extraer el token actualizado
+      const res = await api.put(`/usuarios/${usuario.id}`, payload);
       
+      // 3. Sincronizamos el nuevo JWT en localStorage
+      if (res.data && res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('userEmail', formData.correo);
+      }
+
       setShowModal(false);
       setSuccessMessage('Sus datos fueron actualizados correctamente.');
       cargarDatos();

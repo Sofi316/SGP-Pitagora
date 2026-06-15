@@ -11,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.Normalizer;
+
 @Service
 public class SupabaseStorageService {
 
@@ -35,7 +37,10 @@ public class SupabaseStorageService {
 
     private String uploadFileToBucket(MultipartFile file, String bucketName) {
         try {
-            String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename().replaceAll("\\s+", "_");
+            String nombreLimpio = sanitizarNombreArchivo(file.getOriginalFilename());
+            
+            String filename = System.currentTimeMillis() + "_" + nombreLimpio;
+            
             String url = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + filename;
 
             RestTemplate restTemplate = new RestTemplate();
@@ -53,5 +58,18 @@ public class SupabaseStorageService {
             logger.error("Error subiendo archivo a Supabase: {}", e.getMessage(), e);
             throw new RuntimeException("Error al subir archivo a Supabase: " + e.getMessage(), e);
         }
+    }
+
+   
+    private String sanitizarNombreArchivo(String nombreOriginal) {
+        if (nombreOriginal == null || nombreOriginal.trim().isEmpty()) {
+            return "archivo_adjunto.jpg";
+        }
+        
+        String normalizado = Normalizer.normalize(nombreOriginal, Normalizer.Form.NFD);
+        
+        String sinTildes = normalizado.replaceAll("\\p{M}", "");
+        
+        return sinTildes.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
     }
 }
