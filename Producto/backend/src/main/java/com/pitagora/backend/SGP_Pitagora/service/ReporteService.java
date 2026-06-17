@@ -102,6 +102,7 @@ public class ReporteService {
                 }
             }
 
+            // 1. Hoja de Estados
             Sheet sheetEstados = workbook.createSheet("Resumen Estados");
             Row estHeaderRow = sheetEstados.createRow(0);
             String[] estHeaders = {"Métrica de Estado", "Cantidad", "Porcentaje"};
@@ -130,6 +131,7 @@ public class ReporteService {
             }
             for (int i = 0; i < 3; i++) sheetEstados.autoSizeColumn(i);
 
+            // 2. Hoja de Categorías
             Sheet sheetCat = workbook.createSheet("Resumen Categorías");
             Row catHeaderRow = sheetCat.createRow(0);
             String[] catHeaders = {"Categoría", "Subcategoría", "Cantidad", "Porcentaje"};
@@ -174,9 +176,41 @@ public class ReporteService {
             }
             for (int i = 0; i < 4; i++) sheetCat.autoSizeColumn(i);
 
+            // 3. NUEVA HOJA: Costos por Obra
+            Sheet sheetCostos = workbook.createSheet("Costos por Obra");
+            Row costoHeaderRow = sheetCostos.createRow(0);
+            String[] costoHeaders = {"Nombre de la Obra", "Costo Total de Reparación ($)"};
+            for (int i = 0; i < costoHeaders.length; i++) {
+                Cell cell = costoHeaderRow.createCell(i);
+                cell.setCellValue(costoHeaders[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            Map<String, Long> costosPorObra = solicitudes.stream()
+                .collect(Collectors.groupingBy(
+                    s -> (s.getObra() != null && s.getObra().getNombre() != null) ? s.getObra().getNombre() : "Sin Obra Asignada",
+                    Collectors.summingLong(s -> s.getCostoReparacion() != null ? s.getCostoReparacion() : 0L)
+                ));
+                
+            int rowNumCosto = 1;
+            long costoTotalAcumulado = 0;
+            for (Map.Entry<String, Long> entry : costosPorObra.entrySet()) {
+                Row row = sheetCostos.createRow(rowNumCosto++);
+                Cell c0 = row.createCell(0); c0.setCellValue(entry.getKey()); c0.setCellStyle(dataStyle);
+                Cell c1 = row.createCell(1); c1.setCellValue(entry.getValue()); c1.setCellStyle(dataStyle);
+                costoTotalAcumulado += entry.getValue();
+            }
+            
+            Row totalCostoRow = sheetCostos.createRow(rowNumCosto);
+            Cell t0 = totalCostoRow.createCell(0); t0.setCellValue("TOTAL GENERAL ($)"); t0.setCellStyle(subHeaderStyle);
+            Cell t1 = totalCostoRow.createCell(1); t1.setCellValue(costoTotalAcumulado); t1.setCellStyle(subHeaderStyle);
+            
+            for (int i = 0; i < 2; i++) sheetCostos.autoSizeColumn(i);
+
+            // 4. Hoja Detalle Solicitudes (Añadido el campo Costo Reparación)
             Sheet sheetDetalle = workbook.createSheet("Detalle Solicitudes");
             Row detHeaderRow = sheetDetalle.createRow(0);
-            String[] headers = {"ID", "Fecha Ingreso", "Empresa Contratista", "Obra", "Estado", "Categoría", "Subcategoría", "Descripción"};
+            String[] headers = {"ID", "Fecha Ingreso", "Empresa Contratista", "Obra", "Estado", "Categoría", "Subcategoría", "Descripción", "Costo ($)"};
             for (int col = 0; col < headers.length; col++) {
                 Cell cell = detHeaderRow.createCell(col);
                 cell.setCellValue(headers[col]);
@@ -211,6 +245,9 @@ public class ReporteService {
                 
                 String desc = solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "N/A";
                 Cell c7 = row.createCell(7); c7.setCellValue(desc); c7.setCellStyle(dataStyle);
+
+                Long costo = solicitud.getCostoReparacion() != null ? solicitud.getCostoReparacion() : 0L;
+                Cell c8 = row.createCell(8); c8.setCellValue(costo); c8.setCellStyle(dataStyle);
             }
             for (int i = 0; i < headers.length; i++) sheetDetalle.autoSizeColumn(i);
 
@@ -268,6 +305,7 @@ public class ReporteService {
                 }
             }
 
+            // 1. Estados
             Paragraph subtitle1 = new Paragraph("1. Resumen General por Estados", fontSubtitle);
             subtitle1.setSpacingAfter(10);
             document.add(subtitle1);
@@ -304,6 +342,7 @@ public class ReporteService {
             }
             document.add(tableEst);
 
+            // 2. Obras
             Paragraph subtitleObra = new Paragraph("2. Resumen de Volumen por Obra", fontSubtitle);
             subtitleObra.setSpacingAfter(10);
             document.add(subtitleObra);
@@ -339,9 +378,57 @@ public class ReporteService {
             }
             document.add(tableObra);
 
-            Paragraph subtitle2 = new Paragraph("3. Desglose Estructural por Categorías", fontSubtitle);
-            subtitle2.setSpacingAfter(10);
-            document.add(subtitle2);
+            // 3. NUEVO: Costos por Obra
+            Paragraph subtitleCostos = new Paragraph("3. Resumen de Costos Financieros por Obra", fontSubtitle);
+            subtitleCostos.setSpacingAfter(10);
+            document.add(subtitleCostos);
+
+            PdfPTable tableCostos = new PdfPTable(2);
+            tableCostos.setWidthPercentage(70f);
+            tableCostos.setHorizontalAlignment(Element.ALIGN_LEFT);
+            tableCostos.setSpacingAfter(20);
+
+            String[] costoHeadersTable = {"Nombre de la Obra", "Costo Total de Reparación ($)"};
+            for (String h : costoHeadersTable) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, fontHeader));
+                cell.setBackgroundColor(bgHeader);
+                cell.setPadding(6);
+                tableCostos.addCell(cell);
+            }
+
+            Map<String, Long> costosPorObra = solicitudes.stream()
+                .collect(Collectors.groupingBy(
+                    s -> (s.getObra() != null && s.getObra().getNombre() != null) ? s.getObra().getNombre() : "Sin Obra Asignada",
+                    Collectors.summingLong(s -> s.getCostoReparacion() != null ? s.getCostoReparacion() : 0L)
+                ));
+
+            long costoTotalAcumulado = 0;
+            for (Map.Entry<String, Long> entry : costosPorObra.entrySet()) {
+                PdfPCell c1 = new PdfPCell(new Phrase(entry.getKey(), fontData));
+                c1.setPadding(5); tableCostos.addCell(c1);
+                
+                PdfPCell c2 = new PdfPCell(new Phrase(String.format(Locale.forLanguageTag("es-CL"), "$ %,d", entry.getValue()), fontData));
+                c2.setPadding(5); tableCostos.addCell(c2);
+                
+                costoTotalAcumulado += entry.getValue();
+            }
+            
+            PdfPCell totalTextCell = new PdfPCell(new Phrase("TOTAL GENERAL INVERTIDO", fontSubHeader));
+            totalTextCell.setBackgroundColor(bgSubHeader); 
+            totalTextCell.setPadding(5); 
+            tableCostos.addCell(totalTextCell);
+            
+            PdfPCell totalNumCell = new PdfPCell(new Phrase(String.format(Locale.forLanguageTag("es-CL"), "$ %,d", costoTotalAcumulado), fontSubHeader));
+            totalNumCell.setBackgroundColor(bgSubHeader); 
+            totalNumCell.setPadding(5); 
+            tableCostos.addCell(totalNumCell);
+
+            document.add(tableCostos);
+
+            // 4. Categorías
+            Paragraph subtitle4 = new Paragraph("4. Desglose Estructural por Categorías", fontSubtitle);
+            subtitle4.setSpacingAfter(10);
+            document.add(subtitle4);
 
             PdfPTable tableCat = new PdfPTable(4);
             tableCat.setWidthPercentage(90f);
@@ -403,15 +490,16 @@ public class ReporteService {
 
             document.newPage();
 
-            Paragraph subtitle3 = new Paragraph("4. Registro Detallado de Solicitudes", fontSubtitle);
-            subtitle3.setSpacingAfter(10);
-            document.add(subtitle3);
+            // 5. Registro Detallado (Añadida la columna Costo)
+            Paragraph subtitle5 = new Paragraph("5. Registro Detallado de Solicitudes", fontSubtitle);
+            subtitle5.setSpacingAfter(10);
+            document.add(subtitle5);
 
-            PdfPTable tableDet = new PdfPTable(8);
+            PdfPTable tableDet = new PdfPTable(9); // Modificado a 9 columnas
             tableDet.setWidthPercentage(100f);
-            tableDet.setWidths(new float[]{1f, 2f, 3f, 3f, 2f, 2.5f, 2.5f, 4f});
+            tableDet.setWidths(new float[]{1f, 2f, 3f, 3f, 2f, 2.5f, 2.5f, 4f, 2f});
 
-            String[] detHeaders = {"ID", "Fecha Ingreso", "Empresa", "Obra", "Estado", "Categoría", "Subcategoría", "Descripción"};
+            String[] detHeaders = {"ID", "Fecha Ingreso", "Empresa", "Obra", "Estado", "Categoría", "Subcategoría", "Descripción", "Costo ($)"};
             for (String h : detHeaders) {
                 PdfPCell cell = new PdfPCell(new Phrase(h, fontHeader));
                 cell.setBackgroundColor(bgHeader);
@@ -452,6 +540,10 @@ public class ReporteService {
                 String desc = solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "N/A";
                 PdfPCell descCell = new PdfPCell(new Phrase(desc, fontData));
                 descCell.setPadding(5); tableDet.addCell(descCell);
+
+                Long costoNum = solicitud.getCostoReparacion() != null ? solicitud.getCostoReparacion() : 0L;
+                PdfPCell costoCell = new PdfPCell(new Phrase(String.format(Locale.forLanguageTag("es-CL"), "$ %,d", costoNum), fontData));
+                costoCell.setPadding(5); tableDet.addCell(costoCell);
             }
             document.add(tableDet);
 

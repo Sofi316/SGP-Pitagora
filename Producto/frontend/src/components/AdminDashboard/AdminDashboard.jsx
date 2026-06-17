@@ -54,7 +54,8 @@ export default function Dashboard() {
           estado: item.estadoSolicitud?.nombre || 'Pendiente',
           fecha: item.fechaIngreso ? item.fechaIngreso.split('T')[0] : '',
           categoria: item.subCategoria?.categoria?.nombre || 'Sin Categoría',
-          subCategoria: item.subCategoria?.nombre || 'Sin Subcategoría'
+          subCategoria: item.subCategoria?.nombre || 'Sin Subcategoría',
+          costoReparacion: item.costoReparacion || 0 // Mapeo del costo agregado
         }));
 
         setDataReal(datosMapeados);
@@ -87,6 +88,9 @@ export default function Dashboard() {
   const kpiPendientes = dataFiltrada.filter(item => item.estado === 'Pendiente').length;
   const kpiAprobados = dataFiltrada.filter(item => item.estado === 'Aprobado').length;
   
+  // KPI Agregado: Suma total de los costos de reparación
+  const kpiCostos = dataFiltrada.reduce((sum, item) => sum + item.costoReparacion, 0);
+  
   const displayPendientes = mostrarPorcentaje && kpiTotales > 0 
     ? ((kpiPendientes / kpiTotales) * 100).toFixed(1) + '%' 
     : kpiPendientes;
@@ -94,6 +98,10 @@ export default function Dashboard() {
   const displayAprobados = mostrarPorcentaje && kpiTotales > 0 
     ? ((kpiAprobados / kpiTotales) * 100).toFixed(1) + '%' 
     : kpiAprobados;
+
+  const formatMontoCLP = (valor) => {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(valor);
+  };
 
   const dataTorta = useMemo(() => {
     const conteo = {};
@@ -143,6 +151,18 @@ export default function Dashboard() {
 
     return Object.values(agrupado).sort((a, b) => b.cantidad - a.cantidad);
   }, [dataFiltrada, categoriaSeleccionada]);
+
+  // Nuevo bloque de datos para el gráfico de Costos por Obra
+  const dataCostosObra = useMemo(() => {
+    const agrupado = {};
+    dataFiltrada.forEach(item => {
+      if (!agrupado[item.obra]) {
+        agrupado[item.obra] = { obra: item.obra, monto: 0 };
+      }
+      agrupado[item.obra].monto += item.costoReparacion;
+    });
+    return Object.values(agrupado).sort((a, b) => b.monto - a.monto);
+  }, [dataFiltrada]);
 
   const descargarExcel = async () => {
     try {
@@ -248,6 +268,10 @@ export default function Dashboard() {
           <span className={styles.kpiTitle}>Aprobados</span>
           <p className={styles.kpiValue}>{displayAprobados}</p>
         </div>
+        <div className={`${styles.kpiCard}`} style={{ backgroundColor: '#4a5d6e', color: '#fff' }}>
+          <span className={styles.kpiTitle}>Costo Total</span>
+          <p className={styles.kpiValue} style={{ fontSize: '28px', marginTop: '5px' }}>{formatMontoCLP(kpiCostos)}</p>
+        </div>
       </div>
 
       <div className={styles.chartsRow}>
@@ -301,7 +325,8 @@ export default function Dashboard() {
                 <BarChart data={dataBarras} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                   <XAxis dataKey="obra" tick={<CustomTick />} interval={0} height={60} />
-                  <YAxis tick={{ fill: '#333333' }} />
+                  {/* FIX: allowDecimals={false} obliga al eje a usar solo números enteros */}
+                  <YAxis allowDecimals={false} tick={{ fill: '#333333' }} />
                   <Tooltip cursor={{ fill: '#f5f5f5' }} />
                   <Legend wrapperStyle={{ paddingTop: '15px', color: '#333333' }} />
                   {ESTADOS.map(estado => (
@@ -343,7 +368,8 @@ export default function Dashboard() {
                   <BarChart data={dataFallas} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                     <XAxis dataKey="nombre" tick={<CustomTick />} interval={0} height={80} />
-                    <YAxis tick={{ fill: '#333333' }} />
+                    {/* FIX: allowDecimals={false} obliga al eje a usar solo números enteros */}
+                    <YAxis allowDecimals={false} tick={{ fill: '#333333' }} />
                     <Tooltip cursor={{ fill: '#f5f5f5' }} />
                     <Bar 
                       dataKey="cantidad" 
@@ -356,6 +382,40 @@ export default function Dashboard() {
             ) : (
               <div className={styles.emptyState}>
                 No hay solicitudes asociadas a esta categoría con los filtros actuales.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* NUEVO GRÁFICO: Costos por Obra */}
+      <div className={styles.chartsRow}>
+        <div className={`${styles.chartCard} ${styles.chartCardBar}`} style={{ flex: '1 1 100%' }}>
+          <h3 className={styles.chartTitle} style={{ marginBottom: '20px' }}>Costo Consolidado de Reparaciones por Obra</h3>
+          <div className={styles.scrollableWrapper}>
+            {dataCostosObra.length > 0 ? (
+              <div className={styles.minWidthChart}>
+                <ResponsiveContainer width="100%" height="100%">
+                  {/* FIX: Aumentamos el ancho del eje Y (width={90}) y el margen izquierdo/inferior para que los números grandes y el texto no se corten */}
+                  <BarChart data={dataCostosObra} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                    <XAxis dataKey="obra" tick={<CustomTick />} interval={0} height={80} />
+                    <YAxis width={90} tickFormatter={(val) => `$${val.toLocaleString('es-CL')}`} tick={{ fill: '#333333' }} />
+                    <Tooltip 
+                      formatter={(value) => [formatMontoCLP(value), "Costo Total"]}
+                      cursor={{ fill: '#f5f5f5' }} 
+                    />
+                    <Bar 
+                      dataKey="monto" 
+                      fill="#2a9d8f" 
+                      name="Costo de Reparación" 
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                No se registran costos de reparación con los parámetros de búsqueda actuales.
               </div>
             )}
           </div>

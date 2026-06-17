@@ -54,7 +54,7 @@ const LoginPanel = () => {
         }
 
         if (rolUsuario === 'ADMIN') {
-          // AQUÍ SE ACTUALIZÓ LA RUTA AL DASHBOARD
+         
           navigate('/admin/dashboard');
         } else if (rolUsuario === 'CLIENTE') {
           navigate('/cliente');

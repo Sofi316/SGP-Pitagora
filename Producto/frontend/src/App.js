@@ -24,6 +24,7 @@ import AutoLogout from './services/Autologout';
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
 import ClientDetalleSolicitud from './components/ClientDetalleSolicitud/ClientDetalleSolicitud';
 import ConformidadCliente from './components/ConformidadCliente/ConformidadCliente';
+import RutaInvitado from './components/RutaInvitado/RutaInvitado';
 import './index.css';
 
 function App() {
@@ -32,23 +33,29 @@ function App() {
         <AutoLogout>
           <Routes>
             <Route path="/" element={
+              <RutaInvitado>
               <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#7e9ab2' }}>
                 <Header showLogout={false}/>
                 <LoginPanel />
               </div>
+              </RutaInvitado>
             }/>
-
+      
             <Route path="/recuperar" element={
+              <RutaInvitado>
               <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
                 <Header showLogout={false} />
                 <RecoverPassword />
               </div>
+              </RutaInvitado>
             } />
             <Route path="/reset-password" element={
+              <RutaInvitado>
               <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#7e9ab2' }}>
                 <Header showLogout={false} />
                 <ResetPassword />
               </div>
+              </RutaInvitado>
             } />
             <Route path="/conformidad/:token" element={
               <ConformidadCliente />} />

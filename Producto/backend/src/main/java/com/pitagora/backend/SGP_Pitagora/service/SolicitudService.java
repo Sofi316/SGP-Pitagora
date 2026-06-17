@@ -59,6 +59,19 @@ public class SolicitudService {
 
     @Transactional
     public Solicitud guardarConEvidencias(Solicitud solicitud, List<MultipartFile> archivos) {
+        
+        // 1. VALIDACIÓN: Verificar si la obra tiene usuarios asociados antes de hacer cualquier cosa
+        if (solicitud.getObra() == null || solicitud.getObra().getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe seleccionar una obra válida.");
+        }
+
+        List<String> correosDestino = usuarioRepository.findCorreosByObraId(solicitud.getObra().getId());
+        if (correosDestino == null || correosDestino.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "No se puede crear la solicitud: La obra seleccionada no tiene usuarios asignados para recibir notificaciones.");
+        }
+
+        // 2. Si hay a quien notificar, guardamos la solicitud
         Solicitud solicitudGuardada = solicitudRepository.save(solicitud);
 
         if (archivos != null && !archivos.isEmpty()) {

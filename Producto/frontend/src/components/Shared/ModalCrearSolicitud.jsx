@@ -156,7 +156,7 @@ const ModalCrearSolicitud = ({ show, onClose, obra, onSolicitudCreada }) => {
 
     } catch (err) {
       if (err.response?.status !== 401) {
-        const msg = err.response?.data?.message || 'Error al crear la solicitud. Intente nuevamente.';
+        const msg = err.response?.data?.message || 'Error al crear la solicitud.';
         setModalError(msg);
       }
       console.error(err);
