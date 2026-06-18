@@ -14,6 +14,7 @@ const ClientDetalleSolicitud = () => {
 
   useEffect(() => {
     cargarDetalle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const cargarDetalle = async () => {
