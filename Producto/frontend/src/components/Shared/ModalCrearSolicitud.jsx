@@ -62,7 +62,6 @@ const ModalCrearSolicitud = ({ show, onClose, obra, onSolicitudCreada }) => {
     }
 
     const archivosValidos = [];
-    const nuevasPreviews = [];
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024; 
 
