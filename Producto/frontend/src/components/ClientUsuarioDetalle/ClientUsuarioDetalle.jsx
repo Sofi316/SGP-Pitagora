@@ -49,6 +49,7 @@ const ClientUsuarioDetalle = () => {
 
   useEffect(() => {
     cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleOpenModal = () => {
