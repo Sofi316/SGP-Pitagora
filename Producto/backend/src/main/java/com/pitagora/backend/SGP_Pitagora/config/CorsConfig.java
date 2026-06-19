@@ -13,7 +13,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:3000", 
                         "http://localhost:5173",
-                        "https://sgp-pitagora-11wssu7zd-sofi316s-projects.vercel.app"
+                        "https://sgp-pitagora.vercel.app"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
