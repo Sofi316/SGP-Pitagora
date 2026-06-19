@@ -252,11 +252,31 @@ export default function Dashboard() {
         </div>
         <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Inicio</label>
-          <input type="date" className={styles.menuItem} value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+          <input 
+            type={fechaInicio ? "date" : "text"} 
+            placeholder="dd-mm-aaaa"
+            className={styles.menuItem} 
+            value={fechaInicio} 
+            onChange={(e) => setFechaInicio(e.target.value)}
+            onFocus={(e) => e.target.type = "date"}
+            onBlur={(e) => {
+              if (!fechaInicio) e.target.type = "text";
+            }}
+          />
         </div>
         <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Fin</label>
-          <input type="date" className={styles.menuItem} value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+          <input 
+            type={fechaFin ? "date" : "text"} 
+            placeholder="dd-mm-aaaa"
+            className={styles.menuItem} 
+            value={fechaFin} 
+            onChange={(e) => setFechaFin(e.target.value)}
+            onFocus={(e) => e.target.type = "date"}
+            onBlur={(e) => {
+              if (!fechaFin) e.target.type = "text";
+            }}
+          />
         </div>
         <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
           <button className={styles.clearBtn} onClick={limpiarFiltros}>
