@@ -270,7 +270,13 @@ export default function Dashboard() {
               type="date" 
               className={styles.menuItem} 
               value={fechaInicio} 
-              onChange={(e) => setFechaInicio(e.target.value)}
+              max={fechaFin}
+              onChange={(e) => {
+                setFechaInicio(e.target.value);
+                if (fechaFin && e.target.value > fechaFin) {
+                  setFechaFin('');
+                }
+              }}
               style={!fechaInicio ? { color: 'transparent' } : { color: '#ffffff' }}
             />
           </div>
@@ -295,6 +301,7 @@ export default function Dashboard() {
               type="date" 
               className={styles.menuItem} 
               value={fechaFin} 
+              min={fechaInicio}
               onChange={(e) => setFechaFin(e.target.value)}
               style={!fechaFin ? { color: 'transparent' } : { color: '#ffffff' }}
             />
