@@ -252,43 +252,53 @@ export default function Dashboard() {
         </div>
        <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Inicio</label>
-          <input 
-            type={fechaInicio ? "date" : "text"} 
-            placeholder="dd-mm-aaaa"
-            className={styles.menuItem} 
-            value={fechaInicio} 
-            onChange={(e) => setFechaInicio(e.target.value)}
-            onFocus={(e) => {
-              e.target.type = "date";
-              try { e.target.showPicker(); } catch (err) {}
-            }}
-            onClick={(e) => {
-              try { e.target.showPicker(); } catch (err) {} // Fuerza la apertura con cada toque
-            }}
-            onBlur={(e) => {
-              if (!fechaInicio) e.target.type = "text";
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            {!fechaInicio && (
+              <span style={{ 
+                position: 'absolute', 
+                left: '15px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: 'rgba(255, 255, 255, 0.8)', 
+                pointerEvents: 'none',
+                fontSize: '15px'
+              }}>
+                dd-mm-aaaa
+              </span>
+            )}
+            <input 
+              type="date" 
+              className={styles.menuItem} 
+              value={fechaInicio} 
+              onChange={(e) => setFechaInicio(e.target.value)}
+              style={!fechaInicio ? { color: 'transparent' } : { color: '#ffffff' }}
+            />
+          </div>
         </div>
         <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Fin</label>
-          <input 
-            type={fechaFin ? "date" : "text"} 
-            placeholder="dd-mm-aaaa"
-            className={styles.menuItem} 
-            value={fechaFin} 
-            onChange={(e) => setFechaFin(e.target.value)}
-            onFocus={(e) => {
-              e.target.type = "date";
-              try { e.target.showPicker(); } catch (err) {}
-            }}
-            onClick={(e) => {
-              try { e.target.showPicker(); } catch (err) {} // Fuerza la apertura con cada toque
-            }}
-            onBlur={(e) => {
-              if (!fechaFin) e.target.type = "text";
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            {!fechaFin && (
+              <span style={{ 
+                position: 'absolute', 
+                left: '15px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: 'rgba(255, 255, 255, 0.8)', 
+                pointerEvents: 'none',
+                fontSize: '15px'
+              }}>
+                dd-mm-aaaa
+              </span>
+            )}
+            <input 
+              type="date" 
+              className={styles.menuItem} 
+              value={fechaFin} 
+              onChange={(e) => setFechaFin(e.target.value)}
+              style={!fechaFin ? { color: 'transparent' } : { color: '#ffffff' }}
+            />
+          </div>
         </div>
         <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
           <button className={styles.clearBtn} onClick={limpiarFiltros}>
