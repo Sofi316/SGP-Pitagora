@@ -136,6 +136,10 @@
   outline: none;
   cursor: pointer;
 }
+.menuItem::placeholder {
+  color: #ffffff;
+  opacity: 0.8;
+}
 
 .menuItem option {
   background-color: #ffffff;

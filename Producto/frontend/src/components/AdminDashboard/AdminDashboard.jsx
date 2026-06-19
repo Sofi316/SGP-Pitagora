@@ -250,7 +250,7 @@ export default function Dashboard() {
             ))}
           </select>
         </div>
-        <div className={styles.formGroup}>
+       <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Inicio</label>
           <input 
             type={fechaInicio ? "date" : "text"} 
@@ -258,7 +258,10 @@ export default function Dashboard() {
             className={styles.menuItem} 
             value={fechaInicio} 
             onChange={(e) => setFechaInicio(e.target.value)}
-            onFocus={(e) => e.target.type = "date"}
+            onFocus={(e) => {
+              e.target.type = "date";
+              try { e.target.showPicker(); } catch (err) {} 
+            }}
             onBlur={(e) => {
               if (!fechaInicio) e.target.type = "text";
             }}
@@ -272,7 +275,10 @@ export default function Dashboard() {
             className={styles.menuItem} 
             value={fechaFin} 
             onChange={(e) => setFechaFin(e.target.value)}
-            onFocus={(e) => e.target.type = "date"}
+            onFocus={(e) => {
+              e.target.type = "date";
+              try { e.target.showPicker(); } catch (err) {} 
+            }}
             onBlur={(e) => {
               if (!fechaFin) e.target.type = "text";
             }}
