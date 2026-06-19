@@ -260,7 +260,10 @@ export default function Dashboard() {
             onChange={(e) => setFechaInicio(e.target.value)}
             onFocus={(e) => {
               e.target.type = "date";
-              try { e.target.showPicker(); } catch (err) {} 
+              try { e.target.showPicker(); } catch (err) {}
+            }}
+            onClick={(e) => {
+              try { e.target.showPicker(); } catch (err) {} // Fuerza la apertura con cada toque
             }}
             onBlur={(e) => {
               if (!fechaInicio) e.target.type = "text";
@@ -277,7 +280,10 @@ export default function Dashboard() {
             onChange={(e) => setFechaFin(e.target.value)}
             onFocus={(e) => {
               e.target.type = "date";
-              try { e.target.showPicker(); } catch (err) {} 
+              try { e.target.showPicker(); } catch (err) {}
+            }}
+            onClick={(e) => {
+              try { e.target.showPicker(); } catch (err) {} // Fuerza la apertura con cada toque
             }}
             onBlur={(e) => {
               if (!fechaFin) e.target.type = "text";
