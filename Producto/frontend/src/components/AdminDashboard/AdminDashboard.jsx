@@ -54,7 +54,7 @@ export default function Dashboard() {
           fecha: item.fechaIngreso ? item.fechaIngreso.split('T')[0] : '',
           categoria: item.subCategoria?.categoria?.nombre || 'Sin Categoría',
           subCategoria: item.subCategoria?.nombre || 'Sin Subcategoría',
-          costoReparacion: item.costoReparacion || 0 // Mapeo del costo agregado
+          costoReparacion: item.costoReparacion || 0
         }));
 
         setDataReal(datosMapeados);
@@ -65,6 +65,14 @@ export default function Dashboard() {
 
     obtenerDatos();
   }, []);
+
+  const limpiarFiltros = () => {
+    setFiltroEmpresa('');
+    setFiltroObra('');
+    setFechaInicio('');
+    setFechaFin('');
+    setCategoriaSeleccionada('TODAS');
+  };
 
   const empresasUnicas = [...new Set(dataReal.map(item => item.empresa))];
   const obrasUnicas = [...new Set(dataReal.filter(item => filtroEmpresa === '' || item.empresa === filtroEmpresa).map(item => item.obra))];
@@ -87,7 +95,6 @@ export default function Dashboard() {
   const kpiPendientes = dataFiltrada.filter(item => item.estado === 'Pendiente').length;
   const kpiAprobados = dataFiltrada.filter(item => item.estado === 'Aprobado').length;
   
-  // KPI Agregado: Suma total de los costos de reparación
   const kpiCostos = dataFiltrada.reduce((sum, item) => sum + item.costoReparacion, 0);
   
   const displayPendientes = mostrarPorcentaje && kpiTotales > 0 
@@ -151,7 +158,6 @@ export default function Dashboard() {
     return Object.values(agrupado).sort((a, b) => b.cantidad - a.cantidad);
   }, [dataFiltrada, categoriaSeleccionada]);
 
-  // Nuevo bloque de datos para el gráfico de Costos por Obra
   const dataCostosObra = useMemo(() => {
     const agrupado = {};
     dataFiltrada.forEach(item => {
@@ -252,6 +258,11 @@ export default function Dashboard() {
           <label className={styles.selectLabel}>Fecha Fin</label>
           <input type="date" className={styles.menuItem} value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
         </div>
+        <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <button className={styles.clearBtn} onClick={limpiarFiltros}>
+            Limpiar Filtros
+          </button>
+        </div>
       </div>
 
       <div className={styles.kpiRow}>
@@ -324,7 +335,6 @@ export default function Dashboard() {
                 <BarChart data={dataBarras} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                   <XAxis dataKey="obra" tick={<CustomTick />} interval={0} height={60} />
-                  {/* FIX: allowDecimals={false} obliga al eje a usar solo números enteros */}
                   <YAxis allowDecimals={false} tick={{ fill: '#333333' }} />
                   <Tooltip cursor={{ fill: '#f5f5f5' }} />
                   <Legend wrapperStyle={{ paddingTop: '15px', color: '#333333' }} />
@@ -367,7 +377,6 @@ export default function Dashboard() {
                   <BarChart data={dataFallas} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                     <XAxis dataKey="nombre" tick={<CustomTick />} interval={0} height={80} />
-                    {/* FIX: allowDecimals={false} obliga al eje a usar solo números enteros */}
                     <YAxis allowDecimals={false} tick={{ fill: '#333333' }} />
                     <Tooltip cursor={{ fill: '#f5f5f5' }} />
                     <Bar 
@@ -387,7 +396,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* NUEVO GRÁFICO: Costos por Obra */}
       <div className={styles.chartsRow}>
         <div className={`${styles.chartCard} ${styles.chartCardBar}`} style={{ flex: '1 1 100%' }}>
           <h3 className={styles.chartTitle} style={{ marginBottom: '20px' }}>Costo Consolidado de Reparaciones por Obra</h3>
@@ -395,7 +403,6 @@ export default function Dashboard() {
             {dataCostosObra.length > 0 ? (
               <div className={styles.minWidthChart}>
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* FIX: Aumentamos el ancho del eje Y (width={90}) y el margen izquierdo/inferior para que los números grandes y el texto no se corten */}
                   <BarChart data={dataCostosObra} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                     <XAxis dataKey="obra" tick={<CustomTick />} interval={0} height={80} />
