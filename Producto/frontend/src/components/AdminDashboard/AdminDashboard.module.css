@@ -147,6 +147,22 @@
   cursor: pointer;
 }
 
+.clearBtn {
+  background-color: #364a5e;
+  color: #ffffff;
+  padding: 12px 15px;
+  font-size: 15px;
+  border-radius: 2px;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clearBtn:hover {
+  background-color: #2a3a4a;
+}
+
 .kpiRow {
   display: flex;
   gap: 20px;
