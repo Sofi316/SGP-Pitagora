@@ -35,13 +35,6 @@ public class DataInitializer {
                     return rolRepository.save(nuevo);
                 });
 
-            Rol clienteRol = rolRepository.findByNombre("CLIENTE")
-                .orElseGet(() -> {
-                    Rol nuevo = new Rol();
-                    nuevo.setNombre("CLIENTE");
-                    return rolRepository.save(nuevo);
-                });
-
             if (usuarioRepository.findByCorreo(adminEmail).isEmpty()) {
                 Usuario admin = new Usuario();
                 admin.setNombre("Admin");
@@ -56,19 +49,6 @@ public class DataInitializer {
                 usuarioRepository.save(admin);
             }
 
-            if (usuarioRepository.findByCorreo("cliente@test.cl").isEmpty()) {
-                Usuario cliente = new Usuario();
-                cliente.setNombre("Juan");
-                cliente.setApellido("Prueba");
-                cliente.setRut("33333333-3");
-                cliente.setCorreo("cliente@test.cl");
-                cliente.setContrasena(passwordEncoder.encode("1234"));
-                cliente.setRol(clienteRol);
-                cliente.setActivo(true);
-                cliente.setRecibe_notificaciones(true);
-
-                usuarioRepository.save(cliente);
-            }
         };
     }
 }
