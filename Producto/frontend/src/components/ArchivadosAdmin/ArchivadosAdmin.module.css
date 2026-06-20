@@ -45,6 +45,10 @@
   overflow: hidden;
   white-space: nowrap;
 }
+.menuItem::placeholder {
+  color: #ffffff;
+  opacity: 0.7;
+}
 
 .selectLabel {
   color: #ffffff;
