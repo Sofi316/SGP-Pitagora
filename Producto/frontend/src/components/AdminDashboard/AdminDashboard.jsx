@@ -252,60 +252,11 @@ export default function Dashboard() {
         </div>
        <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Inicio</label>
-          <div style={{ position: 'relative' }}>
-            {!fechaInicio && (
-              <span style={{ 
-                position: 'absolute', 
-                left: '15px', 
-                top: '50%', 
-                transform: 'translateY(-50%)', 
-                color: 'rgba(255, 255, 255, 0.8)', 
-                pointerEvents: 'none',
-                fontSize: '15px'
-              }}>
-                dd-mm-aaaa
-              </span>
-            )}
-            <input 
-              type="date" 
-              className={styles.menuItem} 
-              value={fechaInicio} 
-              max={fechaFin}
-              onChange={(e) => {
-                setFechaInicio(e.target.value);
-                if (fechaFin && e.target.value > fechaFin) {
-                  setFechaFin('');
-                }
-              }}
-              style={!fechaInicio ? { color: 'transparent' } : { color: '#ffffff' }}
-            />
-          </div>
+          <input type="date" className={styles.menuItem} value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
         </div>
         <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Fin</label>
-          <div style={{ position: 'relative' }}>
-            {!fechaFin && (
-              <span style={{ 
-                position: 'absolute', 
-                left: '15px', 
-                top: '50%', 
-                transform: 'translateY(-50%)', 
-                color: 'rgba(255, 255, 255, 0.8)', 
-                pointerEvents: 'none',
-                fontSize: '15px'
-              }}>
-                dd-mm-aaaa
-              </span>
-            )}
-            <input 
-              type="date" 
-              className={styles.menuItem} 
-              value={fechaFin} 
-              min={fechaInicio}
-              onChange={(e) => setFechaFin(e.target.value)}
-              style={!fechaFin ? { color: 'transparent' } : { color: '#ffffff' }}
-            />
-          </div>
+          <input type="date" className={styles.menuItem} value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
         </div>
         <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
           <button className={styles.clearBtn} onClick={limpiarFiltros}>
