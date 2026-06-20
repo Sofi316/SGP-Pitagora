@@ -252,11 +252,36 @@ export default function Dashboard() {
         </div>
        <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Inicio</label>
-          <input type="date" className={styles.menuItem} value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+          <input 
+            type="date" 
+            className={styles.menuItem} 
+            value={fechaInicio} 
+            max={fechaFin}
+            onClick={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+            onFocus={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+            onKeyDown={(e) => e.preventDefault()}
+            style={{ cursor: 'pointer' }}
+            onChange={(e) => {
+              setFechaInicio(e.target.value);
+              if (fechaFin && e.target.value > fechaFin) {
+                setFechaFin('');
+              }
+            }}
+          />
         </div>
         <div className={styles.formGroup}>
           <label className={styles.selectLabel}>Fecha Fin</label>
-          <input type="date" className={styles.menuItem} value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+          <input 
+            type="date" 
+            className={styles.menuItem} 
+            value={fechaFin}  
+            min={fechaInicio}
+            onClick={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+            onFocus={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+            onKeyDown={(e) => e.preventDefault()}
+            style={{ cursor: 'pointer' }}
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
         </div>
         <div className={styles.formGroup} style={{ display: 'flex', alignItems: 'flex-end' }}>
           <button className={styles.clearBtn} onClick={limpiarFiltros}>
