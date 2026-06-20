@@ -36,7 +36,7 @@ public class SolicitudService {
     private final ObraRepository obraRepository;
     private final SubCategoriaRepository subCategoriaRepository;
 
-    @Value("${app.frontend.url:http://localhost:3000}")
+    @Value("${FRONTEND_URL:http://localhost:3000}")
     private String frontendUrl;
 
     public SolicitudService(SolicitudRepository solicitudRepository, 
