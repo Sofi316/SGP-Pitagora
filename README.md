@@ -97,9 +97,12 @@ Asegúrese de tener instalados los siguientes componentes globales en su sistema
 # Verificar la instalación de Docker y Docker Compose
 docker --version
 docker compose version
-
 ```
+### Configuración de Almacenamiento (Supabase): 
+El módulo de gestión de evidencias requiere obligatoriamente la creación manual de dos buckets en el panel de su proyecto de Supabase (Storage) antes de levantar la API. Ambos deben estar configurados como Públicos:
+ - acta_entrega
 
+ - archivo_evidencia
 ### Clonar e Instalar Dependencias
 
 1. Clonar el repositorio completo del proyecto:
@@ -145,9 +148,10 @@ DB_USERNAME=<USUARIO>
 DB_PASSWORD=<CONTRASEÑA>
 
 # ==========================================
-# SEGURIDAD JWT
+# SEGURIDAD JWT Y CORS
 # ==========================================
 JWT_SECRET_KEY=<CLAVE_SECRETA_JWT>
+FRONTEND_URL=${FRONTEND_URL:http://localhost:3000}
 
 # ==========================================
 # CORREO ELECTRÓNICO (SMTP)
@@ -177,6 +181,7 @@ ADMIN_INIT_RUT=<RUT_ADMINISTRADOR>
 | `DB_USERNAME` | Usuario con permisos de acceso a la base de datos. |
 | `DB_PASSWORD` | Contraseña del usuario de la base de datos. |
 | `JWT_SECRET_KEY` | Clave utilizada para la generación y validación de tokens JWT. |
+| `FRONTEND_URL` | URL del origen permitido para el cruce de recursos (CORS) desde la interfaz cliente. |
 | `MAIL_USERNAME` | Cuenta de correo utilizada para el envío automático de notificaciones. |
 | `MAIL_PASSWORD` | Contraseña o clave de aplicación del servicio de correo. |
 | `SUPABASE_URL` | URL de la instancia de Supabase utilizada por la aplicación. |
@@ -313,7 +318,7 @@ git commit -m "feat: implementa despliegue dinamico de estrellas en bloque de co
 
 ## Estándares
 
-* **Capa Lógica Limpia (Clean Code):** Arquitectura del backend estructurada bajo el patrón MVC con separación estricta de responsabilidades (Controllers únicamente derivan peticiones, Services contienen las reglas de negocio y Repositories aíslan las consultas SQL).
+* **Capa Lógica Limpia (Clean Code):** Arquitectura del backend estructurada bajo un patrón multicapa (Layered Architecture) para desacoplamiento estricto de responsabilidades. Se implementa un modelo de API REST donde los controladores (`Controllers`) actúan exclusivamente como puntos de entrada para derivar peticiones HTTP, la capa de servicios (`Services`) centraliza las reglas de negocio, y los repositorios (`Repositories` / Spring Data JPA) aíslan los accesos y consultas a la base de datos PostgreSQL.
 * **Normalización de Base de Datos:** Modelo relacional en tercera forma normal (3FN) con integridad referencial completa y uso de tablas intermedias (muchos a muchos) para el aislamiento de datos por usuario.
 * **Encapsulamiento en Frontend:** Uso exclusivo de CSS Modules (`.module.css`) por cada componente visual de React para mitigar la colisión global de estilos en pantallas de celulares.
 
