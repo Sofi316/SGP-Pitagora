@@ -20,7 +20,6 @@ const ArchivadosAdmin = () => {
 
   const cargarObras = async () => {
     try {
-  
       const response = await api.get('/obras');
       setObras(response.data);
     } catch (err) {
@@ -65,7 +64,7 @@ const ArchivadosAdmin = () => {
     setLoading(true);
     setError('');
     try {
-     
+      
       const params = new URLSearchParams();
       params.append('id', idSolicitud);
       if (inicio) params.append('fechaInicio', inicio);
@@ -182,21 +181,68 @@ const ArchivadosAdmin = () => {
             <form onSubmit={aplicarFiltros} className={styles.filtersForm}>
               <div className={styles.formGroup}>
                 <label className={styles.selectLabel}>Desde</label>
-                <input 
-                  type="date" 
-                  value={filtros.fechaInicio} 
-                  onChange={(e) => setFiltros({...filtros, fechaInicio: e.target.value})}
-                  className={styles.menuItem}
-                />
+                <div style={{ position: 'relative' }}>
+                  {!filtros.fechaInicio && (
+                    <span style={{ 
+                      position: 'absolute', 
+                      left: '15px', 
+                      top: '50%', 
+                      transform: 'translateY(-50%)', 
+                      color: 'rgba(255, 255, 255, 0.8)', 
+                      pointerEvents: 'none',
+                      fontSize: '15px'
+                    }}>
+                      dd-mm-aaaa
+                    </span>
+                  )}
+                  <input 
+                    type="date" 
+                    className={styles.menuItem} 
+                    value={filtros.fechaInicio} 
+                    max={filtros.fechaFin}
+                    onClick={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+                    onFocus={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+                    onKeyDown={(e) => e.preventDefault()}
+                    style={{ cursor: 'pointer', color: !filtros.fechaInicio ? 'transparent' : '#ffffff' }}
+                    onChange={(e) => {
+                      const nuevaFechaInicio = e.target.value;
+                      if (filtros.fechaFin && nuevaFechaInicio > filtros.fechaFin) {
+                        setFiltros({ ...filtros, fechaInicio: nuevaFechaInicio, fechaFin: '' });
+                      } else {
+                        setFiltros({ ...filtros, fechaInicio: nuevaFechaInicio });
+                      }
+                    }}
+                  />
+                </div>
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.selectLabel}>Hasta</label>
-                <input 
-                  type="date" 
-                  value={filtros.fechaFin} 
-                  onChange={(e) => setFiltros({...filtros, fechaFin: e.target.value})}
-                  className={styles.menuItem}
-                />
+                <div style={{ position: 'relative' }}>
+                  {!filtros.fechaFin && (
+                    <span style={{ 
+                      position: 'absolute', 
+                      left: '15px', 
+                      top: '50%', 
+                      transform: 'translateY(-50%)', 
+                      color: 'rgba(255, 255, 255, 0.8)', 
+                      pointerEvents: 'none',
+                      fontSize: '15px'
+                    }}>
+                      dd-mm-aaaa
+                    </span>
+                  )}
+                  <input 
+                    type="date" 
+                    className={styles.menuItem} 
+                    value={filtros.fechaFin} 
+                    min={filtros.fechaInicio}
+                    onClick={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+                    onFocus={(e) => { try { e.target.showPicker(); } catch(err) {} }}
+                    onKeyDown={(e) => e.preventDefault()}
+                    style={{ cursor: 'pointer', color: !filtros.fechaFin ? 'transparent' : '#ffffff' }}
+                    onChange={(e) => setFiltros({ ...filtros, fechaFin: e.target.value })}
+                  />
+                </div>
               </div>
               <div className={styles.formGroupLarge}>
                 <label className={styles.selectLabel}>Búsqueda por texto</label>
