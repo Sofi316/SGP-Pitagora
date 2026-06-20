@@ -185,7 +185,7 @@ const ArchivadosAdmin = () => {
                   {!filtros.fechaInicio && (
                     <span style={{ 
                       position: 'absolute', 
-                      left: '15px', 
+                      left: '20px', 
                       top: '50%', 
                       transform: 'translateY(-50%)', 
                       color: 'rgba(255, 255, 255, 0.8)', 
@@ -215,13 +215,14 @@ const ArchivadosAdmin = () => {
                   />
                 </div>
               </div>
+
               <div className={styles.formGroup}>
                 <label className={styles.selectLabel}>Hasta</label>
                 <div style={{ position: 'relative' }}>
                   {!filtros.fechaFin && (
                     <span style={{ 
                       position: 'absolute', 
-                      left: '15px', 
+                      left: '20px', 
                       top: '50%', 
                       transform: 'translateY(-50%)', 
                       color: 'rgba(255, 255, 255, 0.8)', 
