@@ -45,6 +45,9 @@ public class EmailPollerService {
     @Value("${mail.imap.host}")
     private String host;
 
+    @Value("${FRONTEND_URL:http://localhost:3000}")
+    private String frontendUrl;
+
     public EmailPollerService(SolicitudRepository solicitudRepository, 
                                ComunicacionArchivadaRepository comunicacionRepository,
                                EmailSenderService emailSenderService,
@@ -146,7 +149,6 @@ public class EmailPollerService {
         LocalDateTime ahora = LocalDateTime.now();
 
         for (Solicitud sol : solicitudesTerminadas) {
-            // Saltamos las que no tienen token para evitar errores
             if (sol.getFechaExpiracionToken() == null) continue;
 
             int recordatoriosEnviados = sol.getContadorRecordatorios() != null ? sol.getContadorRecordatorios() : 0;
@@ -154,10 +156,8 @@ public class EmailPollerService {
             boolean tokenExpiro = sol.getFechaExpiracionToken().isBefore(ahora);
             LocalDateTime fechaReferencia = sol.getFechaUltimoRecordatorio() != null ? sol.getFechaUltimoRecordatorio() : sol.getFechaExpiracionToken().minusWeeks(4);
             
-            // LÓGICA DE PRODUCCIÓN: ¿Ya pasaron 7 días (1 semana) desde el último correo?
             boolean tiempoCumplido = fechaReferencia.plusDays(7).isBefore(ahora);
 
-            // 1. LÓGICA DE CIERRE (Si expiró el token real, o si ya mandamos los 3 recordatorios Y pasó el último intervalo de tiempo)
             if (tokenExpiro || (tiempoCumplido && recordatoriosEnviados >= 3)) {
                 System.out.println("[POSTVENTA] Cerrando solicitud automáticamente ID: " + sol.getId());
                 
@@ -177,7 +177,6 @@ public class EmailPollerService {
                     emailSenderService.enviarYArchivarCorreo(correo, asunto, cuerpo, sol);
                 }
             } 
-            // 2. LÓGICA DE RECORDATORIOS (Si pasó el tiempo y aún no llegamos a los 3 recordatorios)
             else if (tiempoCumplido && recordatoriosEnviados < 3) {
                 int nuevoContador = recordatoriosEnviados + 1;
                 System.out.println("[POSTVENTA] Disparando Recordatorio #" + nuevoContador + " para la Solicitud ID: " + sol.getId());
@@ -187,7 +186,7 @@ public class EmailPollerService {
                 solicitudRepository.save(sol);
 
                 String asunto = "Recordatorio #" + nuevoContador + " - Conformidad Requerida SGP Pitagora [ID-" + sol.getId() + "]";
-                String enlace = "http://localhost:3000/conformidad/" + sol.getTokenConformidad();
+                String enlace = frontendUrl + "/conformidad/" + sol.getTokenConformidad();
                 String cuerpo = "Estimado cliente,\n\nLe recordamos que aún está pendiente su evaluación para el trabajo finalizado en la solicitud #" + sol.getId() + ".\n\nPor favor, ingrese al siguiente enlace para emitir su respuesta:\n" + enlace;
 
                 List<String> correos = sol.getObra() != null ? usuarioRepository.findCorreosByObraId(sol.getObra().getId()) : List.of();
@@ -197,5 +196,4 @@ public class EmailPollerService {
             }
         }
     }
-
 }
